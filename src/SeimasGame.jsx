@@ -1,50 +1,82 @@
 /*
  * Seimas: Battle for Lithuania
- * A mobile-first campaign & coalition simulator of Lithuania's mixed electoral system:
+ * A friendly, mobile-first campaign & coalition game built on Lithuania's real mixed electoral system:
  * 70 proportional seats (5% threshold, Hare–Niemeyer) + 71 single-mandate seats (two-round runoff).
  * Single-file React component. Tailwind CSS + lucide-react. No external APIs.
+ * Map outlines simplified from @react-map/lithuania (MIT License, Copyright (c) Shubham Singh).
  */
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
-  Map as MapIcon, BarChart3, Landmark, Newspaper, ChevronRight, ChevronDown, X, Zap, Wallet, TrendingUp,
+  Map as MapIcon, BarChart3, Building2, Newspaper, ChevronRight, ChevronDown, X, Zap, Wallet, TrendingUp,
   TrendingDown, Megaphone, Smartphone, Radio, DoorOpen, Swords, Users, Shield, Home, HeartPulse, Truck,
   Factory, Tractor, Plane, Anchor, GraduationCap, Globe, Coins, HandCoins, Handshake, Crown, Vote,
   RotateCcw, HelpCircle, AlertTriangle, Flame, Mic, Scale, Leaf, Info, ArrowRight, TramFront, TrainFront,
-  Languages, PiggyBank, Trophy, Music, Mail, SkipForward, Award, Check, Lock, Building2, Tv, Target,
-  Briefcase, Play, Sparkles, ShieldAlert, Siren, Flag,
+  Languages, PiggyBank, Trophy, Music, Mail, SkipForward, Check, Tv, Target, Briefcase, Play, Sparkles,
+  ShieldAlert, Siren, Flag, Star, Smile, Meh, Frown, Wand2, Lightbulb, Medal, Landmark,
 } from 'lucide-react';
 
 /* ============================================================
    Typography & layout tokens
    ============================================================ */
 const FONT_HREF =
-  'https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap';
-const F_DISPLAY = { fontFamily: "'Archivo', 'Arial Narrow', 'Roboto Condensed', sans-serif", fontStretch: '74%' };
-const F_MONO = { fontFamily: "'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace", fontVariantNumeric: 'tabular-nums' };
-const F_BODY = "'IBM Plex Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
+  'https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@500;600;700;800;900&display=swap';
+const FONT_TITLE = "'Fredoka', 'Baloo 2', 'Trebuchet MS', system-ui, sans-serif";
+const F_DISPLAY = { fontFamily: FONT_TITLE, fontWeight: 700 };
+const F_MONO = { fontFamily: FONT_TITLE, fontVariantNumeric: 'tabular-nums', fontWeight: 600 };
+const F_BODY = "'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
 const GUTTER = {
   paddingLeft: 'max(16px, env(safe-area-inset-left, 0px))',
   paddingRight: 'max(16px, env(safe-area-inset-right, 0px))',
 };
 const FLAG = { y: '#FDB913', g: '#006A44', r: '#C1272D' };
-const GOLD = '#FBBF24';
+const INK = '#1F2544';
+const SUN = '#FDB913';
+const GOLD = SUN;
+const MUTED = '#56607A';
 
 const GLOBAL_CSS = `
-@keyframes sbl-up { from { transform: translateY(28px); opacity: 0 } to { transform: none; opacity: 1 } }
-@keyframes sbl-fade { from { opacity: 0 } to { opacity: 1 } }
-@keyframes sbl-pop { 0% { transform: scale(.6); opacity: 0 } 70% { transform: scale(1.08) } 100% { transform: scale(1); opacity: 1 } }
-@keyframes sbl-toast { from { transform: translateY(12px); opacity: 0 } to { transform: none; opacity: 1 } }
-@keyframes sbl-blink { 0%, 100% { opacity: 1 } 50% { opacity: .35 } }
-.sbl-sheet { animation: sbl-up .28s cubic-bezier(.2,.8,.2,1) both }
-.sbl-fade { animation: sbl-fade .2s ease both }
-.sbl-pop { animation: sbl-pop .35s ease both }
-.sbl-toast { animation: sbl-toast .22s ease both }
-.sbl-blink { animation: sbl-blink 1.2s ease-in-out infinite }
+.sbl { --ink: #1F2544; --sky: #A9DCF6; --paper: #FFFFFF; --paper2: #EEF6FC; --muted: #56607A; --sun: #FDB913;
+  --leaf: #1F9D55; --berry: #E5484D; color: var(--ink); background: var(--sky); font-family: 'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+.sbl ::selection { background: #FDE68A }
+.cx-card { background: var(--paper); border: 3px solid var(--ink); border-radius: 22px; box-shadow: 0 5px 0 var(--ink); }
+.cx-soft { background: var(--paper2); border-radius: 16px; }
+:where(.cx-btn) { display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-align: center; }
+.cx-btn { border: 3px solid var(--ink); border-radius: 16px; box-shadow: 0 5px 0 var(--ink); font-weight: 800; color: var(--ink);
+  background: var(--paper); cursor: pointer; user-select: none; -webkit-user-select: none;
+  transition: transform .08s ease, box-shadow .08s ease, background-color .15s ease; }
+.cx-btn:active:not(:disabled) { transform: translateY(4px); box-shadow: 0 1px 0 var(--ink); }
+.cx-btn:disabled { opacity: .45; cursor: not-allowed; box-shadow: 0 3px 0 var(--ink); }
+.cx-btn:focus-visible, .cx-tap:focus-visible { outline: 3px solid #2563EB; outline-offset: 3px; }
+.cx-tap { cursor: pointer; transition: transform .08s ease; }
+.cx-tap:active { transform: scale(.98); }
+.cx-sun { background: var(--sun); } .cx-leaf { background: var(--leaf); color: #fff; } .cx-berry { background: var(--berry); color: #fff; }
+.cx-white { background: #fff; } .cx-pale { background: #DDF0FB; } .cx-cream { background: #FFF6D8; }
+:where(.cx-chip) { display: inline-flex; align-items: center; gap: 6px; }
+.cx-chip { border: 2.5px solid var(--ink); border-radius: 999px; background: #fff; font-weight: 800; }
+.cx-title { font-family: 'Fredoka', 'Baloo 2', 'Trebuchet MS', system-ui, sans-serif; font-weight: 700; letter-spacing: -0.01em; text-wrap: balance; }
+.cx-num { font-family: 'Fredoka', 'Baloo 2', 'Trebuchet MS', system-ui, sans-serif; font-variant-numeric: tabular-nums; font-weight: 600; }
+.t-muted { color: var(--muted); }
+.cx-track { background: #E3EDF5; border: 2.5px solid var(--ink); border-radius: 999px; overflow: hidden; }
+.cx-logo { font-family: 'Fredoka', 'Baloo 2', 'Trebuchet MS', system-ui, sans-serif; font-weight: 700; color: var(--sun);
+  -webkit-text-stroke: 4px var(--ink); paint-order: stroke fill; text-shadow: 0 7px 0 var(--ink); letter-spacing: 0.01em; }
+@keyframes cx-up { from { transform: translateY(32px); opacity: 0 } to { transform: none; opacity: 1 } }
+@keyframes cx-fade { from { opacity: 0 } to { opacity: 1 } }
+@keyframes cx-pop { 0% { transform: scale(.7); opacity: 0 } 70% { transform: scale(1.06) } 100% { transform: scale(1); opacity: 1 } }
+@keyframes cx-bob { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-7px) } }
+@keyframes cx-glow { 0% { box-shadow: 0 5px 0 var(--ink), 0 0 0 0 rgba(253,185,19,.9) } 100% { box-shadow: 0 5px 0 var(--ink), 0 0 0 14px rgba(253,185,19,0) } }
+@keyframes cx-blink { 0%, 100% { opacity: 1 } 50% { opacity: .4 } }
+.sbl-sheet { animation: cx-up .3s cubic-bezier(.2,.9,.3,1.2) both }
+.sbl-fade { animation: cx-fade .2s ease both }
+.sbl-pop { animation: cx-pop .35s ease both }
+.sbl-toast { animation: cx-pop .25s ease both }
+.sbl-blink { animation: cx-blink 1.2s ease-in-out infinite }
+.cx-bob { animation: cx-bob 1.1s ease-in-out infinite; transform-box: fill-box; transform-origin: center }
+.cx-glow { animation: cx-glow 1.3s ease-out infinite }
 .sbl-scroll { -webkit-overflow-scrolling: touch; overscroll-behavior: contain }
-.sbl-map path, .sbl-map rect { transition: fill-opacity .35s ease, fill .35s ease }
+.cx-map path, .cx-map circle { transition: fill .35s ease }
 @media (prefers-reduced-motion: reduce) {
-  .sbl-sheet, .sbl-fade, .sbl-pop, .sbl-toast, .sbl-blink { animation: none !important }
-  .sbl-map path, .sbl-map rect { transition: none }
+  .sbl-sheet, .sbl-fade, .sbl-pop, .sbl-toast, .sbl-blink, .cx-bob, .cx-glow { animation: none !important }
+  .cx-map path, .cx-map circle { transition: none }
 }
 `;
 
@@ -85,6 +117,7 @@ const fmtEur = (k) => {
   if (Math.abs(v) >= 1000) return `€${(v / 1000).toFixed(2)}M`;
   return `€${v}k`;
 };
+const fmtEurShort = (k) => (Math.abs(k) >= 1000 ? `€${(k / 1000).toFixed(1)}M` : `€${Math.round(k)}k`);
 const fmtSigned = (x, d = 1) => `${x >= 0 ? '+' : '−'}${Math.abs(x).toFixed(d)}`;
 const fmtInt = (n) => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 
@@ -97,56 +130,72 @@ const PARTIES = {
     ideology: 'Centre-left', pos: { econ: -30, social: 0, defense: 60, green: 30 }, funds: 1200,
     strongholds: 'Rural municipalities & industrial towns: Jonava, Alytus, Akmenė',
     trait: 'Welfare machine', traitDesc: 'Pension and cost-of-living pledges land 40% harder. Rural rallies +15%. Deep local branches.',
-    difficulty: 'Standard',
+    difficulty: 'Easy', stars: 1,
+    blurb: 'Big-tent centre-left. Loved in small towns and the countryside.',
+    perk: 'Countryside rallies work extra well, and welfare promises land harder.',
   },
   TS: {
     id: 'TS', short: 'TS-LKD', name: 'Tėvynės sąjunga', full: 'Tėvynės sąjunga – Lietuvos krikščionys demokratai', color: '#0284C7',
     ideology: 'Centre-right · Conservative', pos: { econ: 30, social: 30, defense: 90, green: 30 }, funds: 1400,
     strongholds: 'Vilnius, Kaunas and the diaspora',
     trait: 'Security & donors', traitDesc: 'Defence messaging +30%, fundraising ×1.6. Rural voters push back: rural rallies −15%.',
-    difficulty: 'Standard',
+    difficulty: 'Easy', stars: 1,
+    blurb: 'Conservatives who rule the big cities and the diaspora.',
+    perk: 'Rich donors: fundraising pays 60% more. Villages are a tougher sell.',
   },
   NA: {
     id: 'NA', short: 'NA', name: 'Nemuno aušra', full: 'Partija „Nemuno aušra“', color: '#D97706',
     ideology: 'Right-wing populist', pos: { econ: -30, social: 60, defense: 0, green: -60 }, funds: 700,
     strongholds: 'Samogitia (Žemaitija) and rural provinces',
     trait: 'Rally machine', traitDesc: 'Rallies cost half and hit 30% harder. Scandal risk builds twice as fast and hurts 50% more.',
-    difficulty: 'Standard',
+    difficulty: 'Medium', stars: 2,
+    blurb: 'Loud populists. Strong in Samogitia and the villages.',
+    perk: 'Rallies are cheap and extra strong, but scandals hit you harder.',
   },
   DSVL: {
     id: 'DSVL', short: 'DSVL', name: 'Vardan Lietuvos', full: 'Demokratų sąjunga „Vardan Lietuvos“', color: '#0D9488',
     ideology: 'Centre-left · Green-conservative', pos: { econ: 0, social: 30, defense: 60, green: 60 }, funds: 900,
     strongholds: 'Central Lithuania and moderate voters',
     trait: 'Kingmaker', traitDesc: '+20 compatibility with every party in coalition talks. Moderate image: attacks backfire more often.',
-    difficulty: 'Hard',
+    difficulty: 'Medium', stars: 2,
+    blurb: 'Calm centrists that almost everyone can work with.',
+    perk: 'After the vote, every party is easier to bring onto your team.',
   },
   LS: {
     id: 'LS', short: 'LS', name: 'Liberalų sąjūdis', full: 'Lietuvos Respublikos liberalų sąjūdis', color: '#EAB308',
     ideology: 'Classical liberal', pos: { econ: 60, social: -60, defense: 60, green: 30 }, funds: 1000,
     strongholds: 'Klaipėda, Vilnius and the coastal resorts',
     trait: 'Business & youth', traitDesc: 'Fundraising ×1.35. Digital ads +25% and extra youth turnout in cities.',
-    difficulty: 'Hard',
+    difficulty: 'Medium', stars: 2,
+    blurb: 'Pro-business liberals, popular on the coast and in cities.',
+    perk: 'Online ads and fundraising work better.',
   },
   LVZS: {
     id: 'LVZS', short: 'LVŽS', name: 'Valstiečiai ir žalieji', full: 'Lietuvos valstiečių ir žaliųjų sąjunga', color: '#16A34A',
     ideology: 'Agrarian · Social conservative', pos: { econ: -30, social: 90, defense: 30, green: 0 }, funds: 850,
     strongholds: 'Rural Aukštaitija and Suvalkija',
     trait: 'Village roots', traitDesc: 'Farm and family pledges +40%. Rural rallies and TV/radio +20%.',
-    difficulty: 'Hard',
+    difficulty: 'Medium', stars: 2,
+    blurb: 'Farmers’ party with traditional family values.',
+    perk: 'Countryside rallies, TV ads and farm promises work better.',
   },
   LP: {
     id: 'LP', short: 'LP', name: 'Laisvės partija', full: 'Laisvės partija', color: '#DB2777',
     ideology: 'Progressive liberal', pos: { econ: 30, social: -90, defense: 60, green: 60 }, funds: 550,
     strongholds: 'Young voters in Vilnius and Kaunas',
     trait: 'Viral', traitDesc: 'Digital ads ×1.6. Weak outside the big cities (−40%). Starts just under the 5% threshold.',
-    difficulty: 'Very hard',
+    difficulty: 'Hard', stars: 3,
+    blurb: 'Young progressives. Small, but loud online.',
+    perk: 'Online ads are super strong, but you start below the 5% line.',
   },
   LLRA: {
     id: 'LLRA', short: 'LLRA-KŠS', name: 'Lenkų rinkimų akcija', full: 'Lietuvos lenkų rinkimų akcija – Krikščioniškų šeimų sąjunga', color: '#881337',
     ideology: 'Polish minority · Christian conservative', pos: { econ: -30, social: 90, defense: 0, green: -30 }, funds: 450,
     strongholds: 'Vilnius District and Šalčininkai',
     trait: 'Fortress vote', traitDesc: 'Campaigning in Vilnius County ×1.5, Vilnius City ×1.3, elsewhere ×0.45. Can win single-mandate seats even below 5%.',
-    difficulty: 'Very hard',
+    difficulty: 'Hard', stars: 3,
+    blurb: 'The voice of the Polish minority around Vilnius.',
+    perk: 'Almost unbeatable at home, weak everywhere else.',
   },
   KITI: {
     id: 'KITI', short: 'Kiti', name: 'Others & independents', full: 'Minor parties and independent candidates', color: '#64748B',
@@ -167,13 +216,13 @@ const FATIGUE = [1, 0.8, 0.62, 0.48, 0.38, 0.3];
    Policy axes
    ============================================================ */
 const AXES = [
-  { id: 'econ', label: 'Economy & taxes', icon: Coins, left: 'Redistribute', right: 'Cut taxes',
+  { id: 'econ', label: 'Taxes & welfare', icon: Coins, left: 'More welfare', right: 'Lower taxes',
     steps: ['Wealth tax', 'Progressive tax', 'Social market', 'Centrist', 'Pro-business', 'Tax cuts', 'Flat & lean'] },
-  { id: 'social', label: 'Social values', icon: Users, left: 'Progressive', right: 'Traditional',
+  { id: 'social', label: 'Family & values', icon: Users, left: 'Modern', right: 'Traditional',
     steps: ['Radical liberal', 'Progressive', 'Liberal', 'Centrist', 'Traditional', 'Conservative', 'Family values'] },
-  { id: 'defense', label: 'Defence spending', icon: Shield, left: 'Lower', right: 'Maximum',
+  { id: 'defense', label: 'Army spending', icon: Shield, left: 'Less', right: 'Maximum',
     steps: ['2.5% GDP', '3% GDP', '3.5% GDP', '4% GDP', '5% GDP', '5.5% GDP', '6%+ GDP'] },
-  { id: 'green', label: 'Green & energy', icon: Leaf, left: 'Cheap fossil', right: 'Fast transition',
+  { id: 'green', label: 'Climate & energy', icon: Leaf, left: 'Cheap gas', right: 'Go green fast',
     steps: ['Gas & oil first', 'Slow transition', 'Energy security', 'Balanced', 'Wind & solar', 'Green deal+', 'Net zero 2040'] },
 ];
 const AXIS_IDS = AXES.map((a) => a.id);
@@ -291,7 +340,7 @@ const REGIONS = [
     ],
   },
   {
-    id: 'VLC', name: 'Vilniaus apskr.', en: 'Vilnius County', seats: 7, pop: 260, urban: 0.32, turnout: 0.5,
+    id: 'VLC', name: 'Vilnius area', en: 'Vilnius County', seats: 7, pop: 260, urban: 0.32, turnout: 0.5,
     ideal: { econ: -20, social: 55, defense: 40, green: 0 }, sal: { econ: 1.1, social: 1.0, defense: 0.8, green: 0.6 },
     issues: ['minority', 'roads', 'def'],
     base: { LSDP: 18, TS: 11, NA: 12, DSVL: 10, LS: 4, LVZS: 7, LP: 1.5, LLRA: 23, KITI: 13.5 },
@@ -319,7 +368,7 @@ const REGIONS = [
     ],
   },
   {
-    id: 'KNC', name: 'Kauno apskr.', en: 'Kaunas County', seats: 7, pop: 275, urban: 0.38, turnout: 0.51,
+    id: 'KNC', name: 'Kaunas area', en: 'Kaunas County', seats: 7, pop: 275, urban: 0.38, turnout: 0.51,
     ideal: { econ: -15, social: 30, defense: 55, green: 15 }, sal: SAL_RURAL, issues: ['col', 'roads', 'health'],
     base: { LSDP: 23, TS: 17, NA: 16, DSVL: 12, LS: 6, LVZS: 9, LP: 2, LLRA: 0.3, KITI: 14.7 },
     poly: ['TA1', 'S5', 'S4', 'S3', 'P5', 'V1', 'V2', 'V3', 'V4', 'A4', 'M3', 'M2', 'M1', 'TA3', 'TA2'],
@@ -390,7 +439,7 @@ const REGIONS = [
     cons: [['Marijampolės', 0.6, {}], ['Vilkaviškio', 0.2, { LVZS: 1.1 }], ['Šakių', 0, {}]],
   },
   {
-    id: 'ABR', name: 'Pasaulio lietuviai', en: 'Lithuanians abroad', seats: 1, pop: 62, voters: 62, urban: 0.9, turnout: 0.6,
+    id: 'ABR', name: 'Abroad', en: 'Lithuanians abroad', seats: 1, pop: 62, voters: 62, urban: 0.9, turnout: 0.6,
     ideal: { econ: 35, social: -30, defense: 90, green: 45 }, sal: SAL_URBAN, issues: ['diaspora', 'def', 'tax'],
     base: { LSDP: 9, TS: 35, NA: 7, DSVL: 6, LS: 17, LVZS: 2, LP: 13, LLRA: 0.5, KITI: 10.5 },
     tile: [332, 279, 66, 22], label: [365, 290], count: 0.45,
@@ -582,7 +631,7 @@ function newGame(pid) {
     undecided[r.id] = und;
   }
   const g = {
-    v: 1, seed, player: pid, week: 1, phase: 'campaign',
+    v: 2, seed, player: pid, week: 1, phase: 'campaign', tut: 0,
     ap: 6, apMax: 6, money: PARTIES[pid].funds, pc: 6, scandal: pid === 'NA' ? 10 : 4,
     stance: { ...PARTIES[pid].pos }, lastShift: {},
     momentum: Object.fromEntries(ALL_IDS.map((p) => [p, 0])),
@@ -601,11 +650,11 @@ function newGame(pid) {
    Campaign actions
    ============================================================ */
 const ACTIONS = {
-  rally: { label: 'Town hall & rally', icon: Megaphone, desc: 'Local support up, your voters more likely to turn out.' },
-  digital: { label: 'Facebook & TikTok ads', icon: Smartphone, desc: 'Wins undecided voters. Strongest in urban, younger areas.' },
-  tv: { label: 'TV & local radio', icon: Radio, desc: 'Wins undecided voters. Strongest in rural, older areas.' },
-  door: { label: 'Door-to-door canvass', icon: DoorOpen, desc: 'Permanent ground game: shields you from attacks and lifts turnout.' },
-  attack: { label: 'Attack the frontrunner', icon: Swords, desc: 'Cuts the top rival here. Can backfire on moderate parties.' },
+  rally: { label: 'Hold a rally', short: 'rally', icon: Megaphone, color: '#FDB913', desc: 'Win fans and get them to vote' },
+  digital: { label: 'Online ads', short: 'online ads', icon: Smartphone, color: '#7DD3FC', desc: 'Best in cities, with young voters' },
+  tv: { label: 'TV & radio ads', short: 'TV ads', icon: Radio, color: '#C4B5FD', desc: 'Best in villages, with older voters' },
+  door: { label: 'Knock on doors', short: 'door-knocking', icon: DoorOpen, color: '#86EFAC', desc: 'Protects your voters for good' },
+  attack: { label: 'Attack ad', short: 'attack ad', icon: Swords, color: '#FCA5A5', desc: 'Hurts the leader, but can backfire' },
 };
 function actionCost(type, r, p) {
   const s = r.seats;
@@ -632,7 +681,7 @@ function actionPreview(g, rid, type) {
 function doRegionAction(g, rid, type) {
   const r = REG[rid], p = g.player;
   const cost = actionCost(type, r, p);
-  if (g.ap < 1) return { ok: false, msg: 'No action points left. End the week to refill.' };
+  if (g.ap < 1) return { ok: false, msg: 'Out of energy! Tap Next week to refill.' };
   if (g.money < cost) return { ok: false, msg: `Not enough funds: ${fmtEur(cost)} needed.` };
   g.ap -= 1; g.money -= cost;
   g.stats.actions += 1; g.stats.spent += cost;
@@ -647,21 +696,21 @@ function doRegionAction(g, rid, type) {
   if (type === 'rally') {
     gainSupport(g, rid, p, POWER.rally * traitMult(p, 'rally', r) * k, 0.5);
     g.boost[rid][p] = Math.min(0.25, g.boost[rid][p] + 0.03);
-    lead = rid === 'ABR' ? 'Diaspora town hall in Dublin' : `Town hall in ${r.name}`;
+    lead = rid === 'ABR' ? 'Diaspora rally in Dublin' : `Rally in ${r.name}`;
   } else if (type === 'digital') {
     gainSupport(g, rid, p, POWER.digital * (0.35 + r.urban) * traitMult(p, 'digital', r) * k, 0.8);
     if (p === 'LS' || p === 'LP') g.boost[rid][p] = Math.min(0.25, g.boost[rid][p] + 0.015 * r.urban);
-    lead = 'Social ads live';
+    lead = 'Online ads live';
   } else if (type === 'tv') {
     gainSupport(g, rid, p, POWER.tv * (1.25 - 0.65 * r.urban) * traitMult(p, 'tv', r) * k, 0.8);
-    lead = 'TV & radio spots aired';
+    lead = 'TV & radio ads aired';
   } else if (type === 'door') {
     const gg0 = g.gg[rid][p];
     g.gg[rid][p] = Math.min(100, gg0 + 14 * (1 - gg0 / 110) * geoMult(p, r));
     g.boost[rid][p] = Math.min(0.25, g.boost[rid][p] + 0.02);
     gainSupport(g, rid, p, POWER.door * k, 0.6);
     const after = regionShares(g, r);
-    return { ok: true, tone, msg: `Canvassers out in ${r.name}: ground game ${Math.round(gg0)}→${Math.round(g.gg[rid][p])}, ${fmtSigned(after[p] - before[p])} pts` };
+    return { ok: true, tone, msg: `Volunteers knocked on doors in ${r.name}: ground team ${Math.round(gg0)}→${Math.round(g.gg[rid][p])}` };
   } else if (type === 'attack') {
     const target = leaderOf(before, p);
     const bf = BACKFIRE[p] + (p === 'TS' && r.urban < 0.6 ? 0.1 : 0) + 0.06 * g.attacksThisWeek;
@@ -670,25 +719,25 @@ function doRegionAction(g, rid, type) {
       loseSupport(g, rid, p, POWER.backfire * fat, 0.6);
       g.momentum[p] = clamp(g.momentum[p] - 0.6, -10, 10);
       const after = regionShares(g, r);
-      return { ok: true, tone: 'bad', msg: `Backfire! Voters in ${r.name} punish the negativity: ${fmtSigned(after[p] - before[p])} pts` };
+      return { ok: true, tone: 'bad', msg: `Backfire! Voters in ${r.name} hated the attack: ${fmtSigned(after[p] - before[p])}%` };
     }
     const dmg = POWER.attack * fat * geoMult(p, r) * (1 - g.gg[rid][target] / 160) * (0.85 + Math.random() * 0.3);
     loseSupport(g, rid, target, dmg, 0.45, p, 0.35);
     g.momentum[target] = clamp(g.momentum[target] - 0.25, -10, 10);
     const after = regionShares(g, r);
-    return { ok: true, tone, msg: `Attack ads hit ${PARTIES[target].short} in ${r.name}: ${fmtSigned(after[target] - before[target])} for them, ${fmtSigned(after[p] - before[p])} for you` };
+    return { ok: true, tone, msg: `Attack ad hit ${PARTIES[target].short} in ${r.name}: ${fmtSigned(after[target] - before[target])}% for them` };
   }
   const after = regionShares(g, r);
-  return { ok: true, tone, msg: `${lead}: ${fmtSigned(after[p] - before[p])} pts in ${r.name}` };
+  return { ok: true, tone, msg: `${lead}: ${fmtSigned(after[p] - before[p])}% for you there` };
 }
 
 const NATIONAL_ACTIONS = [
-  { id: 'gala', group: 'fund', label: 'Donor dinner', icon: HandCoins, ap: 1, desc: 'Major donors, an Old Town restaurant, a long evening.' },
-  { id: 'small', group: 'fund', label: 'Small-donor drive', icon: Coins, ap: 1, desc: '€5 memberships and crowdfunding. Grassroots parties get a buzz.' },
-  { id: 'lobby', group: 'fund', label: 'Lobbying deal', icon: Briefcase, ap: 0, pc: 2, desc: 'Trade 2 political capital for a big cheque. Raises scandal risk.' },
-  { id: 'tvspot', group: 'nat', label: 'National TV spot', icon: Tv, ap: 2, cost: 200, desc: 'Prime time on LRT, LNK and TV3. A small lift in every region.' },
-  { id: 'presser', group: 'nat', label: 'Press conference', icon: Mic, ap: 1, cost: 5, desc: 'Set the news agenda. Momentum boost, weaker if repeated.' },
-  { id: 'backchannel', group: 'nat', label: 'Back-channel talks', icon: Handshake, ap: 1, cost: 0, desc: 'Quiet coffees with other party leaders. Earns political capital for coalition talks.' },
+  { id: 'gala', group: 'fund', label: 'Donor dinner', icon: HandCoins, ap: 1, desc: 'Big donors, fancy restaurant, lots of money.' },
+  { id: 'small', group: 'fund', label: 'Small donations', icon: Coins, ap: 1, desc: 'Ask fans for €5 each. Less money, but some buzz.' },
+  { id: 'lobby', group: 'fund', label: 'Shady business deal', icon: Briefcase, ap: 0, pc: 2, desc: 'Swap 2 favours for a big cheque. Could turn into a scandal!' },
+  { id: 'tvspot', group: 'nat', label: 'Nationwide TV ad', icon: Tv, ap: 2, cost: 200, desc: 'A small boost in every region at once.' },
+  { id: 'presser', group: 'nat', label: 'Press conference', icon: Mic, ap: 1, cost: 5, desc: 'Get in the news. Adds buzz, less each time.' },
+  { id: 'backchannel', group: 'nat', label: 'Coffee with rivals', icon: Handshake, ap: 1, cost: 0, desc: 'Earn favours you can spend on forming a team after the vote.' },
 ];
 function galaAmount(g) {
   const share = nationalShares(g)[g.player];
@@ -704,8 +753,8 @@ const lobbyAmount = (g) => Math.round(150 * Math.sqrt(FUND_MULT[g.player]));
 function doNational(g, id) {
   const A = NATIONAL_ACTIONS.find((a) => a.id === id);
   const p = g.player;
-  if (g.ap < A.ap) return { ok: false, msg: `Needs ${A.ap} action point${A.ap > 1 ? 's' : ''}.` };
-  if (A.pc && g.pc < A.pc) return { ok: false, msg: `Needs ${A.pc} political capital.` };
+  if (g.ap < A.ap) return { ok: false, msg: `Needs ${A.ap} energy.` };
+  if (A.pc && g.pc < A.pc) return { ok: false, msg: `Needs ${A.pc} favours.` };
   if (A.cost && g.money < A.cost) return { ok: false, msg: `Not enough funds: ${fmtEur(A.cost)} needed.` };
   const n = g.natActs[id] || 0;
   g.ap -= A.ap;
@@ -725,19 +774,19 @@ function doNational(g, id) {
     g.pc -= A.pc;
     const amt = lobbyAmount(g);
     g.money += amt; addScandal(g, 12);
-    msg = `Lobbying deal: +${fmtEur(amt)}. Scandal risk rising.`;
+    msg = `Business deal: +${fmtEur(amt)}. Scandal risk is rising!`;
   } else if (id === 'tvspot') {
     const before = nationalShares(g)[p];
     for (const r of REGIONS) gainSupport(g, r.id, p, 0.4 * (1.15 - 0.4 * r.urban) * geoMult(p, r) * satOf(p, r, regionShares(g, r)[p]), 0.7);
-    msg = `National TV spot: ${fmtSigned(nationalShares(g)[p] - before)} pts nationally`;
+    msg = `TV ad aired everywhere: ${fmtSigned(nationalShares(g)[p] - before)}% nationally`;
   } else if (id === 'presser') {
     const d = 0.9 * [1, 0.55, 0.3, 0.15][Math.min(n, 3)];
     g.momentum[p] = clamp(g.momentum[p] + d, -10, 10);
-    msg = `Press conference leads the evening news: momentum ${fmtSigned(d)}`;
+    msg = `You lead the evening news: buzz ${fmtSigned(d)}`;
   } else if (id === 'backchannel') {
     const d = [2, 1, 1, 0][Math.min(n, 3)];
     g.pc += d;
-    msg = d ? `Back-channel talks: +${d} political capital` : 'Nobody wants another coffee this week.';
+    msg = d ? `Coffee with rivals: +${d} favour${d > 1 ? 's' : ''}` : 'Nobody wants another coffee this week.';
   }
   g.natActs[id] = n + 1;
   return { ok: true, tone: 'good', msg };
@@ -758,7 +807,7 @@ function platformCost(g, draft) {
 function announcePlatform(g, draft) {
   const c = platformCost(g, draft);
   if (!c.changes.length) return { ok: false, msg: 'No changes to announce.' };
-  if (g.ap < 1) return { ok: false, msg: 'Needs 1 action point.' };
+  if (g.ap < 1) return { ok: false, msg: 'Needs 1 energy.' };
   g.ap -= 1;
   for (const a of c.changes) g.lastShift[a] = Math.sign(draft[a] - g.stance[a]);
   const labels = c.changes.map((a) => {
@@ -769,8 +818,8 @@ function announcePlatform(g, draft) {
   g.momentum[g.player] = clamp(g.momentum[g.player] - c.mom, -10, 10);
   g.pc = Math.max(0, g.pc - c.pc);
   g.stats.shifts += c.steps;
-  addNews(g, { kind: 'you', title: 'Platform update', text: `${labels.join(' · ')}${c.uturns.length ? '. Commentators call it a U-turn.' : '.'}` });
-  return { ok: true, tone: c.mom > 0 ? 'warn' : 'good', msg: `Platform announced${c.mom > 0 ? ` · momentum ${fmtSigned(-c.mom)}` : ''}` };
+  addNews(g, { kind: 'you', title: 'New promises', text: `${labels.join(' · ')}${c.uturns.length ? '. Commentators call it a U-turn.' : '.'}` });
+  return { ok: true, tone: c.mom > 0 ? 'warn' : 'good', msg: `New promises announced${c.mom > 0 ? ` · buzz ${fmtSigned(-c.mom)}` : ''}` };
 }
 
 /* ============================================================
@@ -885,7 +934,7 @@ function endWeek(g) {
   const before = nationalShares(g);
   const log = Object.entries(g.weekLog).filter(([, n]) => n > 0);
   if (log.length) {
-    addNews(g, { kind: 'you', title: 'Your week on the trail', text: log.map(([t, n]) => `${n}× ${ACTIONS[t].label.toLowerCase()}`).join(', ') });
+    addNews(g, { kind: 'you', title: 'Your week on the trail', text: log.map(([t, n]) => `${n}× ${ACTIONS[t].short}`).join(', ') });
   }
   const moves = aiTurn(g);
   weeklyDrift(g);
@@ -896,7 +945,7 @@ function endWeek(g) {
   const lead = mid[ord[0]] - mid[ord[1]];
   if (lead > 2.5) {
     g.momentum[ord[0]] = clamp(g.momentum[ord[0]] - 0.45 * (lead - 2.5), -10, 10);
-    if (ord[0] === g.player) addNews(g, { kind: 'system', title: 'Frontrunner scrutiny', text: `A ${lead.toFixed(1)}-point lead puts ${PARTIES[ord[0]].short} under the media microscope. Rivals are coming for you.` });
+    if (ord[0] === g.player) addNews(g, { kind: 'system', title: 'All eyes on you', text: `A ${lead.toFixed(1)}-point lead means reporters dig into everything you do. Rivals are coming for you, so your buzz drops a little.` });
   }
   const after = nationalShares(g);
   const poll = {};
@@ -912,6 +961,7 @@ function endWeek(g) {
     return;
   }
   const report = { type: 'report', week: g.week, before, after, moves };
+  if (g.tut >= 1 && g.tut < 5) g.tut = 5;
   startWeek(g);
   g.queue.unshift(report);
 }
@@ -933,7 +983,7 @@ const TAG_BONUS = {
   progressive: { LP: 1.5, LS: 1.2 },
 };
 const TAG_NAMES = { welfare: 'Welfare', security: 'Security', populist: 'Populist', agri: 'Farm', business: 'Business', youth: 'Youth', minority: 'Minority', moderate: 'Moderate', green: 'Green', traditional: 'Family values', progressive: 'Progressive' };
-const TARGET_LABEL = { all: 'Everywhere', urban: 'Cities', rural: 'Countryside', border: 'Border regions', agri: 'Farm country' };
+const TARGET_LABEL = { all: 'Everywhere', urban: 'Cities', rural: 'Villages', border: 'Border regions', agri: 'Farm country' };
 function targetRegions(t) {
   if (t === 'all') return REGIONS.map((r) => [r, 1]);
   if (t === 'urban') return REGIONS.map((r) => [r, r.urban]);
@@ -977,8 +1027,8 @@ function fxChips(fx) {
   if (!fx) return [];
   const out = [];
   if (fx.money) out.push({ t: `${fx.money > 0 ? '+' : '−'}${fmtEur(Math.abs(fx.money))}`, good: fx.money > 0 });
-  if (fx.mom) out.push({ t: `Momentum ${fx.mom > 0 ? '▲' : '▼'}`, good: fx.mom > 0 });
-  if (fx.pc) out.push({ t: `PC ${fx.pc > 0 ? '+' : '−'}${Math.abs(fx.pc)}`, good: fx.pc > 0 });
+  if (fx.mom) out.push({ t: `Buzz ${fx.mom > 0 ? '▲' : '▼'}`, good: fx.mom > 0 });
+  if (fx.pc) out.push({ t: `Favours ${fx.pc > 0 ? '+' : '−'}${Math.abs(fx.pc)}`, good: fx.pc > 0 });
   if (fx.scandal) out.push({ t: `Scandal risk ${fx.scandal > 0 ? '▲' : '▼'}`, good: fx.scandal < 0 });
   if (fx.und) out.push({ t: 'Undecided ▲', good: true });
   (fx.reg || []).forEach(([t, d]) => {
@@ -987,7 +1037,7 @@ function fxChips(fx) {
   });
   if (fx.axis) {
     const [ax, dir] = fx.axis;
-    const nm = { econ: dir < 0 ? 'Left-leaning voters' : 'Pro-market voters', social: dir < 0 ? 'Liberal voters' : 'Traditional voters', defense: dir > 0 ? 'Security hawks' : 'Defence sceptics', green: dir > 0 ? 'Green voters' : 'Energy-bill voters' }[ax];
+    const nm = { econ: dir < 0 ? 'Welfare fans' : 'Tax-cut fans', social: dir < 0 ? 'Liberal voters' : 'Traditional voters', defense: dir > 0 ? 'Army fans' : 'Army sceptics', green: dir > 0 ? 'Green voters' : 'Energy-bill voters' }[ax];
     out.push({ t: `${nm} ▲`, good: true });
   }
   return out;
@@ -1032,8 +1082,8 @@ function scoreAnswer(g, ans) {
   if (ans.axis) {
     const [ax, dir] = ans.axis;
     const st = (g.stance[ax] / 90) * dir;
-    if (st >= 0.3) { s += 1.2 * st; note = 'On-message'; }
-    else if (st <= -0.3) { s += 2.8 * st; note = 'Contradicts your platform'; }
+    if (st >= 0.3) { s += 1.2 * st; note = 'Fits your promises'; }
+    else if (st <= -0.3) { s += 2.8 * st; note = 'Clashes with your promises'; }
   }
   s += (Math.random() - 0.5) * 1.6;
   return { score: clamp(s, 0, 10), note };
@@ -1065,7 +1115,7 @@ function resolveDebate(g, idx, picks) {
   REGIONS.forEach((r) => normalizeRegion(g, r.id));
   const after = nationalShares(g)[p];
   g.stats.debates.push({ idx, avg, rank, won });
-  addNews(g, { kind: 'debate', title: `LRT debate: ${D.title}`, text: `Snap poll: ${PARTIES[poll[0].p].short} won the night with ${poll[0].pct.toFixed(0)}%. You finished #${rank}.` });
+  addNews(g, { kind: 'debate', title: `TV debate: ${D.title}`, text: `Viewers say ${PARTIES[poll[0].p].short} won (${poll[0].pct.toFixed(0)}%). You came #${rank}.` });
   return { poll, avg, rank, won, delta: after - before };
 }
 
@@ -1607,259 +1657,136 @@ const DEBATES = [
   },
 ];
 
+
 /* ============================================================
-   Save / load (per-viewer convenience)
+   Advisor (Rūta): plain-language race status, best moves, autopilot
    ============================================================ */
-const SAVE_KEY = 'seimas-bfl-save-v1';
-function loadSave() {
-  try {
-    const raw = window.localStorage.getItem(SAVE_KEY);
-    if (!raw) return null;
-    const g = JSON.parse(raw);
-    return g && g.v === 1 && g.phase !== 'result' ? g : null;
-  } catch (e) {
-    return null;
+const ACTION_WHY = {
+  rally: 'Rallies fire up your fans and get them to the polls.',
+  digital: 'Online ads reach young voters in the cities.',
+  tv: 'TV & radio reach older voters in the villages.',
+  door: 'Door-knocking protects your voters from rival attacks.',
+  attack: 'An attack ad can knock the leader down a peg.',
+};
+function raceInfo(g, r, sharesIn) {
+  const p = g.player;
+  const s = sharesIn || regionShares(g, r);
+  const ord = PARTY_IDS.slice().sort((a, b) => s[b] - s[a]);
+  const lead = ord[0];
+  const rival = lead === p ? ord[1] : lead;
+  const gap = s[p] - s[rival];
+  const rank = ord.indexOf(p) + 1;
+  const status = gap >= 4 ? 'safe' : gap > -4 ? 'close' : gap > -10 ? 'behind' : 'far';
+  return { s, ord, lead, rival, gap, rank, status };
+}
+const STATUS_LOOK = {
+  safe: { label: 'Winning', bg: '#BBF7D0' },
+  close: { label: 'Toss-up', bg: '#FDE68A' },
+  behind: { label: 'Behind', bg: '#FED7AA' },
+  far: { label: 'Long shot', bg: '#FECACA' },
+};
+function raceText(info) {
+  const R = PARTIES[info.rival].short;
+  const x = Math.abs(info.gap).toFixed(1);
+  if (info.gap >= 4) return `You lead ${R} by ${x}%`;
+  if (info.gap > 0) return `Tight! You lead ${R} by just ${x}%`;
+  if (info.gap > -4) return `Close race: ${R} is ahead by ${x}%`;
+  return `${R} is ahead by ${x}%`;
+}
+function attackBackfire(g, r) {
+  return BACKFIRE[g.player] + (g.player === 'TS' && r.urban < 0.6 ? 0.1 : 0) + 0.06 * g.attacksThisWeek;
+}
+function bestActionIn(g, r, info) {
+  const p = g.player;
+  let best = null;
+  for (const type of ['rally', 'digital', 'tv']) {
+    const cost = actionCost(type, r, p);
+    if (cost > g.money) continue;
+    const gain = actionPreview(g, r.id, type);
+    const sc = gain / Math.pow(cost, 0.3);
+    if (!best || sc > best.sc) best = { type, gain, cost, sc };
   }
+  const doorCost = actionCost('door', r, p);
+  if (Math.abs(info.gap) < 5 && g.gg[r.id][p] < 45 && doorCost <= g.money) {
+    const sc = (actionPreview(g, r.id, 'door') + 0.45) / Math.pow(doorCost, 0.3);
+    if (!best || sc > best.sc) best = { type: 'door', gain: actionPreview(g, r.id, 'door'), cost: doorCost, sc };
+  }
+  return best;
 }
-function writeSave(g) {
-  try {
-    if (!g || g.phase === 'result') window.localStorage.removeItem(SAVE_KEY);
-    else window.localStorage.setItem(SAVE_KEY, JSON.stringify(g));
-  } catch (e) { /* storage unavailable */ }
+function recommendMoves(g, limit = 3) {
+  const p = g.player;
+  const nat = nationalShares(g)[p];
+  const nearLine = nat < 6.5;
+  const recs = [];
+  for (const r of REGIONS) {
+    const info = raceInfo(g, r);
+    const best = bestActionIn(g, r, info);
+    if (!best) continue;
+    const closeness = Math.exp(-Math.abs(info.gap) / 6);
+    const smd = r.seats * closeness * (nearLine ? 0.35 : 1);
+    const pr = ((r.voters * r.turnout) / 90) * (nearLine ? 1.6 : 0.6);
+    const fat = FATIGUE[Math.min(g.weekActs[r.id] || 0, FATIGUE.length - 1)];
+    const score = best.sc * (smd + pr) * fat;
+    let why;
+    if (nearLine) why = `You need 5% of the national vote to win list seats. ${r.en} has plenty of voters who like you.`;
+    else if (Math.abs(info.gap) < 4) why = `${raceText(info)}. A small push here could swing ${r.seats} seat${r.seats > 1 ? 's' : ''}.`;
+    else if (info.gap < 0) why = `${raceText(info)}, but ${r.seats} seat${r.seats > 1 ? 's are' : ' is'} worth chasing.`;
+    else why = `${raceText(info)}. Keep these ${r.seats} seat${r.seats > 1 ? 's' : ''} safe.`;
+    recs.push({ kind: 'region', rid: r.id, type: best.type, cost: best.cost, gain: best.gain, score, why, how: ACTION_WHY[best.type] });
+  }
+  recs.sort((a, b) => b.score - a.score);
+  const out = [];
+  const cheapest = Math.min(...REGIONS.map((r) => actionCost('rally', r, p)));
+  if (g.money < cheapest * 3 && g.ap >= 1) {
+    out.push({ kind: 'national', id: 'gala', why: 'Money is running low, and every move costs euros.', how: `A donor dinner should bring in about ${fmtEur(galaAmount(g))}.` });
+  }
+  for (const rc of recs) {
+    if (out.length >= limit) break;
+    if (!out.some((o) => o.rid === rc.rid)) out.push(rc);
+  }
+  return out;
 }
-
-/* ============================================================
-   UI primitives
-   ============================================================ */
-function Tricolor({ className = '', h = 3 }) {
-  return (
-    <div className={`flex flex-col overflow-hidden rounded-sm ${className}`} aria-hidden="true">
-      <span style={{ background: FLAG.y, height: h }} />
-      <span style={{ background: FLAG.g, height: h }} />
-      <span style={{ background: FLAG.r, height: h }} />
-    </div>
-  );
+function runRec(g, rec) {
+  return rec.kind === 'national' ? doNational(g, rec.id) : doRegionAction(g, rec.rid, rec.type);
 }
-function Kicker({ children, className = '' }) {
-  return <div className={`text-xs uppercase tracking-widest text-slate-400 ${className}`} style={F_MONO}>{children}</div>;
+function autoPlan(g) {
+  const done = [];
+  let guard = 0;
+  while (g.ap > 0 && guard < 12) {
+    guard += 1;
+    const [rec] = recommendMoves(g, 1);
+    if (!rec) break;
+    const res = runRec(g, rec);
+    if (!res.ok) break;
+    done.push(rec.kind === 'national' ? 'a fundraiser' : REG[rec.rid].name);
+  }
+  if (!done.length) return { ok: false, msg: 'Nothing affordable left to do this week.' };
+  const places = [...new Set(done)];
+  return { ok: true, tone: 'good', msg: `Rūta spent ${done.length} energy in ${places.slice(0, 3).join(', ')}${places.length > 3 ? ' and more' : ''}.` };
 }
-function Swatch({ p, size = 10 }) {
-  return <span className="inline-block rounded-sm shrink-0" style={{ width: size, height: size, background: PARTIES[p].color }} />;
+function adviseEvent(g, ev) {
+  let best = 0, bestScore = -Infinity;
+  ev.choices.forEach((ch, i) => {
+    let score;
+    if (ch.risk) score = -0.5;
+    else {
+      const t = clone(g);
+      const before = nationalShares(t)[t.player];
+      applyFx(t, ch.fx, ch.tag, ev.scandal);
+      score = (nationalShares(t)[t.player] - before) + 0.12 * (t.pc - g.pc) + (t.money - g.money) / 500 - Math.max(0, t.scandal - g.scandal) / 25;
+    }
+    if (score > bestScore) { bestScore = score; best = i; }
+  });
+  return best;
 }
-function Btn({ children, onClick, disabled, kind = 'primary', className = '', ...rest }) {
-  const base = 'inline-flex items-center justify-center gap-2 rounded-xl font-semibold transition active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 disabled:opacity-40 disabled:cursor-not-allowed';
-  const kinds = {
-    primary: 'bg-amber-400 text-slate-950 hover:bg-amber-300',
-    ghost: 'bg-slate-800 text-slate-100 hover:bg-slate-700',
-    outline: 'border border-slate-600 text-slate-100 hover:bg-slate-800',
-    danger: 'bg-rose-600 text-white hover:bg-rose-500',
-  };
-  return (
-    <button type="button" onClick={onClick} disabled={disabled} className={`${base} ${kinds[kind]} ${className}`} {...rest}>
-      {children}
-    </button>
-  );
-}
-function Section({ title, kicker, children, right }) {
-  return (
-    <section className="rounded-2xl bg-slate-900 border border-slate-800 p-4">
-      <div className="flex items-end justify-between gap-3 mb-3">
-        <div className="min-w-0">
-          {kicker && <Kicker>{kicker}</Kicker>}
-          <h3 style={F_DISPLAY} className="text-xl font-extrabold leading-tight text-slate-50">{title}</h3>
-        </div>
-        {right}
-      </div>
-      {children}
-    </section>
-  );
-}
-function Segmented({ value, onChange, options, label }) {
-  return (
-    <div className="inline-flex rounded-xl bg-slate-900 border border-slate-700 p-1" role="radiogroup" aria-label={label}>
-      {options.map(([v, l]) => (
-        <button
-          key={v} type="button" role="radio" aria-checked={value === v} onClick={() => onChange(v)}
-          className={`h-9 px-3 rounded-lg text-sm font-semibold whitespace-nowrap transition ${value === v ? 'bg-slate-100 text-slate-950' : 'text-slate-300'}`}
-        >
-          {l}
-        </button>
-      ))}
-    </div>
-  );
-}
-function Sheet({ onClose, children, label, z = 'z-40' }) {
-  useEffect(() => {
-    const onKey = (e) => { if (e.key === 'Escape' && onClose) onClose(); };
-    window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
-  }, [onClose]);
-  return (
-    <div className={`fixed inset-0 ${z} flex flex-col justify-end`} role="dialog" aria-modal="true" aria-label={label}>
-      <div className="absolute inset-0 bg-slate-950/80 sbl-fade" onClick={onClose || undefined} />
-      <div
-        className="sbl-sheet sbl-scroll relative w-full max-w-lg mx-auto bg-slate-900 border-t border-slate-700 rounded-t-3xl overflow-y-auto shadow-2xl"
-        style={{ maxHeight: '92vh', paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 20px)' }}
-      >
-        {children}
-      </div>
-    </div>
-  );
-}
-function Meter({ value, max = 100, color = GOLD, mark }) {
-  return (
-    <div className="relative h-2.5 rounded-full bg-slate-800 overflow-hidden">
-      <div className="h-full rounded-full" style={{ width: `${clamp((value / max) * 100, 0, 100)}%`, background: color }} />
-      {mark != null && <div className="absolute top-0 bottom-0 w-0.5 bg-slate-100" style={{ left: `${(mark / max) * 100}%` }} />}
-    </div>
-  );
-}
-function Delta({ v, d = 1, unit = '' }) {
-  if (v == null || Math.abs(v) < 0.05) return <span className="text-slate-500">±0{unit}</span>;
-  return <span className={v > 0 ? 'text-emerald-400' : 'text-rose-400'}>{fmtSigned(v, d)}{unit}</span>;
-}
-
-/* ============================================================
-   Hemicycle
-   ============================================================ */
-function Hemicycle({ seats, highlight, dim, label = 'seats', showCount = true }) {
-  const left = SEAT_ORDER.slice(0, 6);
-  const right = SEAT_ORDER.slice(6);
-  const L = [], R = [];
-  left.forEach((p) => { for (let i = 0; i < (seats[p] || 0); i++) L.push(p); });
-  right.forEach((p) => { for (let i = 0; i < (seats[p] || 0); i++) R.push(p); });
-  const empty = Math.max(0, 141 - L.length - R.length);
-  const colors = [...L, ...Array(empty).fill(null), ...R].slice(0, 141);
-  const n = highlight ? seats[highlight] || 0 : sum(Object.values(seats));
-  return (
-    <svg viewBox="-1.08 -1.08 2.16 1.14" className="w-full h-auto block" role="img" aria-label={`Seimas hemicycle: ${n} ${label}`}>
-      <line x1="0" y1="-1.07" x2="0" y2="-0.3" stroke="#94A3B8" strokeWidth="0.008" strokeDasharray="0.03 0.025" />
-      {HEMI.map((s, i) => {
-        const p = colors[i];
-        const faded = p && dim && !dim.includes(p);
-        return (
-          <circle
-            key={i} cx={s.x} cy={s.y} r={0.041}
-            fill={p ? PARTIES[p].color : '#1E293B'} fillOpacity={faded ? 0.25 : 1}
-            stroke={p && p === highlight ? '#F8FAFC' : 'none'} strokeWidth={0.014}
-          />
-        );
-      })}
-      {showCount && (
-        <g>
-          <text x="0" y="-0.1" textAnchor="middle" fill="#F8FAFC" fontSize="0.24" fontWeight="800" style={F_MONO}>{n}</text>
-          <text x="0" y="-0.01" textAnchor="middle" fill="#94A3B8" fontSize="0.068" style={F_MONO}>{label}</text>
-        </g>
-      )}
-    </svg>
-  );
-}
-
-/* ============================================================
-   Bars, tables & charts
-   ============================================================ */
-function PollBars({ shares, highlight, threshold, deltas, scale }) {
-  const ids = ALL_IDS.slice().sort((a, b) => (a === 'KITI' ? 1 : 0) - (b === 'KITI' ? 1 : 0) || shares[b] - shares[a]);
-  const max = scale || Math.max(30, ...ids.map((p) => shares[p]));
-  return (
-    <div className="flex flex-col gap-1.5">
-      {threshold && (
-        <div className="grid gap-2 text-xs text-slate-400" style={{ gridTemplateColumns: deltas ? '68px 1fr 40px 40px' : '68px 1fr 44px' }}>
-          <span />
-          <div className="relative h-4">
-            <span className="absolute -translate-x-1/2 whitespace-nowrap" style={{ left: `${(5 / max) * 100}%`, ...F_MONO }}>5%</span>
-          </div>
-          <span />{deltas && <span />}
-        </div>
-      )}
-      {ids.map((p) => (
-        <div key={p} className="grid items-center gap-2" style={{ gridTemplateColumns: deltas ? '68px 1fr 40px 40px' : '68px 1fr 44px' }}>
-          <span className={`text-xs truncate ${p === highlight ? 'font-bold text-slate-50' : 'text-slate-300'}`}>{PARTIES[p].short}</span>
-          <div className="relative h-5 rounded bg-slate-800 overflow-hidden">
-            <div className="h-full rounded-r" style={{ width: `${(shares[p] / max) * 100}%`, background: PARTIES[p].color }} />
-            {threshold && <div className="absolute top-0 bottom-0 border-l border-dashed border-slate-300" style={{ left: `${(5 / max) * 100}%`, opacity: 0.6 }} />}
-          </div>
-          <span className={`text-xs text-right ${p === highlight ? 'text-slate-50 font-semibold' : 'text-slate-300'}`} style={F_MONO}>{shares[p].toFixed(1)}</span>
-          {deltas && <span className="text-xs text-right" style={F_MONO}><Delta v={deltas[p]} /></span>}
-        </div>
-      ))}
-    </div>
-  );
-}
-function SeatTable({ seats, pr, smd, highlight }) {
-  const ids = ALL_IDS.filter((p) => (seats[p] || 0) > 0).sort((a, b) => seats[b] - seats[a]);
-  return (
-    <table className="w-full text-sm" style={F_MONO}>
-      <thead>
-        <tr className="text-xs text-slate-400">
-          <th className="text-left font-normal py-1">Party</th>
-          <th className="text-right font-normal">PR</th>
-          <th className="text-right font-normal">SMD</th>
-          <th className="text-right font-normal">Total</th>
-        </tr>
-      </thead>
-      <tbody>
-        {ids.map((p) => (
-          <tr key={p} className={`border-t border-slate-800 ${p === highlight ? 'text-slate-50 font-semibold' : 'text-slate-300'}`}>
-            <td className="py-1.5"><span className="inline-flex items-center gap-2"><Swatch p={p} />{PARTIES[p].short}</span></td>
-            <td className="text-right">{pr[p] || 0}</td>
-            <td className="text-right">{smd[p] || 0}</td>
-            <td className="text-right">{seats[p]}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
-}
-function TrendChart({ history, player }) {
-  const W = 340, H = 196, pl = 26, pr = 54, pt = 10, pb = 22;
-  const vals = history.flatMap((h) => PARTY_IDS.map((p) => h.shares[p]));
-  const yMax = Math.ceil(Math.max(25, ...vals) / 5) * 5;
-  const x = (w) => pl + (w / WEEKS) * (W - pl - pr);
-  const y = (v) => pt + (1 - v / yMax) * (H - pt - pb);
-  const last = history[history.length - 1];
-  const labels = PARTY_IDS.map((p) => ({ p, y: y(last.shares[p]) })).sort((a, b) => a.y - b.y);
-  for (let i = 1; i < labels.length; i++) if (labels[i].y - labels[i - 1].y < 9.5) labels[i].y = labels[i - 1].y + 9.5;
-  const over = labels.length ? labels[labels.length - 1].y - (H - pb + 2) : 0;
-  if (over > 0) labels.forEach((l) => { l.y -= over; });
-  const ticks = [];
-  for (let v = 0; v <= yMax; v += 5) ticks.push(v);
-  const order = PARTY_IDS.filter((p) => p !== player).concat(player);
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto block" role="img" aria-label="Weekly national polling trend">
-      {ticks.map((v) => (
-        <g key={v}>
-          <line x1={pl} x2={W - pr} y1={y(v)} y2={y(v)} stroke="#1E293B" strokeWidth="1" />
-          <text x={pl - 5} y={y(v) + 3} textAnchor="end" fontSize="8" fill="#64748B" style={F_MONO}>{v}</text>
-        </g>
-      ))}
-      <line x1={pl} x2={W - pr} y1={y(5)} y2={y(5)} stroke={GOLD} strokeWidth="1" strokeDasharray="4 3" opacity="0.8" />
-      {DEBATE_WEEKS.map((w) => (
-        <g key={w}>
-          <line x1={x(w)} x2={x(w)} y1={pt} y2={H - pb} stroke="#334155" strokeWidth="1" strokeDasharray="2 3" />
-          <text x={x(w)} y={H - pb + 11} textAnchor="middle" fontSize="7.5" fill="#94A3B8" style={F_MONO}>LRT</text>
-        </g>
-      ))}
-      {[0, 12].map((w) => (
-        <text key={w} x={x(w)} y={H - pb + 11} textAnchor="middle" fontSize="7.5" fill="#64748B" style={F_MONO}>{w === 0 ? 'W0' : 'W12'}</text>
-      ))}
-      {order.map((p) => {
-        const pts = history.map((h) => `${x(h.week).toFixed(1)},${y(h.shares[p]).toFixed(1)}`).join(' ');
-        const me = p === player;
-        return (
-          <g key={p}>
-            <polyline points={pts} fill="none" stroke={PARTIES[p].color} strokeWidth={me ? 2.8 : 1.4} strokeOpacity={me ? 1 : 0.75} strokeLinejoin="round" strokeLinecap="round" />
-            <circle cx={x(last.week)} cy={y(last.shares[p])} r={me ? 3.2 : 2} fill={PARTIES[p].color} />
-          </g>
-        );
-      })}
-      {labels.map((l) => (
-        <text key={l.p} x={x(last.week) + 6} y={l.y + 3} fontSize="8" fontWeight={l.p === player ? 700 : 500} fill={l.p === player ? '#F8FAFC' : '#CBD5E1'} style={F_MONO}>
-          {PARTIES[l.p].short} {last.shares[l.p].toFixed(0)}
-        </text>
-      ))}
-    </svg>
-  );
+function expectedAnswerScore(g, ans) {
+  let s = ans.base + ((STYLE_BONUS[g.player] || {})[ans.style] || 0);
+  if (ans.axis) {
+    const st = (g.stance[ans.axis[0]] / 90) * ans.axis[1];
+    if (st >= 0.3) s += 1.2 * st;
+    else if (st <= -0.3) s += 2.8 * st;
+  }
+  return s;
 }
 function coalitionPaths(g, seats) {
   const me = g.player;
@@ -1880,420 +1807,770 @@ function coalitionPaths(g, seats) {
     for (let i = start; i < others.length; i++) { chosen.push(others[i]); rec(i + 1, chosen); chosen.pop(); }
   };
   rec(0, []);
-  return out.sort((a, b) => b.minC - a.minC || a.chosen.length - b.chosen.length || b.total - a.total).slice(0, 4);
+  return out.sort((a, b) => b.minC - a.minC || a.chosen.length - b.chosen.length || b.total - a.total).slice(0, 3);
+}
+function suggestTeam(g) {
+  const S = g.election.seats;
+  const me = g.player;
+  const others = [...PARTY_IDS.filter((p) => p !== me && S[p] > 0), ...(S.KITI > 0 ? ['KITI'] : [])];
+  let best = null;
+  const rec = (start, chosen) => {
+    if (chosen.length) {
+      const total = S[me] + sum(chosen.map((p) => S[p]));
+      if (total >= MAJORITY && chosen.every((m) => total - S[m] < MAJORITY)) {
+        const coal = { partners: [...chosen], accepted: {}, sweet: {} };
+        const minW = Math.min(...chosen.map((p) => willingness(g, p, coal)));
+        const st = stability(g, coal);
+        const score = Math.min(minW, 60) * 2 + st;
+        if (!best || score > best.score) best = { partners: [...chosen], score, minW, st, total };
+      }
+    }
+    if (chosen.length >= 4) return;
+    for (let i = start; i < others.length; i++) { chosen.push(others[i]); rec(i + 1, chosen); chosen.pop(); }
+  };
+  rec(0, []);
+  return best;
 }
 
 /* ============================================================
-   Map
+   Save / load (per-viewer convenience)
    ============================================================ */
-const SEA = 'M-18,0 L9,0 L12,50 L12,68 L14.5,92 L4.2,144.5 L2,162 L-5,200 L-18,214 Z';
-const LAGOON = 'M14.6,97.5 L23,114 L30,142 L27,145 L6.2,145 L8.4,128 L11.2,112 Z';
-const OUTLINE_PATH = polyPath(OUTLINE);
-function regionFill(g, s, mode) {
-  if (mode === 'mine') return { fill: PARTIES[g.player].color, op: clamp(0.1 + s[g.player] / 38, 0.1, 0.95) };
-  const ord = PARTY_IDS.slice().sort((a, b) => s[b] - s[a]);
-  const margin = s[ord[0]] - s[ord[1]];
-  return { fill: PARTIES[ord[0]].color, op: clamp(0.78 + margin / 40, 0.78, 1), tossup: margin < 3 };
-}
-function LithuaniaMap({ g, shares, mode, sel, onSelect }) {
-  const key = (id) => (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(id); } };
-  const label = (r) => {
-    const [lx, ly] = r.label;
-    const acts = g.weekActs[r.id] || 0;
-    const nm = r.id === 'ABR' ? 'Abroad' : r.id === 'VLC' ? 'Vilniaus r.' : r.id === 'KNC' ? 'Kauno r.' : r.name;
-    const txt = { fill: '#F8FAFC', stroke: '#020617', strokeWidth: 2.6, paintOrder: 'stroke', strokeLinejoin: 'round' };
-    return (
-      <g key={`l-${r.id}`} pointerEvents="none">
-        <text x={lx} y={ly - 1} textAnchor="middle" fontSize="11" fontWeight="800" {...txt} style={F_MONO}>{r.seats}</text>
-        <text x={lx} y={ly + 7.5} textAnchor="middle" fontSize="6.6" fontWeight="600" {...txt} style={{ fontFamily: F_BODY }}>{nm}</text>
-        {acts > 0 && Array.from({ length: Math.min(acts, 6) }).map((_, i) => (
-          <circle key={i} cx={lx - (Math.min(acts, 6) - 1) * 2.4 + i * 4.8} cy={ly + 12.5} r="1.6" fill={GOLD} stroke="#020617" strokeWidth="0.6" />
-        ))}
-      </g>
-    );
-  };
-  const regionShape = (r) => {
-    const f = regionFill(g, shares[r.id], mode);
-    const common = {
-      fill: f.fill, fillOpacity: f.op, stroke: '#0B1220', strokeWidth: 1.1, strokeLinejoin: 'round',
-    };
-    return (
-      <g key={r.id} role="button" tabIndex={0} aria-label={`${r.en}, ${r.seats} seats`} onClick={() => onSelect(r.id)} onKeyDown={key(r.id)} style={{ cursor: 'pointer', outline: 'none' }}>
-        {r.tile ? (
-          <rect x={r.tile[0]} y={r.tile[1]} width={r.tile[2]} height={r.tile[3]} rx="5" {...common} stroke="#475569" />
-        ) : (
-          <path d={r.path} {...common} stroke={r.blob ? '#E2E8F0' : '#0B1220'} strokeOpacity={r.blob ? 0.7 : 1} />
-        )}
-        {r.id === 'KLP' && <path d={SPIT} {...common} />}
-        {f.tossup && (r.tile
-          ? <rect x={r.tile[0]} y={r.tile[1]} width={r.tile[2]} height={r.tile[3]} rx="5" fill="url(#sbl-hatch)" pointerEvents="none" />
-          : <path d={r.path} fill="url(#sbl-hatch)" pointerEvents="none" />)}
-      </g>
-    );
-  };
-  const S = sel ? REG[sel] : null;
-  return (
-    <svg viewBox="-18 0 426 306" className="sbl-map w-full h-auto block select-none" role="group" aria-label="Map of Lithuania's electoral regions">
-      <defs>
-        <pattern id="sbl-hatch" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-          <line x1="0" y1="0" x2="0" y2="5" stroke="#020617" strokeWidth="1.8" strokeOpacity="0.6" />
-        </pattern>
-      </defs>
-      <path d={SEA} fill="#0C1A2E" />
-      <path d={LAGOON} fill="#0C1A2E" />
-      <text x="-7" y="96" fontSize="6.5" fill="#3B5A80" letterSpacing="1.5" transform="rotate(-90 -7 96)" textAnchor="middle" style={F_MONO}>BALTIJOS JŪRA</text>
-      <text x="150" y="9" fontSize="6.5" fill="#475569" letterSpacing="2" textAnchor="middle" style={F_MONO}>LATVIJA</text>
-      <text x="372" y="230" fontSize="6.5" fill="#475569" letterSpacing="2" textAnchor="middle" style={F_MONO}>BALTARUSIJA</text>
-      <text x="128" y="284" fontSize="6.5" fill="#475569" letterSpacing="2" textAnchor="middle" style={F_MONO}>LENKIJA</text>
-      <text x="74" y="198" fontSize="6.5" fill="#475569" letterSpacing="2" textAnchor="middle" style={F_MONO}>RUSIJA</text>
-      {REGIONS.filter((r) => r.poly).map(regionShape)}
-      <path d={OUTLINE_PATH} fill="none" stroke="#94A3B8" strokeOpacity="0.55" strokeWidth="1.2" strokeLinejoin="round" pointerEvents="none" />
-      {REGIONS.filter((r) => r.blob || r.tile).map(regionShape)}
-      {S && (S.tile
-        ? <rect x={S.tile[0]} y={S.tile[1]} width={S.tile[2]} height={S.tile[3]} rx="5" fill="none" stroke={GOLD} strokeWidth="2.4" pointerEvents="none" />
-        : <path d={S.path} fill="none" stroke={GOLD} strokeWidth="2.4" strokeLinejoin="round" pointerEvents="none" />)}
-      {REGIONS.map(label)}
-    </svg>
-  );
-}
-function MapLegend({ g, shares, mode }) {
-  if (mode === 'mine') {
-    return (
-      <div className="flex items-center gap-2 px-2 pb-1 pt-2 text-xs text-slate-400">
-        <span>0%</span>
-        <div className="flex-1 h-2 rounded-full" style={{ background: `linear-gradient(90deg, ${PARTIES[g.player].color}22, ${PARTIES[g.player].color})` }} />
-        <span>35%+ for {PARTIES[g.player].short}</span>
-      </div>
-    );
+const SAVE_KEY = 'seimas-bfl-save-v2';
+function loadSave() {
+  try {
+    const raw = window.localStorage.getItem(SAVE_KEY);
+    if (!raw) return null;
+    const g = JSON.parse(raw);
+    return g && g.v === 2 && g.phase !== 'result' ? g : null;
+  } catch (e) {
+    return null;
   }
-  const leaders = [...new Set(REGIONS.map((r) => leaderOf(shares[r.id])))];
+}
+function writeSave(g) {
+  try {
+    if (!g || g.phase === 'result') window.localStorage.removeItem(SAVE_KEY);
+    else window.localStorage.setItem(SAVE_KEY, JSON.stringify(g));
+  } catch (e) { /* storage unavailable */ }
+}
+
+
+// Map outlines: simplified from @react-map/lithuania (MIT License, (c) Shubham Singh).
+const COUNTY_SHAPES = {
+  ALY: { label: [423, 519], d: 'M374,466L377,468L379,468L381,465L390,466L388,469L394,466L394,461L403,462L408,459L409,456L406,455L409,448L414,446L419,447L421,451L424,449L433,449L434,445L439,445L441,443L443,443L442,448L444,453L456,454L461,453L462,451L464,462L460,464L466,468L463,475L466,474L468,477L480,476L479,478L484,479L485,474L496,470L502,475L501,480L502,484L505,481L520,482L520,479L528,478L528,480L530,476L543,473L543,482L540,482L540,485L530,487L531,490L528,490L531,505L525,505L523,507L525,509L522,510L520,514L517,514L516,515L514,515L515,518L507,520L507,525L516,529L518,539L516,539L518,542L510,547L517,556L517,562L524,565L519,566L519,571L518,570L516,574L510,574L506,580L499,581L500,568L498,568L495,571L490,570L487,574L476,581L468,593L465,594L464,593L464,595L463,593L455,595L453,592L451,594L449,594L441,583L438,585L435,584L434,579L426,583L422,582L421,586L406,589L403,589L402,583L396,580L392,585L388,583L380,588L383,591L380,595L377,595L376,590L368,586L355,589L351,585L345,585L340,580L338,573L344,566L344,558L339,546L338,538L335,533L330,532L324,521L317,515L318,510L315,505L320,503L319,499L323,491L335,489L332,487L332,482L342,479L342,467L356,461L357,457L360,455L365,464L369,462Z' },
+  KNC: { label: [382, 269], d: 'M231,232L234,229L235,230L241,223L243,226L253,225L253,231L250,232L252,236L254,234L258,235L264,230L273,230L279,224L281,226L281,224L285,226L283,218L286,217L286,211L290,210L290,214L293,214L302,211L304,209L306,218L308,220L310,217L312,218L319,215L324,218L327,225L334,227L333,229L336,229L338,227L337,222L345,220L349,224L349,232L362,232L361,229L367,224L393,211L396,215L394,216L395,219L398,223L401,225L405,223L412,231L415,230L414,238L420,239L422,237L424,237L426,240L430,237L435,237L436,232L441,234L441,237L448,240L450,236L454,240L461,242L460,246L467,250L467,255L464,256L462,261L460,274L464,275L465,277L463,288L475,291L472,295L475,304L480,307L478,309L480,315L482,317L485,317L487,325L490,325L494,331L491,333L491,335L486,336L486,340L483,341L481,345L485,349L490,349L493,353L498,355L499,360L507,359L516,365L514,370L512,369L508,371L509,384L506,385L505,384L504,385L499,386L493,390L492,396L493,401L492,401L491,411L486,412L485,409L481,408L480,414L475,412L471,412L468,417L470,427L467,429L470,429L472,434L470,434L465,438L464,436L464,444L461,453L444,453L442,448L443,443L441,443L439,445L434,445L433,449L424,449L421,451L419,447L414,446L409,448L406,455L409,456L408,459L403,462L394,461L394,466L388,469L390,466L381,465L379,468L377,468L374,466L379,458L374,453L373,447L367,449L362,439L367,437L363,431L359,432L360,430L357,429L363,426L361,423L364,421L363,418L359,411L363,408L359,401L360,398L358,397L351,399L360,389L355,384L356,382L354,380L357,376L346,367L340,370L337,368L337,360L326,354L333,348L342,346L352,341L352,335L338,332L328,326L332,323L338,314L338,305L341,295L334,292L326,293L324,291L323,286L316,286L314,288L299,287L299,279L290,282L284,281L283,284L274,283L277,278L270,274L272,268L267,270L264,268L265,270L260,271L260,273L258,273L256,276L256,271L253,270L253,267L246,267L246,263L249,261L247,254L241,254L240,252L238,252L239,243L233,245L230,237L232,235Z' },
+  KLP: { label: [81, 241], d: 'M20,174L24,184L22,228L18,240L21,245L18,247L19,248L14,257L14,266L9,270L4,278L1,278L12,249L18,224L21,195ZM135,17L136,17L136,22L131,23L130,31L136,32L135,43L139,48L138,53L142,57L141,60L135,59L129,80L117,76L119,84L107,81L104,88L101,88L93,106L83,104L81,108L86,110L83,118L84,125L81,126L82,128L89,132L85,133L83,139L77,142L77,146L75,145L73,151L79,155L83,150L84,154L89,157L88,160L90,160L89,165L91,166L94,163L100,167L101,165L104,166L105,164L107,165L105,176L114,180L111,182L108,192L112,195L112,200L117,199L124,204L122,206L123,208L117,211L114,215L118,215L116,217L116,222L118,227L119,227L122,244L129,241L135,245L139,244L141,247L142,253L138,261L124,279L135,282L144,288L143,291L147,305L161,303L164,307L178,308L181,311L175,311L175,318L177,328L161,330L156,337L150,337L145,333L145,323L139,323L135,326L129,324L120,320L116,315L103,312L102,308L93,301L82,297L73,299L67,291L58,274L43,285L46,272L39,263L40,258L42,258L40,257L38,261L31,263L39,245L40,235L36,220L39,218L35,220L34,209L30,203L26,193L26,188L28,191L25,181L22,176L17,172L13,127L16,107L15,91L27,87L30,90L33,89L37,80L37,69L43,66L50,55L67,48L72,38L78,38L81,32L91,30L96,33L103,33L118,19L122,22Z' },
+  MAR: { label: [299, 430], d: 'M219,327L229,332L239,329L244,325L254,323L265,324L281,318L317,327L331,326L338,332L352,335L350,342L342,346L333,348L326,354L337,360L337,368L340,370L346,367L357,376L354,380L356,382L355,384L360,389L351,399L358,397L360,398L359,401L363,408L359,411L364,421L361,423L363,426L357,429L360,430L359,432L363,431L367,437L362,439L367,449L373,447L374,453L379,458L378,461L374,466L369,462L365,464L360,455L356,461L342,467L342,479L332,482L332,487L335,489L327,489L320,494L320,503L315,505L318,510L317,515L305,513L300,507L294,505L295,502L293,501L286,505L280,501L279,498L282,495L273,490L275,485L271,484L254,479L251,480L246,489L237,475L231,451L235,444L231,438L239,429L239,425L241,424L237,415L240,410L239,406L243,400L253,397L255,394L254,392L257,391L258,386L256,384L257,381L255,380L256,377L252,374L253,367L250,363L246,365L244,360L241,362L242,358L239,357L237,351L232,349L231,346L228,347L229,351L226,349L224,342L220,338Z' },
+  PAN: { label: [493, 108], d: 'M527,1L530,2L529,9L533,18L537,21L538,33L543,38L544,42L548,44L551,61L561,66L568,66L572,62L583,73L586,71L595,70L595,72L597,73L599,71L608,73L609,70L612,68L615,69L617,74L621,76L628,76L631,72L632,77L635,79L633,87L651,95L652,100L655,102L656,108L661,107L680,118L674,119L669,124L672,131L670,137L661,138L661,147L656,148L653,147L651,162L644,160L639,161L638,169L633,173L631,168L627,171L623,170L621,168L618,173L613,171L610,174L607,173L608,170L604,169L603,172L592,164L589,164L585,170L580,171L580,175L582,176L581,179L576,175L573,175L554,183L552,178L554,175L549,176L538,170L532,175L524,174L523,178L520,177L518,173L513,176L503,174L502,183L508,186L504,190L500,188L501,186L494,188L494,192L500,190L502,192L504,200L497,202L497,214L494,221L490,224L494,232L493,236L486,238L478,237L478,241L476,242L477,245L472,248L473,250L464,249L460,246L461,242L457,240L454,240L450,236L448,240L441,237L441,234L436,232L435,237L430,237L426,240L424,237L422,237L420,239L414,238L415,230L412,231L405,223L401,225L398,223L395,219L394,216L396,215L393,211L397,200L397,195L404,197L405,194L413,194L411,190L411,182L412,183L417,178L412,175L414,167L410,165L412,162L410,158L405,159L401,145L409,146L407,142L411,143L412,140L419,137L417,133L420,128L420,121L416,122L414,119L412,120L409,116L410,108L413,104L413,99L415,102L416,100L417,91L421,90L425,78L431,77L431,67L428,68L430,62L425,60L424,50L446,39L445,36L452,36L455,42L459,41L463,45L468,46L477,40L484,39L484,31L491,24L491,18L500,18L502,15L502,12L511,12L515,7L518,9L522,8L522,3L524,0Z' },
+  SIA: { label: [321, 120], d: 'M267,8L273,10L277,29L279,31L283,30L286,35L298,27L296,20L311,19L315,16L325,17L329,19L332,23L346,28L358,21L376,18L377,21L375,30L378,31L380,26L382,26L409,29L410,33L413,36L413,40L420,41L422,48L428,47L423,52L425,60L430,62L428,68L431,67L431,77L425,78L421,90L417,91L416,100L415,102L413,99L413,104L410,108L409,116L412,120L414,119L416,122L420,121L420,128L417,133L419,137L412,140L411,143L407,142L409,146L401,145L405,159L410,158L412,162L410,165L414,167L412,175L417,178L412,183L411,182L411,190L413,194L405,194L404,197L397,195L397,200L393,211L367,224L361,229L362,232L349,232L349,224L345,220L337,222L338,227L336,229L333,229L334,227L327,225L324,218L319,215L312,218L310,217L308,220L306,218L304,209L302,211L293,214L290,214L290,210L286,211L286,217L283,218L285,226L281,224L281,226L279,224L273,230L264,230L258,235L254,234L252,236L250,232L253,231L253,225L243,226L241,223L235,230L234,229L231,232L223,231L227,228L218,215L218,212L214,212L211,206L207,205L209,197L204,194L205,188L203,185L205,182L211,180L211,177L210,168L204,156L217,153L217,140L224,141L228,137L231,139L230,135L234,135L232,127L236,126L235,124L232,124L229,114L226,113L228,119L223,119L220,118L221,115L218,112L222,109L225,100L223,96L225,98L229,94L233,95L241,93L240,89L235,86L237,80L234,78L225,80L225,84L222,85L212,81L209,81L207,83L197,81L200,79L200,76L196,78L198,72L193,70L197,48L205,47L207,39L204,39L202,35L211,36L212,33L220,35L223,27L219,21L228,21L231,23L237,19L254,20L263,16L264,13L263,12Z' },
+  TAU: { label: [186, 261], d: 'M124,204L138,199L140,201L143,201L151,189L155,191L160,186L173,181L180,186L182,184L185,184L190,188L196,185L200,187L203,185L205,188L204,194L209,197L207,205L211,206L214,212L218,212L218,215L226,225L227,228L223,231L233,233L230,237L233,245L239,243L238,252L240,252L241,254L247,254L249,261L246,263L246,267L253,267L253,270L256,271L256,276L258,273L260,273L260,271L265,270L264,268L267,270L272,268L270,274L277,278L274,283L283,284L284,281L290,282L299,279L299,287L314,288L316,286L323,286L324,291L326,293L334,292L341,295L338,305L338,314L332,323L321,327L281,318L265,324L254,323L244,325L239,329L229,332L219,327L202,332L177,328L175,318L175,311L181,311L178,308L164,307L161,303L148,305L143,291L144,288L135,282L124,279L138,261L142,250L139,244L135,245L129,241L122,244L119,227L118,227L116,222L116,217L118,215L114,215L117,211L123,208L122,206Z' },
+  TEL: { label: [157, 128], d: 'M157,4L162,7L167,6L172,11L182,10L187,13L195,9L204,11L208,14L222,16L226,20L219,21L223,27L220,35L212,33L211,36L202,35L204,39L207,39L205,47L197,48L193,70L198,72L196,78L200,76L200,79L197,81L203,83L212,81L222,85L225,84L225,80L236,79L235,86L240,89L241,93L233,95L229,94L225,98L223,96L225,100L222,109L218,112L221,115L220,118L223,119L228,119L226,113L229,114L232,124L235,124L236,126L232,127L234,135L230,135L231,139L228,137L224,141L217,140L217,153L204,156L211,170L211,180L209,181L205,182L200,187L196,185L190,188L185,184L182,184L180,186L173,181L160,186L155,191L151,189L143,201L140,201L138,199L124,204L117,198L112,200L112,194L108,192L111,182L114,180L105,176L107,165L105,164L104,166L101,165L100,167L94,163L91,166L89,165L90,160L88,160L89,157L84,154L83,150L79,155L73,151L75,145L77,146L77,142L83,139L85,133L89,132L82,128L81,126L84,125L83,118L86,110L81,108L83,104L93,106L101,88L104,88L107,81L119,84L117,76L129,80L135,59L141,60L142,57L138,53L139,48L135,43L136,32L130,31L131,23L136,22L139,8L142,8L142,6L146,8Z' },
+  UTE: { label: [678, 214], d: 'M695,137L700,139L705,146L706,152L711,163L716,169L721,169L726,178L737,178L746,184L759,184L759,190L761,190L762,196L759,200L761,209L756,211L745,224L750,233L747,237L749,240L747,240L749,247L748,252L745,252L742,256L738,256L737,260L734,262L750,268L752,267L756,268L758,265L759,268L764,264L771,268L783,269L786,273L786,278L774,284L776,282L764,282L764,285L762,285L762,283L758,282L759,284L757,284L758,286L755,291L748,292L746,291L744,293L736,292L734,294L724,290L711,289L709,292L705,286L704,288L701,287L700,291L695,290L699,284L695,282L694,276L683,274L682,271L683,275L681,272L678,276L681,276L679,278L674,278L674,280L670,278L668,279L666,276L662,279L657,273L652,274L654,276L650,279L644,269L638,274L639,274L637,276L636,282L632,280L636,287L631,287L629,293L631,293L628,297L629,300L636,303L636,309L648,317L645,317L645,319L643,318L641,320L643,321L643,324L642,322L639,324L640,326L642,325L639,331L643,334L636,335L635,332L630,333L630,330L625,327L622,329L618,328L618,331L615,329L612,330L611,334L594,335L592,336L586,336L583,333L570,333L572,330L570,323L563,321L562,322L561,317L564,311L563,308L571,305L572,299L577,299L571,298L569,293L564,295L562,292L565,287L566,281L562,282L560,284L554,281L555,278L552,275L551,271L539,270L537,259L528,263L526,263L527,259L520,260L512,256L513,249L511,248L513,244L516,246L517,240L512,238L509,230L506,231L503,225L494,226L497,202L504,200L502,192L500,190L494,192L494,188L501,186L500,188L504,190L508,186L502,183L504,174L507,176L513,176L518,173L520,177L523,178L524,174L532,175L538,170L549,176L554,175L552,178L554,183L573,175L576,175L581,179L582,176L580,175L580,171L585,170L589,164L592,164L603,172L604,169L608,170L607,173L610,174L613,171L618,173L621,168L623,170L627,171L631,168L633,173L638,169L639,161L644,160L651,162L653,147L660,148L662,146L661,138L670,137L672,131L669,124L674,119L680,118L687,132L691,136Z' },
+  VLC: { label: [524, 305], d: 'M494,221L494,226L503,225L506,231L509,230L512,238L517,240L516,246L513,244L511,248L513,249L512,256L520,260L527,259L526,263L528,263L537,259L539,270L551,271L552,275L555,278L554,281L560,284L562,282L566,281L565,287L562,292L564,295L569,293L571,298L577,299L572,299L571,305L563,308L564,311L561,317L562,322L563,321L570,323L572,329L570,333L583,333L586,335L592,336L594,335L611,334L612,330L615,329L618,331L618,328L622,329L625,327L630,330L630,333L635,332L636,335L643,334L639,331L642,325L640,326L639,324L642,322L643,324L643,321L641,320L643,318L645,319L645,317L648,317L636,309L636,303L629,300L628,297L631,293L629,293L631,287L636,287L632,279L636,282L637,276L639,274L638,274L644,269L650,279L654,276L652,274L657,273L662,279L666,276L668,279L670,278L674,280L674,278L679,278L681,276L678,276L681,272L683,275L682,271L683,274L694,276L695,282L699,284L695,290L700,291L701,287L704,288L705,286L709,292L711,289L725,290L734,294L736,292L744,293L746,291L748,292L755,291L758,286L757,284L759,284L758,283L762,283L762,285L764,285L764,282L776,282L772,287L772,292L769,296L767,295L765,296L769,303L767,304L765,303L764,306L762,305L758,308L753,307L747,309L743,305L739,308L736,313L730,310L728,312L722,308L718,309L718,311L715,312L715,314L705,318L710,325L707,327L702,343L699,345L691,346L689,350L685,350L685,354L682,355L683,356L674,355L672,353L665,358L656,359L655,367L645,376L644,384L640,385L641,407L639,417L643,441L632,450L626,465L622,468L625,468L625,476L622,482L620,481L620,487L616,489L615,494L612,494L612,497L614,497L615,501L619,499L621,501L624,502L625,500L627,502L632,499L636,505L635,509L641,511L643,517L647,518L640,523L644,526L645,534L647,536L642,533L639,537L635,534L632,540L626,543L625,540L612,537L609,533L610,530L616,528L613,520L620,521L615,512L616,510L610,508L610,502L608,502L603,506L597,504L595,508L588,512L582,511L581,513L577,510L574,515L572,512L570,513L568,522L551,542L540,540L538,535L535,533L523,539L518,539L516,529L507,525L507,520L515,518L514,515L516,515L517,514L520,514L522,510L525,509L523,507L525,505L531,505L528,490L531,490L531,487L540,485L540,482L543,482L543,473L530,476L528,480L528,478L520,479L520,482L505,481L502,484L501,480L502,475L496,471L485,474L484,479L479,478L480,476L468,477L466,474L463,475L466,468L460,464L464,462L462,453L464,444L464,436L465,438L470,434L472,434L470,429L467,429L470,427L468,417L471,413L475,412L480,414L481,408L485,409L486,412L491,411L492,401L493,401L492,397L493,390L505,384L506,385L509,384L508,371L515,369L516,366L507,359L499,360L498,355L493,353L490,349L485,349L481,345L483,341L486,340L486,336L491,335L491,333L494,331L490,325L487,325L485,317L482,317L480,315L478,309L480,307L475,304L472,295L475,291L463,288L465,277L464,275L460,274L462,261L464,256L467,255L467,250L473,250L472,248L477,245L476,242L478,241L479,236L486,238L493,236L494,232L490,224Z' },
+};
+const CITY_POS = { VNO: [579, 416], KNS: [396, 367] };
+
+/* ============================================================
+   UI building blocks (cartoon style)
+   ============================================================ */
+function Tricolor({ className = '', h = 5 }) {
   return (
-    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 px-2 pb-1 pt-2 text-xs text-slate-300">
-      {leaders.map((p) => <span key={p} className="inline-flex items-center gap-1.5"><Swatch p={p} />{PARTIES[p].short}</span>)}
-      <span className="text-slate-500">Hatched = toss-up under 3 pts · numbers = seats</span>
+    <div className={`flex flex-col overflow-hidden rounded-md ${className}`} style={{ border: `2.5px solid ${INK}` }} aria-hidden="true">
+      <span style={{ background: FLAG.y, height: h }} />
+      <span style={{ background: FLAG.g, height: h }} />
+      <span style={{ background: FLAG.r, height: h }} />
     </div>
   );
 }
-function RegionRow({ r, s, g, mySeats, onClick }) {
-  const p = g.player;
-  const ord = PARTY_IDS.slice().sort((a, b) => s[b] - s[a]);
-  const lead = ord[0];
-  const rank = ord.indexOf(p) + 1;
-  const gap = lead === p ? s[p] - s[ord[1]] : s[p] - s[lead];
-  const acts = g.weekActs[r.id] || 0;
+function Btn({ children, onClick, disabled, kind = 'sun', className = '', ...rest }) {
   return (
-    <button type="button" onClick={onClick} className="w-full flex items-center gap-3 rounded-xl bg-slate-900 border border-slate-800 px-3 py-3 text-left transition hover:border-slate-600 active:bg-slate-800 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-300">
-      <div className="w-11 h-11 rounded-lg grid place-items-center shrink-0 text-base font-bold text-slate-50" style={{ background: `${PARTIES[lead].color}33`, border: `1px solid ${PARTIES[lead].color}`, ...F_MONO }}>
-        {r.seats}
-      </div>
-      <div className="min-w-0 flex-1">
-        <div className="font-semibold text-slate-100 truncate">{r.en}{acts > 0 && <span className="ml-2 text-xs font-normal text-amber-300">{acts}× this week</span>}</div>
-        <div className="text-xs text-slate-400 truncate">
-          {lead === p ? 'You lead' : `${PARTIES[lead].short} leads ${s[lead].toFixed(1)}%`} · you #{rank} at {s[p].toFixed(1)}%
-        </div>
-      </div>
-      <div className="flex flex-col items-end gap-1 shrink-0" style={F_MONO}>
-        <span className={`text-xs px-1.5 py-0.5 rounded-md ${gap >= 0 ? 'bg-emerald-500/15 text-emerald-300' : 'bg-rose-500/15 text-rose-300'}`}>{fmtSigned(gap)}</span>
-        <span className="text-xs text-slate-400">{mySeats}/{r.seats} won</span>
-      </div>
-      <ChevronRight size={18} className="text-slate-500 shrink-0" />
+    <button type="button" onClick={onClick} disabled={disabled} className={`cx-btn cx-${kind} ${className}`} {...rest}>
+      {children}
     </button>
   );
 }
-function MapTab({ g, shares, proj, sel, onSelect }) {
-  const [mode, setMode] = useState('leader');
-  const rows = REGIONS.slice().sort((a, b) => b.seats - a.seats);
-  const p = g.player;
-  const mySmd = proj.smdSeats[p] || 0;
+function Card({ children, className = '', style }) {
+  return <section className={`cx-card ${className}`} style={style}>{children}</section>;
+}
+function CardTitle({ children, sub, right }) {
   return (
-    <div className="flex flex-col gap-4 pt-4">
-      <div className="flex items-end justify-between gap-3">
-        <div className="min-w-0">
-          <h2 style={F_DISPLAY} className="text-3xl font-extrabold leading-none text-slate-50">Battleground</h2>
-          <p className="text-sm text-slate-400 mt-1">Tap a region to campaign there.</p>
+    <div className="flex items-start justify-between gap-3 mb-3">
+      <div className="min-w-0">
+        <h3 className="cx-title text-xl leading-tight">{children}</h3>
+        {sub && <p className="text-sm t-muted font-semibold mt-0.5">{sub}</p>}
+      </div>
+      {right}
+    </div>
+  );
+}
+function PartyDot({ p, size = 14 }) {
+  return <span className="inline-block rounded-full shrink-0" style={{ width: size, height: size, background: PARTIES[p].color, border: `2px solid ${INK}` }} />;
+}
+function PartyChip({ p, children }) {
+  return (
+    <span className="cx-chip px-2 py-0.5 text-sm">
+      <PartyDot p={p} size={12} />{PARTIES[p].short}{children}
+    </span>
+  );
+}
+function Bar({ value, max = 100, color = SUN, mark, h = 14 }) {
+  return (
+    <div className="cx-track relative" style={{ height: h }}>
+      <div className="h-full" style={{ width: `${clamp((value / max) * 100, 0, 100)}%`, background: color, borderRight: value > 0 ? `2px solid ${INK}` : 'none' }} />
+      {mark != null && <div className="absolute top-0 bottom-0" style={{ left: `${(mark / max) * 100}%`, width: 3, background: INK }} />}
+    </div>
+  );
+}
+function Delta({ v, d = 1, unit = '' }) {
+  if (v == null || Math.abs(v) < 0.05) return <span className="t-muted">±0{unit}</span>;
+  return <span style={{ color: v > 0 ? '#15803D' : '#DC2626' }}>{v > 0 ? '▲' : '▼'}{Math.abs(v).toFixed(d)}{unit}</span>;
+}
+function Advisor({ size = 48 }) {
+  return (
+    <svg viewBox="0 0 64 64" width={size} height={size} className="shrink-0" role="img" aria-label="Rūta, your campaign manager">
+      <circle cx="32" cy="32" r="29.5" fill="#FFE08A" stroke={INK} strokeWidth="3" />
+      <path d="M13 40 C10 18 22 10 32 10 C44 10 54 18 51 40 Z" fill="#7A4A2E" stroke={INK} strokeWidth="2.5" strokeLinejoin="round" />
+      <path d="M17 61 C19 50 25 46 32 46 C39 46 45 50 47 61" fill="#2F6FDE" stroke={INK} strokeWidth="2.5" strokeLinejoin="round" />
+      <rect x="27" y="47" width="10" height="3" fill={FLAG.y} /><rect x="27" y="50" width="10" height="3" fill={FLAG.g} /><rect x="27" y="53" width="10" height="3" fill={FLAG.r} />
+      <circle cx="32" cy="32" r="13.5" fill="#F8CBA6" stroke={INK} strokeWidth="2.5" />
+      <path d="M18.5 30 C20 20 28 17 33 18 C40 19 45 23 45.5 30 C40 26 33 24 25 27 Z" fill="#7A4A2E" stroke={INK} strokeWidth="2" strokeLinejoin="round" />
+      <circle cx="27" cy="32.5" r="1.9" fill={INK} /><circle cx="37" cy="32.5" r="1.9" fill={INK} />
+      <circle cx="23.5" cy="37" r="2.2" fill="#F28B82" opacity="0.7" /><circle cx="40.5" cy="37" r="2.2" fill="#F28B82" opacity="0.7" />
+      <path d="M27.5 38 Q32 42.5 36.5 38" fill="none" stroke={INK} strokeWidth="2.2" strokeLinecap="round" />
+    </svg>
+  );
+}
+function Coach({ title, children, actions, onSkip, className = '' }) {
+  return (
+    <div className={`cx-card cx-cream p-3 sbl-pop ${className}`} role="note">
+      <div className="flex gap-3 items-start">
+        <Advisor size={46} />
+        <div className="min-w-0 flex-1">
+          {title && <div className="cx-title text-lg leading-tight">{title}</div>}
+          <div className="text-sm font-semibold leading-snug mt-0.5">{children}</div>
         </div>
-        <Segmented value={mode} onChange={setMode} label="Map colouring" options={[['leader', 'Leader'], ['mine', 'Mine']]} />
+        {onSkip && <button type="button" onClick={onSkip} className="text-xs font-extrabold underline t-muted shrink-0 h-8">Skip tips</button>}
       </div>
-      <div className="rounded-2xl bg-slate-900 border border-slate-800 p-2">
-        <LithuaniaMap g={g} shares={shares} mode={mode} sel={sel} onSelect={onSelect} />
-        <MapLegend g={g} shares={shares} mode={mode} />
-      </div>
-      <div className="grid grid-cols-3 gap-2">
-        {[
-          ['Projected', proj.seats[p], 'text-slate-50'],
-          ['List seats', proj.pr[p] || 0, 'text-slate-200'],
-          ['Constituency', mySmd, 'text-slate-200'],
-        ].map(([l, v, c]) => (
-          <div key={l} className="rounded-xl bg-slate-900 border border-slate-800 px-3 py-2.5">
-            <div className="text-xs text-slate-400 truncate">{l}</div>
-            <div className={`text-2xl font-bold ${c}`} style={F_MONO}>{v}</div>
-          </div>
-        ))}
-      </div>
-      <div className="flex flex-col gap-2">
-        <Kicker>Regions by seats</Kicker>
-        {rows.map((r) => (
-          <RegionRow key={r.id} r={r} s={shares[r.id]} g={g} mySeats={proj.smd.filter((e) => e.rid === r.id && e.winner === p).length} onClick={() => onSelect(r.id)} />
-        ))}
+      {actions && <div className="flex flex-wrap gap-2 mt-3">{actions}</div>}
+    </div>
+  );
+}
+function Sheet({ onClose, children, label, z = 'z-40' }) {
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape' && onClose) onClose(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [onClose]);
+  return (
+    <div className={`fixed inset-0 ${z} flex flex-col justify-end`} role="dialog" aria-modal="true" aria-label={label}>
+      <div className="absolute inset-0 sbl-fade" style={{ background: 'rgba(31,37,68,0.55)' }} onClick={onClose || undefined} />
+      <div
+        className="sbl-sheet sbl-scroll relative w-full max-w-lg mx-auto overflow-y-auto"
+        style={{ maxHeight: '92vh', background: '#fff', borderTop: `3px solid ${INK}`, borderLeft: `3px solid ${INK}`, borderRight: `3px solid ${INK}`, borderRadius: '28px 28px 0 0', paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 22px)' }}
+      >
+        {children}
       </div>
     </div>
   );
 }
+function SheetHead({ kicker, title, onClose, right }) {
+  return (
+    <div className="sticky top-0 z-10 bg-white pt-3 pb-3" style={{ ...GUTTER, borderBottom: '2px solid #E3EDF5' }}>
+      <div className="mx-auto w-12 h-1.5 rounded-full mb-3" style={{ background: '#CBD5E1' }} />
+      <div className="flex items-center gap-3">
+        <div className="min-w-0 flex-1">
+          {kicker && <div className="text-sm font-extrabold t-muted">{kicker}</div>}
+          <h2 className="cx-title text-3xl leading-none">{title}</h2>
+        </div>
+        {right}
+        {onClose && (
+          <button type="button" onClick={onClose} aria-label="Close" className="cx-btn cx-white shrink-0" style={{ width: 46, height: 46, borderRadius: 999 }}><X size={22} /></button>
+        )}
+      </div>
+    </div>
+  );
+}
+function Mood({ w, size = 22 }) {
+  const Icon = w >= 50 ? Smile : w >= 35 ? Meh : Frown;
+  const color = w >= 65 ? '#15803D' : w >= 50 ? '#16A34A' : w >= 35 ? '#B45309' : '#DC2626';
+  return <Icon size={size} style={{ color }} strokeWidth={2.6} />;
+}
 
 /* ============================================================
-   Region drawer
+   Seat chart, poll bars, trend
    ============================================================ */
-function ActionCard({ type, g, r, rival, onAction }) {
+function Hemicycle({ seats, highlight, dim, label = 'seats', showCount = true }) {
+  const left = SEAT_ORDER.slice(0, 6);
+  const right = SEAT_ORDER.slice(6);
+  const L = [], R = [];
+  left.forEach((p) => { for (let i = 0; i < (seats[p] || 0); i++) L.push(p); });
+  right.forEach((p) => { for (let i = 0; i < (seats[p] || 0); i++) R.push(p); });
+  const empty = Math.max(0, 141 - L.length - R.length);
+  const colors = [...L, ...Array(empty).fill(null), ...R].slice(0, 141);
+  const n = highlight ? seats[highlight] || 0 : sum(Object.values(seats));
+  return (
+    <svg viewBox="-1.08 -1.08 2.16 1.14" className="w-full h-auto block" role="img" aria-label={`Seat chart: ${n} ${label}`}>
+      <line x1="0" y1="-1.07" x2="0" y2="-0.3" stroke={INK} strokeWidth="0.012" strokeDasharray="0.035 0.03" />
+      {HEMI.map((s, i) => {
+        const p = colors[i];
+        const faded = p && dim && !dim.includes(p);
+        return (
+          <circle
+            key={i} cx={s.x} cy={s.y} r={0.042}
+            fill={p ? PARTIES[p].color : '#D6E4EF'} fillOpacity={faded ? 0.3 : 1}
+            stroke={INK} strokeWidth={p === highlight && p ? 0.02 : 0.009} strokeOpacity={faded ? 0.3 : 1}
+          />
+        );
+      })}
+      {showCount && (
+        <g>
+          <text x="0" y="-0.09" textAnchor="middle" fill={INK} fontSize="0.26" fontWeight="700" style={{ fontFamily: FONT_TITLE }}>{n}</text>
+          <text x="0" y="-0.0" textAnchor="middle" fill={MUTED} fontSize="0.075" fontWeight="800" style={{ fontFamily: F_BODY }}>{label}</text>
+        </g>
+      )}
+    </svg>
+  );
+}
+function PollBars({ shares, highlight, threshold, deltas }) {
+  const ids = ALL_IDS.slice().sort((a, b) => (a === 'KITI' ? 1 : 0) - (b === 'KITI' ? 1 : 0) || shares[b] - shares[a]);
+  const max = Math.max(30, ...ids.map((p) => shares[p]));
+  const cols = deltas ? '84px 1fr 44px 48px' : '84px 1fr 44px';
+  return (
+    <div className="flex flex-col gap-2">
+      {ids.map((p) => (
+        <div key={p} className="grid items-center gap-2" style={{ gridTemplateColumns: cols }}>
+          <span className={`text-sm truncate inline-flex items-center gap-1.5 ${p === highlight ? 'font-black' : 'font-bold'}`}><PartyDot p={p} size={11} />{PARTIES[p].short}</span>
+          <div className="cx-track relative" style={{ height: 16 }}>
+            <div className="h-full" style={{ width: `${(shares[p] / max) * 100}%`, background: PARTIES[p].color, borderRight: `2px solid ${INK}` }} />
+            {threshold && <div className="absolute top-0 bottom-0" style={{ left: `${(5 / max) * 100}%`, borderLeft: `2px dashed ${INK}` }} />}
+          </div>
+          <span className={`text-sm text-right cx-num ${p === highlight ? 'font-black' : ''}`}>{shares[p].toFixed(1)}%</span>
+          {deltas && <span className="text-xs text-right font-extrabold"><Delta v={deltas[p]} /></span>}
+        </div>
+      ))}
+      {threshold && <div className="text-xs font-bold t-muted">Dashed line = 5%. Below it, a party gets no list seats.</div>}
+    </div>
+  );
+}
+function SeatTable({ seats, pr, smd, highlight }) {
+  const ids = ALL_IDS.filter((p) => (seats[p] || 0) > 0).sort((a, b) => seats[b] - seats[a]);
+  return (
+    <table className="w-full text-sm">
+      <thead>
+        <tr className="t-muted text-xs font-extrabold">
+          <th className="text-left py-1">Party</th>
+          <th className="text-right">National</th>
+          <th className="text-right">Local</th>
+          <th className="text-right">Total</th>
+        </tr>
+      </thead>
+      <tbody className="cx-num">
+        {ids.map((p) => (
+          <tr key={p} style={{ borderTop: '2px solid #E3EDF5' }} className={p === highlight ? 'font-black' : ''}>
+            <td className="py-1.5"><span className="inline-flex items-center gap-2" style={{ fontFamily: F_BODY, fontWeight: 800 }}><PartyDot p={p} size={11} />{PARTIES[p].short}</span></td>
+            <td className="text-right">{pr[p] || 0}</td>
+            <td className="text-right">{smd[p] || 0}</td>
+            <td className="text-right">{seats[p]}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+function TrendChart({ history, player }) {
+  const W = 340, H = 190, pl = 24, pr = 58, pt = 10, pb = 22;
+  const vals = history.flatMap((h) => PARTY_IDS.map((p) => h.shares[p]));
+  const yMax = Math.ceil(Math.max(25, ...vals) / 5) * 5;
+  const x = (w) => pl + (w / WEEKS) * (W - pl - pr);
+  const y = (v) => pt + (1 - v / yMax) * (H - pt - pb);
+  const last = history[history.length - 1];
+  const labels = PARTY_IDS.map((p) => ({ p, y: y(last.shares[p]) })).sort((a, b) => a.y - b.y);
+  for (let i = 1; i < labels.length; i++) if (labels[i].y - labels[i - 1].y < 10) labels[i].y = labels[i - 1].y + 10;
+  const over = labels.length ? labels[labels.length - 1].y - (H - pb + 2) : 0;
+  if (over > 0) labels.forEach((l) => { l.y -= over; });
+  const ticks = [];
+  for (let v = 0; v <= yMax; v += 10) ticks.push(v);
+  const order = PARTY_IDS.filter((p) => p !== player).concat(player);
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto block" role="img" aria-label="Weekly national polling trend">
+      {ticks.map((v) => (
+        <g key={v}>
+          <line x1={pl} x2={W - pr} y1={y(v)} y2={y(v)} stroke="#DCE7F0" strokeWidth="1.2" />
+          <text x={pl - 5} y={y(v) + 3} textAnchor="end" fontSize="8.5" fill={MUTED} fontWeight="700">{v}</text>
+        </g>
+      ))}
+      <line x1={pl} x2={W - pr} y1={y(5)} y2={y(5)} stroke={INK} strokeWidth="1.2" strokeDasharray="4 3" opacity="0.6" />
+      {DEBATE_WEEKS.map((w) => (
+        <g key={w}>
+          <line x1={x(w)} x2={x(w)} y1={pt} y2={H - pb} stroke="#B8C7D6" strokeWidth="1" strokeDasharray="2 3" />
+          <text x={x(w)} y={H - pb + 12} textAnchor="middle" fontSize="8" fill={MUTED} fontWeight="800">TV</text>
+        </g>
+      ))}
+      {[0, 12].map((w) => <text key={w} x={x(w)} y={H - pb + 12} textAnchor="middle" fontSize="8" fill={MUTED} fontWeight="800">{w === 0 ? 'Start' : 'Vote'}</text>)}
+      {order.map((p) => {
+        const pts = history.map((h) => `${x(h.week).toFixed(1)},${y(h.shares[p]).toFixed(1)}`).join(' ');
+        const me = p === player;
+        return (
+          <g key={p}>
+            {me && <polyline points={pts} fill="none" stroke={INK} strokeWidth={5.5} strokeLinejoin="round" strokeLinecap="round" />}
+            <polyline points={pts} fill="none" stroke={PARTIES[p].color} strokeWidth={me ? 3 : 1.6} strokeOpacity={me ? 1 : 0.8} strokeLinejoin="round" strokeLinecap="round" />
+            <circle cx={x(last.week)} cy={y(last.shares[p])} r={me ? 4 : 2.4} fill={PARTIES[p].color} stroke={INK} strokeWidth={me ? 1.6 : 0.8} />
+          </g>
+        );
+      })}
+      {labels.map((l) => (
+        <text key={l.p} x={x(last.week) + 7} y={l.y + 3} fontSize="8.5" fontWeight={l.p === player ? 900 : 700} fill={INK}>
+          {PARTIES[l.p].short} {last.shares[l.p].toFixed(0)}
+        </text>
+      ))}
+    </svg>
+  );
+}
+
+/* ============================================================
+   Cartoon map
+   ============================================================ */
+const MAP_NAME = { VLC: 'Vilnius area', KNC: 'Kaunas area', KLP: 'Klaipėda', TEL: 'Telšiai', TAU: 'Tauragė', SIA: 'Šiauliai', PAN: 'Panevėžys', UTE: 'Utena', ALY: 'Alytus', MAR: 'Marijampolė', VNO: 'Vilnius', KNS: 'Kaunas', ABR: 'Abroad' };
+const TOKENS = { VNO: { pos: CITY_POS.VNO, r: 40 }, KNS: { pos: CITY_POS.KNS, r: 34 }, ABR: { pos: [770, 588], r: 32 } };
+const COUNTY_IDS = Object.keys(COUNTY_SHAPES);
+const WAVES = [[-26, 70], [-14, 150], [-28, 230], [-10, 330], [30, 400]];
+function starPath(cx, cy, R, r) {
+  const pts = [];
+  for (let i = 0; i < 10; i++) {
+    const a = -Math.PI / 2 + (i * Math.PI) / 5;
+    const rad = i % 2 ? r : R;
+    pts.push(`${(cx + Math.cos(a) * rad).toFixed(1)},${(cy + Math.sin(a) * rad).toFixed(1)}`);
+  }
+  return `M${pts.join('L')}Z`;
+}
+function regionLook(s) {
+  const ord = PARTY_IDS.slice().sort((a, b) => s[b] - s[a]);
+  return { lead: ord[0], tossup: s[ord[0]] - s[ord[1]] < 3 };
+}
+function CartoonMap({ g, shares, sel, onSelect, stars }) {
+  const starSet = new Set(stars || []);
+  const key = (id) => (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(id); } };
+  const txt = { fill: INK, stroke: '#fff', strokeWidth: 7, paintOrder: 'stroke', strokeLinejoin: 'round', style: { fontFamily: FONT_TITLE }, fontWeight: 700 };
+  const badge = (x, y, n) => (
+    <g pointerEvents="none">
+      <circle cx={x} cy={y} r="22" fill="#fff" stroke={INK} strokeWidth="4" />
+      <text x={x} y={y + 9} textAnchor="middle" fontSize="26" fontWeight="700" fill={INK} style={{ fontFamily: FONT_TITLE }}>{n}</text>
+    </g>
+  );
+  const star = (x, y, id) => (
+    <g key={`s-${id}`} pointerEvents="none">
+      <path className="cx-bob" d={starPath(x, y, 19, 8.5)} fill={SUN} stroke={INK} strokeWidth="3.5" strokeLinejoin="round" />
+    </g>
+  );
+  return (
+    <svg viewBox="-40 -26 870 660" className="cx-map w-full h-auto block select-none" role="group" aria-label="Map of Lithuania's electoral regions">
+      <defs>
+        <pattern id="cx-stripes" width="16" height="16" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <rect x="0" y="0" width="6" height="16" fill="#fff" fillOpacity="0.5" />
+        </pattern>
+      </defs>
+      {WAVES.map(([x, y], i) => (
+        <path key={i} d={`M${x},${y} q7,-7 14,0 t14,0`} fill="none" stroke="#fff" strokeWidth="3.5" strokeLinecap="round" opacity="0.8" />
+      ))}
+      <text x="-20" y="520" fontSize="17" fontWeight="800" fill="#3E77A3" letterSpacing="2" transform="rotate(-90 -20 520)" textAnchor="middle">BALTIJOS JŪRA</text>
+      <text x="660" y="20" fontSize="18" fontWeight="800" fill="#3E77A3" letterSpacing="3" textAnchor="middle">LATVIJA</text>
+      <text x="752" y="432" fontSize="18" fontWeight="800" fill="#3E77A3" letterSpacing="2" textAnchor="middle">BALTARUSIJA</text>
+      <text x="215" y="612" fontSize="18" fontWeight="800" fill="#3E77A3" letterSpacing="3" textAnchor="middle">LENKIJA</text>
+      <text x="100" y="420" fontSize="18" fontWeight="800" fill="#3E77A3" letterSpacing="3" textAnchor="middle">RUSIJA</text>
+      <g transform="translate(0,12)">
+        {COUNTY_IDS.map((id) => <path key={`x-${id}`} d={COUNTY_SHAPES[id].d} fill={INK} stroke={INK} strokeWidth="13" strokeLinejoin="round" />)}
+      </g>
+      {COUNTY_IDS.map((id) => <path key={`o-${id}`} d={COUNTY_SHAPES[id].d} fill="#fff" stroke={INK} strokeWidth="13" strokeLinejoin="round" />)}
+      {COUNTY_IDS.map((id) => {
+        const look = regionLook(shares[id]);
+        const r = REG[id];
+        return (
+          <g key={id} role="button" tabIndex={0} aria-label={`${r.en}: ${r.seats} seats, ${PARTIES[look.lead].short} leading${starSet.has(id) ? ', recommended' : ''}`} onClick={() => onSelect(id)} onKeyDown={key(id)} style={{ cursor: 'pointer', outline: 'none' }}>
+            <path d={COUNTY_SHAPES[id].d} fill={PARTIES[look.lead].color} stroke="#fff" strokeWidth="4.5" strokeLinejoin="round" />
+            {look.tossup && <path d={COUNTY_SHAPES[id].d} fill="url(#cx-stripes)" pointerEvents="none" />}
+          </g>
+        );
+      })}
+      {sel && COUNTY_SHAPES[sel] && <path d={COUNTY_SHAPES[sel].d} fill="none" stroke={SUN} strokeWidth="9" strokeLinejoin="round" pointerEvents="none" />}
+      {sel && COUNTY_SHAPES[sel] && <path d={COUNTY_SHAPES[sel].d} fill="none" stroke={INK} strokeWidth="3" strokeLinejoin="round" pointerEvents="none" />}
+      {Object.entries(TOKENS).map(([id, t]) => {
+        const look = regionLook(shares[id]);
+        const [x, y] = t.pos;
+        const r = REG[id];
+        return (
+          <g key={id} role="button" tabIndex={0} aria-label={`${r.en}: ${r.seats} seat${r.seats > 1 ? 's' : ''}, ${PARTIES[look.lead].short} leading${starSet.has(id) ? ', recommended' : ''}`} onClick={() => onSelect(id)} onKeyDown={key(id)} style={{ cursor: 'pointer', outline: 'none' }}>
+            <circle cx={x} cy={y + 7} r={t.r} fill={INK} />
+            <circle cx={x} cy={y} r={t.r} fill={PARTIES[look.lead].color} stroke={sel === id ? SUN : INK} strokeWidth={sel === id ? 8 : 5} />
+            {look.tossup && <circle cx={x} cy={y} r={t.r - 4} fill="url(#cx-stripes)" pointerEvents="none" />}
+            {id === 'ABR' && <path d={`M${x - t.r + 8},${y} H${x + t.r - 8} M${x},${y - t.r + 8} V${y + t.r - 8}`} stroke="#fff" strokeOpacity="0.35" strokeWidth="3" pointerEvents="none" />}
+            <text x={x} y={y + 11} textAnchor="middle" fontSize={t.r > 36 ? 32 : 28} fontWeight="700" fill="#fff" stroke={INK} strokeWidth="6" paintOrder="stroke" strokeLinejoin="round" style={{ fontFamily: FONT_TITLE }} pointerEvents="none">{r.seats}</text>
+          </g>
+        );
+      })}
+      {COUNTY_IDS.map((id) => {
+        const [lx, ly] = COUNTY_SHAPES[id].label;
+        return (
+          <g key={`l-${id}`} pointerEvents="none">
+            {badge(lx, ly - 14, REG[id].seats)}
+            <text x={lx} y={ly + 30} textAnchor="middle" fontSize="25" {...txt}>{MAP_NAME[id]}</text>
+          </g>
+        );
+      })}
+      {Object.entries(TOKENS).map(([id, t]) => {
+        const [x, y] = t.pos;
+        const ny = id === 'ABR' ? y - t.r - 12 : y + t.r + 28;
+        return <text key={`n-${id}`} x={x} y={ny} textAnchor="middle" fontSize="25" {...txt} pointerEvents="none">{MAP_NAME[id]}</text>;
+      })}
+      {COUNTY_IDS.filter((id) => starSet.has(id)).map((id) => {
+        const [lx, ly] = COUNTY_SHAPES[id].label;
+        return star(lx + 26, ly - 38, id);
+      })}
+      {Object.entries(TOKENS).filter(([id]) => starSet.has(id)).map(([id, t]) => star(t.pos[0] + t.r * 0.8, t.pos[1] - t.r * 0.85, id))}
+    </svg>
+  );
+}
+
+/* ============================================================
+   Region list & region card (drawer)
+   ============================================================ */
+function StatusPill({ status }) {
+  const L = STATUS_LOOK[status];
+  return <span className="cx-chip px-2.5 py-0.5 text-xs" style={{ background: L.bg }}>{L.label}</span>;
+}
+function RegionRow({ r, g, s, mySeats, star, onClick }) {
+  const info = raceInfo(g, r, s);
+  const acts = g.weekActs[r.id] || 0;
+  return (
+    <button type="button" onClick={onClick} className="cx-tap cx-card w-full flex items-center gap-3 px-3 py-3 text-left" style={{ boxShadow: `0 4px 0 ${INK}` }}>
+      <div className="relative shrink-0 grid place-items-center rounded-full cx-num text-lg" style={{ width: 48, height: 48, background: PARTIES[info.lead].color, border: `3px solid ${INK}`, color: '#fff', textShadow: `0 0 3px ${INK}, 0 0 1px ${INK}` }}>
+        {r.seats}
+        {star && <Star size={20} className="absolute -top-2 -right-2" style={{ color: INK, fill: SUN }} strokeWidth={2.5} aria-hidden="true" />}
+        {star && <span className="sr-only">Recommended:</span>}
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2">
+          <span className="cx-title text-lg leading-tight truncate">{r.en}</span>
+        </div>
+        <div className="text-sm font-semibold t-muted truncate">{raceText(info)}</div>
+      </div>
+      <div className="flex flex-col items-end gap-1 shrink-0">
+        <StatusPill status={info.status} />
+        <span className="text-xs font-extrabold t-muted">{acts > 0 ? `${acts}× this week` : `you win ${mySeats}/${r.seats}`}</span>
+      </div>
+      <ChevronRight size={20} className="shrink-0" />
+    </button>
+  );
+}
+function ActionTile({ type, g, r, rival, onAction, best }) {
   const A = ACTIONS[type];
   const p = g.player;
   const cost = actionCost(type, r, p);
   const disabled = g.ap < 1 || g.money < cost;
   const und = g.undecided[r.id];
-  let hint;
-  if (type === 'attack') {
-    const bf = BACKFIRE[p] + (p === 'TS' && r.urban < 0.6 ? 0.1 : 0) + 0.06 * g.attacksThisWeek;
-    hint = `vs ${PARTIES[rival].short} · ${Math.round(bf * 100)}% backfire`;
-  } else if (type === 'door') {
-    hint = `Ground game ${Math.round(g.gg[r.id][p])} → ${Math.round(Math.min(100, g.gg[r.id][p] + 14 * (1 - g.gg[r.id][p] / 110) * geoMult(p, r)))}`;
-  } else {
-    hint = `≈ +${((actionPreview(g, r.id, type) * 100) / (100 - und)).toFixed(1)} pts`;
-  }
+  let effect;
+  if (type === 'attack') effect = `${PARTIES[rival].short} ▼ · ${Math.round(attackBackfire(g, r) * 100)}% backfire risk`;
+  else if (type === 'door') effect = `Ground team ${Math.round(g.gg[r.id][p])} → ${Math.round(Math.min(100, g.gg[r.id][p] + 14 * (1 - g.gg[r.id][p] / 110) * geoMult(p, r)))}`;
+  else effect = `About +${((actionPreview(g, r.id, type) * 100) / (100 - und)).toFixed(1)}% for you`;
   const Icon = A.icon;
   return (
     <button
       type="button" disabled={disabled} onClick={() => onAction(r.id, type)}
-      className={`flex flex-col items-start gap-1.5 rounded-xl bg-slate-800 border border-slate-700 p-3 text-left transition active:scale-95 hover:border-slate-500 disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 ${type === 'attack' ? 'col-span-2' : ''}`}
-      style={{ minHeight: 112 }}
+      className={`cx-btn ${best ? 'cx-cream' : 'cx-white'} flex-col items-start text-left p-3 ${type === 'attack' ? 'col-span-2' : ''}`}
+      style={{ minHeight: 132, justifyContent: 'flex-start', gap: 6 }}
     >
-      <div className="flex items-center gap-2">
-        <Icon size={18} className={type === 'attack' ? 'text-rose-300' : 'text-amber-300'} />
-        <span className="font-semibold text-sm leading-tight text-slate-50">{A.label}</span>
+      <div className="flex items-center gap-2 w-full">
+        <span className="grid place-items-center rounded-full shrink-0" style={{ width: 36, height: 36, background: A.color, border: `2.5px solid ${INK}` }}><Icon size={18} strokeWidth={2.5} /></span>
+        <span className="cx-title text-base leading-tight">{A.label}</span>
+        {best && <Star size={18} className="ml-auto shrink-0" style={{ fill: SUN }} strokeWidth={2.5} aria-hidden="true" />}
+        {best && <span className="sr-only">(Rūta’s pick)</span>}
       </div>
-      <div className="text-xs text-slate-400 leading-snug">{A.desc}</div>
-      <div className="mt-auto flex flex-wrap items-center justify-between gap-x-2 w-full text-xs" style={F_MONO}>
-        <span className="text-slate-300">1 AP · {fmtEur(cost)}</span>
-        <span className={type === 'attack' ? 'text-rose-300' : 'text-emerald-300'}>{hint}</span>
-      </div>
+      <span className="text-sm font-semibold t-muted leading-snug">{A.desc}</span>
+      <span className="text-sm font-extrabold leading-snug" style={{ color: type === 'attack' ? '#B91C1C' : '#15803D' }}>{effect}</span>
+      <span className="mt-auto inline-flex items-center gap-1 text-sm font-extrabold"><Zap size={15} style={{ fill: SUN }} />1 · {fmtEur(cost)}</span>
     </button>
   );
 }
-function RegionDrawer({ g, rid, proj, onClose, onAction }) {
+function RegionDrawer({ g, rid, proj, onClose, onAction, tutStep, onSkipTips }) {
   const r = REG[rid];
   const p = g.player;
-  const s = regionShares(g, r);
-  const rival = leaderOf(s, p);
+  const info = raceInfo(g, r);
+  const best = bestActionIn(g, r, info);
   const cons = proj.smd.filter((e) => e.rid === rid);
   const mine = cons.filter((e) => e.winner === p).length;
   const acts = g.weekActs[rid] || 0;
-  const [showCons, setShowCons] = useState(false);
+  const [more, setMore] = useState(false);
+  const top = info.ord.slice(0, 3);
+  if (!top.includes(p)) top[2] = p;
+  const maxS = Math.max(...top.map((q) => info.s[q]), 20);
   return (
     <Sheet onClose={onClose} label={`${r.en} region`}>
-      <div className="sticky top-0 z-10 bg-slate-900 pt-3 pb-3 border-b border-slate-800" style={GUTTER}>
-        <div className="mx-auto w-10 h-1.5 rounded-full bg-slate-700 mb-3" />
-        <div className="flex items-start gap-3">
-          <div className="min-w-0 flex-1">
-            <Kicker>{r.name}</Kicker>
-            <h3 style={F_DISPLAY} className="text-3xl font-extrabold leading-none mt-1 text-slate-50">{r.en}</h3>
+      <SheetHead kicker={`${r.seats} seat${r.seats > 1 ? 's' : ''} to win here`} title={r.en} onClose={onClose} />
+      <div className="flex flex-col gap-4 pt-4" style={GUTTER}>
+        <div className="cx-soft p-3">
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <span className="font-extrabold">{raceText(info)}</span>
+            <StatusPill status={info.status} />
           </div>
-          <button type="button" onClick={onClose} aria-label="Close region" className="w-11 h-11 rounded-full bg-slate-800 grid place-items-center text-slate-200 shrink-0"><X size={20} /></button>
-        </div>
-        <div className="flex items-center gap-3 mt-3 text-xs text-slate-300" style={F_MONO}>
-          <span className="inline-flex items-center gap-1"><Zap size={14} className="text-amber-300" />{g.ap} AP</span>
-          <span className="inline-flex items-center gap-1"><Wallet size={14} className="text-amber-300" />{fmtEur(g.money)}</span>
-          {acts > 0 && <span className="text-amber-300">{acts} action{acts > 1 ? 's' : ''} here this week</span>}
-        </div>
-      </div>
-      <div className="flex flex-col gap-5 pt-4" style={GUTTER}>
-        <div className="grid grid-cols-3 gap-2" style={F_MONO}>
-          <div className="rounded-xl bg-slate-800 px-3 py-2">
-            <div className="text-xs text-slate-400" style={{ fontFamily: F_BODY }}>Seats</div>
-            <div className="text-xl font-bold text-slate-50">{r.seats}</div>
-          </div>
-          <div className="rounded-xl bg-slate-800 px-3 py-2">
-            <div className="text-xs text-slate-400" style={{ fontFamily: F_BODY }}>{r.id === 'ABR' ? 'Registered' : 'Population'}</div>
-            <div className="text-xl font-bold text-slate-50">{r.id === 'ABR' ? `${r.voters}k` : `${r.pop}k`}</div>
-          </div>
-          <div className="rounded-xl bg-slate-800 px-3 py-2">
-            <div className="text-xs text-slate-400" style={{ fontFamily: F_BODY }}>Turnout</div>
-            <div className="text-xl font-bold text-slate-50">~{Math.round(r.turnout * 100)}%</div>
-          </div>
-        </div>
-        <div>
-          <div className="flex justify-between text-xs text-slate-400 mb-1.5">
-            <span>Urban {Math.round(r.urban * 100)}%</span><span>Rural {Math.round((1 - r.urban) * 100)}%</span>
-          </div>
-          <div className="flex h-3 rounded-full overflow-hidden">
-            <div style={{ width: `${r.urban * 100}%`, background: '#38BDF8' }} />
-            <div style={{ width: `${(1 - r.urban) * 100}%`, background: '#65A30D' }} />
-          </div>
-        </div>
-        <div>
-          <Kicker className="mb-2">Top local issues</Kicker>
-          <div className="flex flex-wrap gap-2">
-            {r.issues.map((k, i) => {
-              const I = ISSUES[k];
-              const Icon = I.icon;
-              return (
-                <span key={k} className="inline-flex items-center gap-1.5 rounded-lg bg-slate-800 border border-slate-700 px-2.5 py-1.5 text-sm text-slate-100">
-                  <span className="text-xs text-slate-500" style={F_MONO}>{i + 1}</span><Icon size={15} className="text-amber-300" />{I.label}
-                </span>
-              );
-            })}
-          </div>
-        </div>
-        <div>
-          <div className="flex items-end justify-between mb-2">
-            <Kicker>Internal polling · decided voters</Kicker>
-            <span className="text-xs text-slate-400">Undecided {g.undecided[rid].toFixed(0)}%</span>
-          </div>
-          <PollBars shares={s} highlight={p} />
-        </div>
-        <div>
-          <Kicker className="mb-2">Campaign here</Kicker>
-          <div className="grid grid-cols-2 gap-2">
-            {['rally', 'digital', 'tv', 'door', 'attack'].map((t) => (
-              <ActionCard key={t} type={t} g={g} r={r} rival={rival} onAction={onAction} />
+          <div className="flex flex-col gap-2">
+            {top.map((q) => (
+              <div key={q} className="grid items-center gap-2" style={{ gridTemplateColumns: '92px 1fr 52px' }}>
+                <span className={`text-sm inline-flex items-center gap-1.5 truncate ${q === p ? 'font-black' : 'font-bold'}`}><PartyDot p={q} size={12} />{q === p ? 'You' : PARTIES[q].short}</span>
+                <Bar value={info.s[q]} max={maxS} color={PARTIES[q].color} h={18} />
+                <span className="cx-num text-right">{info.s[q].toFixed(1)}%</span>
+              </div>
             ))}
           </div>
-          {acts >= 2 && <p className="text-xs text-amber-200 mt-2">Diminishing returns: each extra action here this week is weaker. Spread out or come back next week.</p>}
         </div>
+        {tutStep === 2 ? (
+          <Coach title="This is a region card" onSkip={onSkipTips}>
+            Each button is a move you can make here. The one with the star is my pick. Tap it!
+          </Coach>
+        ) : best && g.ap > 0 ? (
+          <div className="flex items-center gap-3">
+            <Advisor size={40} />
+            <p className="text-sm font-semibold leading-snug flex-1">
+              <span className="font-black">Rūta’s pick: {ACTIONS[best.type].label.toLowerCase()}.</span> {ACTION_WHY[best.type]}
+            </p>
+          </div>
+        ) : g.ap === 0 ? (
+          <div className="cx-soft p-3 text-sm font-bold">Out of energy this week. Tap <span className="font-black">Next week</span> to refill.</div>
+        ) : null}
         <div className="grid grid-cols-2 gap-3">
-          <div className="rounded-xl bg-slate-800 p-3">
-            <div className="text-xs text-slate-400 mb-1.5">Your ground game</div>
-            <Meter value={g.gg[rid][p]} color={PARTIES[p].color} />
-            <div className="text-sm mt-1 text-slate-100" style={F_MONO}>{Math.round(g.gg[rid][p])}/100</div>
-          </div>
-          <div className="rounded-xl bg-slate-800 p-3">
-            <div className="text-xs text-slate-400 mb-1.5">Turnout boost</div>
-            <Meter value={g.boost[rid][p]} max={0.25} color="#34D399" />
-            <div className="text-sm mt-1 text-slate-100" style={F_MONO}>+{Math.round(g.boost[rid][p] * 100)}%</div>
-          </div>
+          {['rally', 'digital', 'tv', 'door', 'attack'].map((t) => (
+            <ActionTile key={t} type={t} g={g} r={r} rival={info.rival} onAction={onAction} best={best && best.type === t} />
+          ))}
         </div>
-        <div>
-          <button type="button" onClick={() => setShowCons(!showCons)} className="w-full flex items-center justify-between rounded-xl bg-slate-800 px-3 h-12 text-left">
-            <span className="font-semibold text-sm text-slate-100">Constituencies · projected {mine}/{r.seats} for you</span>
-            <ChevronDown size={18} className={`text-slate-400 transition ${showCons ? 'rotate-180' : ''}`} />
-          </button>
-          {showCons && (
-            <ul className="mt-2 flex flex-col gap-1.5">
-              {cons.map((e) => (
-                <li key={e.cid} className="flex items-center gap-2 rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm">
-                  <Swatch p={e.winner} size={12} />
-                  <span className="flex-1 min-w-0 truncate text-slate-100">{e.name}</span>
-                  <span className="text-xs text-slate-400 shrink-0" style={F_MONO}>
-                    {e.round === 1 ? `${PARTIES[e.winner].short} R1` : `${PARTIES[e.runoff.a].short} v ${PARTIES[e.runoff.b].short} → ${PARTIES[e.winner].short} +${e.margin.toFixed(0)}`}
-                  </span>
-                </li>
+        {acts >= 2 && <p className="text-sm font-bold" style={{ color: '#B45309' }}>Voters here are getting tired of you this week. Each extra move here works less well.</p>}
+        <button type="button" onClick={() => setMore(!more)} className="cx-btn cx-pale w-full h-12 justify-between px-4">
+          <span>About this region</span>
+          <ChevronDown size={20} className={`transition ${more ? 'rotate-180' : ''}`} />
+        </button>
+        {more && (
+          <div className="flex flex-col gap-4 sbl-fade">
+            <div>
+              <div className="text-sm font-extrabold t-muted mb-2">What voters here care about</div>
+              <div className="flex flex-wrap gap-2">
+                {r.issues.map((k) => {
+                  const I = ISSUES[k];
+                  const Icon = I.icon;
+                  return <span key={k} className="cx-chip px-3 py-1.5 text-sm"><Icon size={16} />{I.label}</span>;
+                })}
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              {[[r.id === 'ABR' ? 'Registered' : 'People', r.id === 'ABR' ? `${r.voters}k` : `${r.pop}k`], ['Turnout', `~${Math.round(r.turnout * 100)}%`], ['Cities', `${Math.round(r.urban * 100)}%`]].map(([l, v]) => (
+                <div key={l} className="cx-soft p-2.5"><div className="text-xs font-extrabold t-muted">{l}</div><div className="cx-num text-xl">{v}</div></div>
               ))}
-            </ul>
-          )}
-        </div>
+            </div>
+            <div>
+              <div className="text-sm font-extrabold t-muted mb-2">Every party here (decided voters · {g.undecided[rid].toFixed(0)}% still undecided)</div>
+              <PollBars shares={info.s} highlight={p} />
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div className="cx-soft p-3"><div className="text-xs font-extrabold t-muted mb-1.5">Your ground team</div><Bar value={g.gg[rid][p]} color={PARTIES[p].color} /><div className="cx-num mt-1">{Math.round(g.gg[rid][p])}/100</div></div>
+              <div className="cx-soft p-3"><div className="text-xs font-extrabold t-muted mb-1.5">Turnout boost</div><Bar value={g.boost[rid][p]} max={0.25} color="#34D399" /><div className="cx-num mt-1">+{Math.round(g.boost[rid][p] * 100)}%</div></div>
+            </div>
+            <div>
+              <div className="text-sm font-extrabold t-muted mb-2">Local districts: you’d win {mine} of {r.seats}</div>
+              <ul className="flex flex-col gap-1.5">
+                {cons.map((e) => (
+                  <li key={e.cid} className="flex items-center gap-2 cx-soft px-3 py-2 text-sm font-bold">
+                    <PartyDot p={e.winner} size={12} />
+                    <span className="flex-1 min-w-0 truncate">{e.name}</span>
+                    <span className="text-xs t-muted shrink-0">{e.round === 1 ? `${PARTIES[e.winner].short} wins outright` : `${PARTIES[e.runoff.a].short} vs ${PARTIES[e.runoff.b].short} runoff`}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
       </div>
     </Sheet>
   );
 }
 
 /* ============================================================
-   Header & navigation
+   Header & bottom navigation
    ============================================================ */
-function WeekTrack({ week }) {
-  return (
-    <div className="grid gap-1 mt-2.5" style={{ gridTemplateColumns: 'repeat(12, 1fr)' }} aria-label={`Week ${week} of 12`}>
-      {Array.from({ length: WEEKS }).map((_, i) => {
-        const w = i + 1;
-        const debate = DEBATE_WEEKS.includes(w);
-        return (
-          <div key={w} className="relative h-1.5 rounded-full" style={{ background: w < week ? '#64748B' : w === week ? GOLD : '#1E293B' }}>
-            {debate && <span className="absolute left-1/2 -translate-x-1/2 rounded-full" style={{ top: -3, width: 4, height: 4, background: w <= week ? '#F8FAFC' : '#94A3B8' }} />}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
 function Header({ g, nat, onHelp }) {
   const P = PARTIES[g.player];
   const share = nat[g.player];
   const last = g.history[g.history.length - 1].shares[g.player];
-  const mom = g.momentum[g.player];
-  const cell = 'rounded-lg bg-slate-900 border border-slate-800 px-2 py-1.5 min-w-0';
+  const stat = 'flex items-center gap-2 rounded-2xl bg-white px-2.5 py-1.5 min-w-0';
   return (
-    <header className="sticky z-30 bg-slate-950 border-b border-slate-800" style={{ top: 'env(safe-area-inset-top, 0px)' }}>
-      <div className="max-w-lg mx-auto" style={GUTTER}>
-        <div className="flex items-center gap-3 pt-3">
-          <div className="w-1.5 self-stretch rounded-full" style={{ background: P.color }} />
+    <header className="sticky z-30" style={{ top: 'env(safe-area-inset-top, 0px)', background: '#fff', borderBottom: `3px solid ${INK}` }}>
+      <div className="max-w-lg mx-auto pt-2.5 pb-2.5" style={GUTTER}>
+        <div className="flex items-center gap-3">
+          <div className="grid place-items-center rounded-full shrink-0 cx-title text-xs text-white" style={{ width: 44, height: 44, background: P.color, border: `3px solid ${INK}`, textShadow: `0 0 3px ${INK}` }}>
+            {P.short.length > 4 ? P.short.slice(0, 4) : P.short}
+          </div>
           <div className="min-w-0 flex-1">
-            <Kicker className="truncate">{P.short} · {(WEEKS - g.week + 1) * 7} days left</Kicker>
-            <div style={{ ...F_DISPLAY, fontWeight: 800 }} className="text-2xl leading-none text-slate-50 whitespace-nowrap">Week {g.week}<span className="text-slate-500">/12</span></div>
-          </div>
-          <div className="h-11 px-3 rounded-full bg-slate-900 border border-slate-700 flex items-center gap-1.5 shrink-0" aria-label={`${g.pc} political capital`}>
-            <Landmark size={16} className="text-amber-300" />
-            <span className="text-sm font-semibold text-slate-50" style={F_MONO}>{g.pc}</span>
-            <span className="text-xs text-slate-400">PC</span>
-          </div>
-          <button type="button" onClick={onHelp} aria-label="How to play" className="w-11 h-11 rounded-full bg-slate-900 border border-slate-700 grid place-items-center text-slate-300 shrink-0">
-            <HelpCircle size={20} />
-          </button>
-        </div>
-        <WeekTrack week={g.week} />
-        <div className="grid grid-cols-4 gap-1.5 py-2.5">
-          <div className={cell}>
-            <div className="text-xs text-slate-400">Action pts</div>
-            <div className="flex gap-0.5 mt-1.5" aria-label={`${g.ap} of ${g.apMax} action points`}>
-              {Array.from({ length: g.apMax }).map((_, i) => (
-                <span key={i} className="h-2.5 flex-1 rounded-sm" style={{ background: i < g.ap ? GOLD : '#334155' }} />
+            <div className="cx-title text-xl leading-none">Week {g.week} <span className="t-muted">of 12</span></div>
+            <div className="grid gap-1 mt-1.5" style={{ gridTemplateColumns: 'repeat(12, 1fr)' }} aria-hidden="true">
+              {Array.from({ length: WEEKS }).map((_, i) => (
+                <span key={i} className="rounded-full" style={{ height: 8, background: i + 1 < g.week ? '#94A3B8' : i + 1 === g.week ? SUN : '#E3EDF5', border: `1.5px solid ${INK}` }} />
               ))}
             </div>
           </div>
-          <div className={cell}>
-            <div className="text-xs text-slate-400">Budget</div>
-            <div className="text-sm font-semibold text-slate-50 truncate" style={F_MONO}>{fmtEur(g.money)}</div>
+          <button type="button" onClick={onHelp} aria-label="How to play" className="cx-btn cx-white shrink-0" style={{ width: 44, height: 44, borderRadius: 999, boxShadow: `0 3px 0 ${INK}` }}>
+            <HelpCircle size={22} />
+          </button>
+        </div>
+        <div className="grid grid-cols-3 gap-2 mt-2.5">
+          <div className={stat} style={{ border: `2.5px solid ${INK}` }} aria-label={`${g.ap} of ${g.apMax} energy left`}>
+            <Zap size={22} style={{ fill: SUN }} strokeWidth={2.4} className="shrink-0" />
+            <div className="min-w-0"><div className="cx-num text-lg leading-none">{g.ap}<span className="t-muted text-sm">/{g.apMax}</span></div><div className="text-xs font-extrabold t-muted">Energy</div></div>
           </div>
-          <div className={cell}>
-            <div className="text-xs text-slate-400">Poll</div>
-            <div className="text-sm font-semibold text-slate-50 truncate" style={F_MONO}>
-              {share.toFixed(1)}<span className="text-xs ml-1"><Delta v={share - last} /></span>
-            </div>
+          <div className={stat} style={{ border: `2.5px solid ${INK}` }}>
+            <Wallet size={22} className="shrink-0" strokeWidth={2.4} style={{ color: '#15803D' }} />
+            <div className="min-w-0"><div className="cx-num text-lg leading-none truncate">{fmtEurShort(g.money)}</div><div className="text-xs font-extrabold t-muted">Money</div></div>
           </div>
-          <div className={cell}>
-            <div className="text-xs text-slate-400">Momentum</div>
-            <div className={`text-sm font-semibold truncate ${mom >= 0.05 ? 'text-emerald-400' : mom <= -0.05 ? 'text-rose-400' : 'text-slate-300'}`} style={F_MONO}>{fmtSigned(mom)}</div>
+          <div className={stat} style={{ border: `2.5px solid ${INK}` }}>
+            <BarChart3 size={22} className="shrink-0" strokeWidth={2.4} style={{ color: '#2563EB' }} />
+            <div className="min-w-0"><div className="cx-num text-lg leading-none">{share.toFixed(1)}%</div><div className="text-xs font-extrabold"><Delta v={share - last} /></div></div>
           </div>
         </div>
       </div>
     </header>
   );
 }
-function BottomNav({ tab, setTab, onEnd, g }) {
+function BottomNav({ tab, setTab, onEnd, g, glowEnd }) {
   const item = (id, Icon, label) => (
     <button
       key={id} type="button" onClick={() => setTab(id)} aria-current={tab === id ? 'page' : undefined}
-      className={`flex flex-col items-center justify-center gap-1 h-16 rounded-xl transition ${tab === id ? 'text-amber-300' : 'text-slate-400 hover:text-slate-200'}`}
+      className="flex flex-col items-center justify-center gap-0.5 h-16 rounded-2xl font-extrabold text-xs transition"
+      style={{ color: tab === id ? INK : '#64748B', background: tab === id ? '#FFF1C2' : 'transparent' }}
     >
-      <Icon size={22} />
-      <span className="text-xs font-medium">{label}</span>
+      <Icon size={24} strokeWidth={tab === id ? 2.8 : 2.2} />
+      {label}
     </button>
   );
   const last = g.week >= WEEKS;
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-30 bg-slate-950 border-t border-slate-800" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
-      <div className="max-w-lg mx-auto grid grid-cols-5 items-center" style={GUTTER}>
+    <nav className="fixed bottom-0 inset-x-0 z-30" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)', background: '#fff', borderTop: `3px solid ${INK}` }}>
+      <div className="max-w-lg mx-auto grid grid-cols-5 items-center gap-1 py-1" style={GUTTER}>
         {item('map', MapIcon, 'Map')}
         {item('polls', BarChart3, 'Polls')}
         <div className="flex justify-center">
           <button
             type="button" onClick={onEnd}
-            className="-mt-8 rounded-full bg-amber-400 text-slate-950 flex flex-col items-center justify-center shadow-lg shadow-amber-500/20 border-4 border-slate-950 active:scale-95 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-200"
-            style={{ width: 76, height: 76 }}
+            className={`cx-btn cx-sun -mt-8 flex-col gap-0.5 ${glowEnd ? 'cx-glow' : ''}`}
+            style={{ width: 88, height: 74, borderRadius: 24, fontSize: 13, lineHeight: 1.05 }}
           >
-            {last ? <Vote size={22} /> : <ArrowRight size={22} />}
-            <span className="text-xs font-bold leading-none mt-1">{last ? 'Vote!' : 'End week'}</span>
+            {last ? <Vote size={26} strokeWidth={2.6} /> : <Play size={26} strokeWidth={2.6} style={{ fill: INK }} />}
+            <span>{last ? 'Vote!' : 'Next week'}</span>
           </button>
         </div>
-        {item('platform', Landmark, 'Platform')}
+        {item('hq', Building2, 'HQ')}
         {item('news', Newspaper, 'News')}
       </div>
     </nav>
+  );
+}
+
+/* ============================================================
+   Map tab
+   ============================================================ */
+function TipsCard({ g, recs, act, onOpen }) {
+  if (g.ap <= 0) {
+    return (
+      <Coach title="That’s your week done!">
+        You’ve used all your energy. Tap the big yellow <span className="font-black">Next week</span> button to see how the polls move.
+      </Coach>
+    );
+  }
+  return (
+    <Card className="p-3 cx-cream">
+      <div className="flex items-center gap-3">
+        <Advisor size={46} />
+        <div className="min-w-0 flex-1">
+          <div className="cx-title text-lg leading-tight">Rūta’s tips for week {g.week}</div>
+          <div className="text-sm font-semibold t-muted">You have {g.ap} energy left. Here’s where it counts most.</div>
+        </div>
+      </div>
+      <div className="flex flex-col gap-2 mt-3">
+        {recs.slice(0, 2).map((rc, i) => {
+          const isRegion = rc.kind === 'region';
+          const A = isRegion ? ACTIONS[rc.type] : null;
+          const Icon = isRegion ? A.icon : HandCoins;
+          const title = isRegion ? `${A.label} in ${REG[rc.rid].en}` : 'Host a donor dinner';
+          return (
+            <div key={`${rc.rid || rc.id}-${i}`} className="bg-white rounded-2xl p-3" style={{ border: `2.5px solid ${INK}` }}>
+              <div className="flex items-start gap-3">
+                <span className="grid place-items-center rounded-full shrink-0" style={{ width: 38, height: 38, background: isRegion ? A.color : '#86EFAC', border: `2.5px solid ${INK}` }}><Icon size={19} strokeWidth={2.5} /></span>
+                <div className="min-w-0 flex-1">
+                  <div className="font-black leading-tight">{title}</div>
+                  <div className="text-sm font-semibold t-muted leading-snug mt-0.5">{rc.why}</div>
+                </div>
+              </div>
+              <div className="flex gap-2 mt-2.5">
+                <Btn className="h-11 flex-1 text-sm" onClick={() => act((gg) => runRec(gg, rc))}>
+                  Do it <span className="inline-flex items-center gap-0.5"><Zap size={14} style={{ fill: INK }} />1</span>{isRegion ? ` · ${fmtEur(rc.cost)}` : ''}
+                </Btn>
+                {isRegion && <Btn kind="white" className="h-11 px-3 text-sm" onClick={() => onOpen(rc.rid)}>See region</Btn>}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <Btn kind="white" className="h-12 w-full mt-3 text-sm" onClick={() => act((gg) => autoPlan(gg))}>
+        <Wand2 size={18} />Let Rūta plan the rest of my week
+      </Btn>
+    </Card>
+  );
+}
+function MapTab({ g, shares, proj, sel, onSelect, act, recs, skipTips }) {
+  const rows = REGIONS.slice().sort((a, b) => b.seats - a.seats);
+  const p = g.player;
+  const starIds = recs.filter((r) => r.kind === 'region').slice(0, g.tut === 1 ? 1 : 2).map((r) => r.rid);
+  const leaders = [...new Set(REGIONS.map((r) => regionLook(shares[r.id]).lead))];
+  const need = MAJORITY - proj.seats[p];
+  return (
+    <div className="flex flex-col gap-4 pt-4">
+      {g.tut === 1 && (
+        <Coach title="Let’s make your first move!" onSkip={skipTips}>
+          This is Lithuania. Each colour shows who’s winning that region right now. Tap the region with the <span className="font-black">bouncing star</span>. That’s where I think you can win the most.
+        </Coach>
+      )}
+      {g.tut === 3 && (
+        <Coach
+          title="Nice, voters are moving your way!"
+          onSkip={skipTips}
+          actions={<Btn className="h-11 px-4 text-sm" onClick={() => act((gg) => autoPlan(gg))}><Wand2 size={17} />Plan my week for me</Btn>}
+        >
+          Every move costs <span className="font-black">1 energy</span> plus some money. You get 6 energy each week. Spend the rest yourself on the map, or let me do it.
+        </Coach>
+      )}
+      {g.tut === 4 && (
+        <Coach title="Out of energy!" onSkip={skipTips}>
+          Tap the big yellow <span className="font-black">Next week</span> button at the bottom. Your rivals will make their moves and a new poll comes out.
+        </Coach>
+      )}
+      {(g.tut === 0 || g.tut >= 5) && <TipsCard g={g} recs={recs} act={act} onOpen={onSelect} />}
+      <Card className="overflow-hidden" style={{ background: '#BFE6FA', padding: 6 }}>
+        <CartoonMap g={g} shares={shares} sel={sel} onSelect={onSelect} stars={starIds} />
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 px-2 pb-1.5 pt-1 text-sm font-extrabold">
+          {leaders.map((q) => <span key={q} className="inline-flex items-center gap-1.5"><PartyDot p={q} size={13} />{PARTIES[q].short}</span>)}
+          <span className="t-muted text-xs w-full">Colour = who’s ahead · stripes = close race · number = seats</span>
+        </div>
+      </Card>
+      <Card className="p-4">
+        <div className="flex items-center gap-4">
+          <div className="min-w-0 flex-1">
+            <div className="text-sm font-extrabold t-muted">If the vote were today</div>
+            <div className="cx-title text-2xl leading-tight">You’d win {proj.seats[p]} seats</div>
+            <div className="text-sm font-semibold t-muted">{need > 0 ? `${need} short of the 71 you need to govern alone` : 'That’s a majority on your own!'}</div>
+          </div>
+          <div className="cx-num text-3xl shrink-0" style={{ color: need > 0 ? '#B45309' : '#15803D' }}>{proj.seats[p]}<span className="text-base t-muted">/71</span></div>
+        </div>
+        <div className="mt-3"><Bar value={proj.seats[p]} max={141} color={PARTIES[p].color} mark={71} h={18} /></div>
+      </Card>
+      <div className="flex flex-col gap-2.5">
+        <h3 className="cx-title text-xl">All regions</h3>
+        {rows.map((r) => (
+          <RegionRow key={r.id} r={r} g={g} s={shares[r.id]} star={starIds.includes(r.id)} mySeats={proj.smd.filter((e) => e.rid === r.id && e.winner === p).length} onClick={() => onSelect(r.id)} />
+        ))}
+      </div>
+    </div>
   );
 }
 
@@ -2305,55 +2582,81 @@ function PollsTab({ g, nat, proj }) {
   const last = g.history[g.history.length - 1];
   const deltas = Object.fromEntries(ALL_IDS.map((q) => [q, nat[q] - last.shares[q]]));
   const paths = coalitionPaths(g, proj.seats);
-  const near = PARTY_IDS.filter((q) => nat[q] > 3 && nat[q] < 7);
+  const [table, setTable] = useState(false);
+  const need = MAJORITY - proj.seats[p];
   return (
     <div className="flex flex-col gap-4 pt-4">
-      <h2 style={F_DISPLAY} className="text-3xl font-extrabold leading-none text-slate-50">Polls & projection</h2>
-      <Section title="Seat projection" kicker="If the election were held today">
+      <h2 className="cx-title text-3xl">Polls</h2>
+      <Card className="p-4">
+        <CardTitle sub="Each dot is one of the Seimas’ 141 seats. The dashed line marks 71.">If the vote were today</CardTitle>
         <Hemicycle seats={proj.seats} highlight={p} label={`${PARTIES[p].short} seats`} />
-        <div className="mt-3"><SeatTable seats={proj.seats} pr={proj.pr} smd={proj.smdSeats} highlight={p} /></div>
-        <p className="text-xs text-slate-500 mt-2">Dashed line marks the 71-seat majority. PR = 70 list seats split by Hare–Niemeyer among parties over 5%. SMD = 71 single-mandate seats after runoffs.</p>
-      </Section>
-      <Section title="National tracking poll" kicker="Live · change since last week">
+        <p className="font-bold mt-2">{need > 0 ? `You’d have ${proj.seats[p]} seats. You need ${need} more, or partners to team up with.` : `You’d have ${proj.seats[p]} seats: enough to govern alone!`}</p>
+        <Btn kind="pale" className="h-11 w-full mt-3 text-sm" onClick={() => setTable(!table)}>{table ? 'Hide' : 'Show'} seats by party</Btn>
+        {table && <div className="mt-3"><SeatTable seats={proj.seats} pr={proj.pr} smd={proj.smdSeats} highlight={p} /></div>}
+      </Card>
+      <Card className="p-4">
+        <CardTitle sub="Arrows show the change since last week’s poll">Who’s ahead nationally</CardTitle>
         <PollBars shares={nat} highlight={p} threshold deltas={deltas} />
-        {near.length > 0 && (
-          <p className="text-xs text-amber-200 mt-3">Threshold watch: {near.map((q) => `${PARTIES[q].short} ${nat[q].toFixed(1)}%`).join(' · ')}</p>
-        )}
-      </Section>
-      <Section title="Campaign trend" kicker="Published weekly polls">
-        <TrendChart history={g.history} player={p} />
-      </Section>
-      <Section title="Paths to 71" kicker="Smallest winning coalitions on today’s projection">
+      </Card>
+      <Card className="p-4">
+        <CardTitle sub="The smallest teams that reach 71 seats today">Possible teams</CardTitle>
         {proj.seats[p] >= MAJORITY ? (
-          <p className="text-sm text-emerald-300">You are on course for a single-party majority.</p>
+          <p className="font-bold" style={{ color: '#15803D' }}>You don’t need a team right now: you’re on course for a majority!</p>
         ) : paths.length === 0 ? (
-          <p className="text-sm text-slate-400">No coalition of up to four parties including you reaches 71 yet. Win more seats or move your platform toward potential partners.</p>
+          <p className="font-semibold t-muted">No team with you in it reaches 71 yet. Win more seats, or move your promises closer to other parties in HQ.</p>
         ) : (
           <ul className="flex flex-col gap-2">
             {paths.map((c) => (
-              <li key={c.chosen.join('-')} className="flex items-center gap-2 rounded-xl bg-slate-800 px-3 py-2.5">
-                <div className="flex flex-wrap items-center gap-1.5 flex-1 min-w-0">
-                  {[p, ...c.chosen].map((q) => (
-                    <span key={q} className="inline-flex items-center gap-1 rounded-md bg-slate-950 px-1.5 py-0.5 text-xs text-slate-100"><Swatch p={q} />{PARTIES[q].short} {proj.seats[q]}</span>
-                  ))}
+              <li key={c.chosen.join('-')} className="cx-soft flex items-center gap-2 px-3 py-2.5">
+                <div className="flex flex-wrap gap-1.5 flex-1 min-w-0">
+                  {[p, ...c.chosen].map((q) => <PartyChip key={q} p={q}> {proj.seats[q]}</PartyChip>)}
                 </div>
-                <div className="text-right shrink-0" style={F_MONO}>
-                  <div className="text-sm font-bold text-slate-50">{c.total}</div>
-                  <div className={`text-xs ${c.minC >= 50 ? 'text-emerald-300' : c.minC >= 30 ? 'text-amber-300' : 'text-rose-300'}`}>fit {c.minC}%</div>
+                <div className="text-right shrink-0">
+                  <div className="cx-num text-lg leading-none">{c.total}</div>
+                  <div className="inline-flex items-center gap-1 text-xs font-extrabold"><Mood w={c.minC} size={16} />{c.minC >= 50 ? 'Good fit' : c.minC >= 30 ? 'Awkward' : 'Clash'}</div>
                 </div>
               </li>
             ))}
           </ul>
         )}
-      </Section>
+      </Card>
+      <Card className="p-4">
+        <CardTitle sub="Weekly published polls. TV = debate weeks.">Week by week</CardTitle>
+        <TrendChart history={g.history} player={p} />
+      </Card>
+      <Card className="p-4">
+        <CardTitle>How seats are won</CardTitle>
+        <div className="grid grid-cols-1 gap-2">
+          <div className="cx-soft p-3 flex gap-3"><span className="cx-num text-2xl shrink-0" style={{ width: 44 }}>70</span><span className="text-sm font-semibold">seats are shared out by the <span className="font-black">national vote</span>. A party needs at least 5% to get any.</span></div>
+          <div className="cx-soft p-3 flex gap-3"><span className="cx-num text-2xl shrink-0" style={{ width: 44 }}>71</span><span className="text-sm font-semibold">seats go to <span className="font-black">local winners</span>, one per district. Under 50%? The top two meet in a runoff two weeks later.</span></div>
+        </div>
+      </Card>
     </div>
   );
 }
 
 /* ============================================================
-   Platform tab
+   HQ tab (money, big moves, promises)
    ============================================================ */
-function PlatformTab({ g, act }) {
+function MoveRow({ a, g, est, onClick }) {
+  const Icon = a.icon;
+  const disabled = g.ap < a.ap || (a.pc && g.pc < a.pc) || (a.cost && g.money < a.cost);
+  const n = g.natActs[a.id] || 0;
+  return (
+    <button type="button" onClick={onClick} disabled={disabled} className="cx-btn cx-white w-full justify-start gap-3 px-3 py-3 text-left">
+      <span className="grid place-items-center rounded-full shrink-0" style={{ width: 40, height: 40, background: '#FFF1C2', border: `2.5px solid ${INK}` }}><Icon size={19} strokeWidth={2.5} /></span>
+      <span className="min-w-0 flex-1">
+        <span className="block font-black leading-tight">{a.label}{n > 0 && <span className="ml-2 text-xs t-muted">{n}× this week</span>}</span>
+        <span className="block text-sm font-semibold t-muted leading-snug">{a.desc}</span>
+      </span>
+      <span className="text-right shrink-0 text-sm">
+        <span className="flex items-center justify-end gap-1">{a.ap ? <><Zap size={14} style={{ fill: SUN }} />{a.ap}</> : <><Handshake size={14} />{a.pc}</>}{a.cost ? ` · ${fmtEur(a.cost)}` : ''}</span>
+        <span className="block font-black" style={{ color: '#15803D' }}>{est}</span>
+      </span>
+    </button>
+  );
+}
+function HQTab({ g, act }) {
   const P = PARTIES[g.player];
   const orig = P.pos;
   const [draft, setDraft] = useState(g.stance);
@@ -2370,28 +2673,62 @@ function PlatformTab({ g, act }) {
     const gd = { ...g, stance: draft };
     const seatsNow = simulateElection(g, false).seats[p];
     const seatsNext = simulateElection(gd, false).seats[p];
-    const comp = PARTY_IDS.filter((q) => q !== p).map((q) => ({ q, now: compat(g, p, q), next: compat(gd, p, q) })).filter((x) => x.now !== x.next).sort((a, b) => (b.next - b.now) - (a.next - a.now));
+    const comp = PARTY_IDS.filter((q) => q !== p).map((q) => ({ q, now: compat(g, p, q), next: compat(gd, p, q) })).filter((x) => Math.abs(x.next - x.now) >= 3).sort((a, b) => (b.next - b.now) - (a.next - a.now));
     return { now, next, regs, seatsNow, seatsNext, comp };
   }, [g, draft, changed]);
   const base = alienation(draft, orig);
   const fundEst = { gala: galaAmount(g), small: smallAmount(g), lobby: lobbyAmount(g) };
+  const mom = g.momentum[g.player];
   return (
     <div className="flex flex-col gap-4 pt-4">
-      <div>
-        <h2 style={F_DISPLAY} className="text-3xl font-extrabold leading-none text-slate-50">Platform & HQ</h2>
-        <p className="text-sm text-slate-400 mt-1">Shift your stances to court regions and partners. Drift too far and your base stays home.</p>
+      <h2 className="cx-title text-3xl">Campaign HQ</h2>
+      <div className="grid grid-cols-3 gap-2">
+        <div className="cx-card p-3" style={{ boxShadow: `0 4px 0 ${INK}` }}>
+          <Handshake size={20} />
+          <div className="cx-num text-2xl leading-none mt-1">{g.pc}</div>
+          <div className="text-xs font-extrabold t-muted">Favours</div>
+        </div>
+        <div className="cx-card p-3" style={{ boxShadow: `0 4px 0 ${INK}` }}>
+          <Flame size={20} style={{ color: '#EA580C' }} />
+          <div className="cx-num text-2xl leading-none mt-1" style={{ color: mom >= 0.05 ? '#15803D' : mom <= -0.05 ? '#DC2626' : INK }}>{fmtSigned(mom)}</div>
+          <div className="text-xs font-extrabold t-muted">Buzz</div>
+        </div>
+        <div className="cx-card p-3" style={{ boxShadow: `0 4px 0 ${INK}` }}>
+          <ShieldAlert size={20} style={{ color: g.scandal > 20 ? '#DC2626' : INK }} />
+          <div className="cx-num text-2xl leading-none mt-1">{Math.round(g.scandal)}%</div>
+          <div className="text-xs font-extrabold t-muted">Scandal risk</div>
+        </div>
       </div>
-      <Section title="Policy platform" kicker="Pick a position, then announce" right={<span className="text-xs text-slate-400 inline-flex items-center gap-1 whitespace-nowrap"><Home size={12} />Founding</span>}>
+      <p className="text-sm font-semibold -mt-1"><span className="font-black">Favours</span> help you win partners after the election. <span className="font-black">Buzz</span> lifts your support everywhere. Keep <span className="font-black">scandal risk</span> low.</p>
+      <Card className="p-4">
+        <CardTitle sub={`Donations last week: ${fmtEur(g.lastIncome || 0)}`}>Raise money</CardTitle>
+        <div className="flex flex-col gap-3">
+          {NATIONAL_ACTIONS.filter((a) => a.group === 'fund').map((a) => (
+            <MoveRow key={a.id} a={a} g={g} est={`+${fmtEur(fundEst[a.id])}`} onClick={() => act((gg) => doNational(gg, a.id))} />
+          ))}
+        </div>
+      </Card>
+      <Card className="p-4">
+        <CardTitle sub="Moves that work across the whole country">Big moves</CardTitle>
+        <div className="flex flex-col gap-3">
+          {NATIONAL_ACTIONS.filter((a) => a.group === 'nat').map((a) => (
+            <MoveRow key={a.id} a={a} g={g} est={a.id === 'backchannel' ? '+Favours' : a.id === 'presser' ? '+Buzz' : 'All regions'} onClick={() => act((gg) => doNational(gg, a.id))} />
+          ))}
+        </div>
+      </Card>
+      <Card className="p-4">
+        <CardTitle sub="Shift a promise to win over some regions (and lose others)." right={<span className="cx-chip px-2 py-0.5 text-xs shrink-0"><Home size={13} />= your roots</span>}>Your promises</CardTitle>
         <div className="flex flex-col gap-3">
           {AXES.map((ax) => {
             const Icon = ax.icon;
+            const moved = draft[ax.id] !== g.stance[ax.id];
             return (
-              <div key={ax.id} className="rounded-xl bg-slate-950 border border-slate-800 p-3">
+              <div key={ax.id} className="cx-soft p-3">
                 <div className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2 min-w-0"><Icon size={16} className="text-slate-300 shrink-0" /><span className="font-semibold text-sm text-slate-100 truncate">{ax.label}</span></div>
-                  <span className={`text-sm shrink-0 ${draft[ax.id] !== g.stance[ax.id] ? 'text-amber-300' : 'text-slate-200'}`} style={F_MONO}>{ax.steps[stepIndex(draft[ax.id])]}</span>
+                  <span className="inline-flex items-center gap-2 font-black"><Icon size={18} />{ax.label}</span>
+                  <span className="text-sm font-extrabold" style={{ color: moved ? '#B45309' : INK }}>{ax.steps[stepIndex(draft[ax.id])]}</span>
                 </div>
-                <div className="grid grid-cols-7 gap-1 mt-3" role="radiogroup" aria-label={ax.label}>
+                <div className="grid grid-cols-7 gap-1 mt-2.5" role="radiogroup" aria-label={ax.label}>
                   {ax.steps.map((st, i) => {
                     const v = -90 + i * 30;
                     const isDraft = draft[ax.id] === v;
@@ -2400,10 +2737,10 @@ function PlatformTab({ g, act }) {
                       <button
                         key={st} type="button" role="radio" aria-checked={isDraft} aria-label={st}
                         onClick={() => setDraft({ ...draft, [ax.id]: v })}
-                        className="h-11 rounded-md relative grid place-items-center transition focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-300"
-                        style={{ background: isDraft ? GOLD : isNow ? '#475569' : '#1E293B', border: isNow && !isDraft ? `1px solid ${GOLD}` : '1px solid transparent' }}
+                        className="h-11 rounded-xl grid place-items-center cx-tap"
+                        style={{ background: isDraft ? SUN : isNow ? '#FFF1C2' : '#fff', border: `2.5px solid ${INK}` }}
                       >
-                        {orig[ax.id] === v && <Home size={13} className={isDraft ? 'text-slate-950' : 'text-slate-300'} />}
+                        {orig[ax.id] === v && <Home size={14} strokeWidth={2.6} />}
                       </button>
                     );
                   })}
@@ -2412,95 +2749,43 @@ function PlatformTab({ g, act }) {
                   {ax.steps.map((st, i) => {
                     const v = -90 + i * 30;
                     const here = PARTY_IDS.filter((q) => q !== g.player && PARTIES[q].pos[ax.id] === v);
-                    return (
-                      <div key={st} className="flex flex-wrap justify-center gap-0.5 min-h-2">
-                        {here.map((q) => <span key={q} className="rounded-full" style={{ width: 6, height: 6, background: PARTIES[q].color }} title={PARTIES[q].short} />)}
-                      </div>
-                    );
+                    return <div key={st} className="flex flex-wrap justify-center gap-0.5" style={{ minHeight: 9 }}>{here.map((q) => <PartyDot key={q} p={q} size={9} />)}</div>;
                   })}
                 </div>
-                <div className="flex justify-between text-xs text-slate-500 mt-1"><span>{ax.left}</span><span>{ax.right}</span></div>
+                <div className="flex justify-between text-xs font-extrabold t-muted mt-1"><span>{ax.left}</span><span>{ax.right}</span></div>
               </div>
             );
           })}
-          <p className="text-xs text-slate-500">Coloured dots show where rival parties stand. Distance to them shapes coalition talks.</p>
+          <p className="text-xs font-bold t-muted">Coloured dots show where other parties stand. The closer you are, the happier they’ll be to team up.</p>
         </div>
-        <div className="mt-4 rounded-xl bg-slate-950 border border-slate-800 p-3">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-slate-300">Core-voter enthusiasm</span>
-            <span className={base < 0.97 ? 'text-amber-300' : 'text-emerald-300'} style={F_MONO}>{Math.round(base * 100)}%</span>
-          </div>
-          <div className="mt-2"><Meter value={base * 100} color={base < 0.9 ? '#F87171' : base < 0.97 ? GOLD : '#34D399'} /></div>
-          {preview ? (
-            <div className="mt-3 flex flex-col gap-2 text-sm">
-              <div className="flex justify-between"><span className="text-slate-400">National poll</span><span style={F_MONO}>{preview.now.toFixed(1)} → {preview.next.toFixed(1)} <Delta v={preview.next - preview.now} /></span></div>
-              <div className="flex justify-between"><span className="text-slate-400">Projected seats</span><span style={F_MONO}>{preview.seatsNow} → {preview.seatsNext} <Delta v={preview.seatsNext - preview.seatsNow} d={0} /></span></div>
-              <div className="flex flex-wrap gap-1.5 mt-1">
-                {preview.regs.slice(0, 3).filter((x) => x.d > 0.05).map((x) => <span key={x.r.id} className="text-xs rounded-md bg-emerald-500/15 text-emerald-300 px-2 py-1">{x.r.en} {fmtSigned(x.d)}</span>)}
-                {preview.regs.slice(-3).filter((x) => x.d < -0.05).map((x) => <span key={x.r.id} className="text-xs rounded-md bg-rose-500/15 text-rose-300 px-2 py-1">{x.r.en} {fmtSigned(x.d)}</span>)}
-              </div>
-              {preview.comp.length > 0 && (
-                <div className="flex flex-wrap gap-1.5">
-                  {preview.comp.slice(0, 4).map((x) => (
-                    <span key={x.q} className="text-xs rounded-md bg-slate-800 px-2 py-1 text-slate-200 inline-flex items-center gap-1"><Swatch p={x.q} size={8} />{PARTIES[x.q].short} fit {x.now}→{x.next}</span>
-                  ))}
-                </div>
-              )}
-              {(cost.mom > 0 || cost.pc > 0) && (
-                <p className="text-xs text-amber-200">
-                  {cost.uturns.length ? 'U-turn! ' : ''}Announcing costs momentum {fmtSigned(-cost.mom)}{cost.pc ? ` and ${cost.pc} PC` : ''}{cost.steps > 1 ? ' (big shifts look opportunistic)' : ''}.
-                </p>
-              )}
-              <div className="flex gap-2 mt-1">
-                <Btn kind="ghost" className="h-12 px-4" onClick={() => setDraft(g.stance)}><RotateCcw size={16} />Reset</Btn>
-                <Btn className="h-12 flex-1" disabled={g.ap < 1} onClick={() => act((gg) => announcePlatform(gg, draft))}><Megaphone size={18} />Announce · 1 AP</Btn>
-              </div>
+        {preview ? (
+          <div className="mt-3 cx-cream rounded-2xl p-3 flex flex-col gap-2" style={{ border: `2.5px solid ${INK}` }}>
+            <div className="font-black">If you announce this:</div>
+            <div className="flex justify-between text-sm font-bold"><span>Your national poll</span><span className="cx-num">{preview.now.toFixed(1)} → {preview.next.toFixed(1)}% <Delta v={preview.next - preview.now} /></span></div>
+            <div className="flex justify-between text-sm font-bold"><span>Seats if the vote were today</span><span className="cx-num">{preview.seatsNow} → {preview.seatsNext} <Delta v={preview.seatsNext - preview.seatsNow} d={0} /></span></div>
+            <div className="flex justify-between text-sm font-bold"><span>Your core fans’ enthusiasm</span><span className="cx-num" style={{ color: base < 0.95 ? '#DC2626' : '#15803D' }}>{Math.round(base * 100)}%</span></div>
+            <div className="flex flex-wrap gap-1.5">
+              {preview.regs.slice(0, 3).filter((x) => x.d > 0.05).map((x) => <span key={x.r.id} className="cx-chip px-2 py-0.5 text-xs" style={{ background: '#BBF7D0' }}>{x.r.en} {fmtSigned(x.d)}</span>)}
+              {preview.regs.slice(-3).filter((x) => x.d < -0.05).map((x) => <span key={x.r.id} className="cx-chip px-2 py-0.5 text-xs" style={{ background: '#FECACA' }}>{x.r.en} {fmtSigned(x.d)}</span>)}
             </div>
-          ) : (
-            <p className="text-xs text-slate-500 mt-2">Tap a different position on any axis to preview the impact before announcing.</p>
-          )}
-        </div>
-      </Section>
-      <Section title="Fundraising" kicker={`Weekly donations last came to ${fmtEur(g.lastIncome || 0)}`}>
-        <div className="flex flex-col gap-2">
-          {NATIONAL_ACTIONS.filter((a) => a.group === 'fund').map((a) => (
-            <NationalRow key={a.id} a={a} g={g} est={`+${fmtEur(fundEst[a.id])}`} onClick={() => act((gg) => doNational(gg, a.id))} />
-          ))}
-        </div>
-        <div className="mt-3 flex items-center gap-2 text-xs text-slate-400">
-          <ShieldAlert size={14} className={g.scandal > 20 ? 'text-rose-400' : 'text-slate-500'} />
-          Scandal risk {Math.round(g.scandal)}%{g.player === 'NA' ? ' · builds twice as fast for NA' : ''}
-        </div>
-      </Section>
-      <Section title="National campaign" kicker="Nationwide moves">
-        <div className="flex flex-col gap-2">
-          {NATIONAL_ACTIONS.filter((a) => a.group === 'nat').map((a) => (
-            <NationalRow key={a.id} a={a} g={g} est={a.id === 'backchannel' ? '+PC' : a.id === 'presser' ? '+Mom' : 'All regions'} onClick={() => act((gg) => doNational(gg, a.id))} />
-          ))}
-        </div>
-      </Section>
+            {preview.comp.length > 0 && (
+              <div className="flex flex-wrap gap-1.5">
+                {preview.comp.slice(0, 4).map((x) => <PartyChip key={x.q} p={x.q}> {x.next > x.now ? 'likes this' : 'dislikes this'}</PartyChip>)}
+              </div>
+            )}
+            {(cost.mom > 0 || cost.pc > 0) && (
+              <p className="text-sm font-bold" style={{ color: '#B45309' }}>{cost.uturns.length ? 'That’s a U-turn! ' : 'Big jumps look fishy. '}Costs some buzz{cost.pc ? ` and ${cost.pc} favour${cost.pc > 1 ? 's' : ''}` : ''}.</p>
+            )}
+            <div className="flex gap-2 mt-1">
+              <Btn kind="white" className="h-12 px-4" onClick={() => setDraft(g.stance)}><RotateCcw size={17} />Undo</Btn>
+              <Btn className="h-12 flex-1" disabled={g.ap < 1} onClick={() => act((gg) => announcePlatform(gg, draft))}><Megaphone size={18} />Announce · <Zap size={14} style={{ fill: INK }} />1</Btn>
+            </div>
+          </div>
+        ) : (
+          <p className="text-sm font-semibold t-muted mt-3">Tap a different box on any row to see what would happen. Nothing changes until you announce it.</p>
+        )}
+      </Card>
     </div>
-  );
-}
-function NationalRow({ a, g, est, onClick }) {
-  const Icon = a.icon;
-  const disabled = g.ap < a.ap || (a.pc && g.pc < a.pc) || (a.cost && g.money < a.cost);
-  const n = g.natActs[a.id] || 0;
-  return (
-    <button
-      type="button" onClick={onClick} disabled={disabled}
-      className="w-full flex items-center gap-3 rounded-xl bg-slate-800 border border-slate-700 px-3 py-3 text-left transition active:scale-95 hover:border-slate-500 disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-300"
-    >
-      <div className="w-10 h-10 rounded-lg bg-slate-950 grid place-items-center shrink-0"><Icon size={18} className="text-amber-300" /></div>
-      <div className="min-w-0 flex-1">
-        <div className="font-semibold text-sm text-slate-50">{a.label}{n > 0 && <span className="ml-2 text-xs font-normal text-slate-400">{n}× this week</span>}</div>
-        <div className="text-xs text-slate-400 leading-snug">{a.desc}</div>
-      </div>
-      <div className="text-right shrink-0 text-xs" style={F_MONO}>
-        <div className="text-slate-200">{a.ap ? `${a.ap} AP` : `${a.pc} PC`}{a.cost ? ` · ${fmtEur(a.cost)}` : ''}</div>
-        <div className="text-emerald-300">{est}</div>
-      </div>
-    </button>
   );
 }
 
@@ -2512,24 +2797,21 @@ function NewsTab({ g }) {
   let lastWeek = null;
   return (
     <div className="flex flex-col gap-3 pt-4">
-      <div>
-        <h2 style={F_DISPLAY} className="text-3xl font-extrabold leading-none text-slate-50">Newswire</h2>
-        <p className="text-sm text-slate-400 mt-1">Headlines, rival campaign moves and your decisions.</p>
-      </div>
+      <h2 className="cx-title text-3xl">News</h2>
       {g.news.map((n) => {
         const Icon = iconFor(n);
-        const header = n.week !== lastWeek ? <Kicker key={`w${n.week}-${n.id}`} className="pt-2">Week {n.week}</Kicker> : null;
+        const header = n.week !== lastWeek ? <div key={`w${n.week}-${n.id}`} className="cx-title text-lg pt-1">Week {n.week}</div> : null;
         lastWeek = n.week;
         return (
           <React.Fragment key={n.id}>
             {header}
-            <article className="flex gap-3 rounded-xl bg-slate-900 border border-slate-800 p-3">
-              <div className="w-9 h-9 rounded-lg grid place-items-center shrink-0" style={{ background: n.p ? `${PARTIES[n.p].color}33` : '#1E293B' }}>
-                <Icon size={17} className="text-slate-200" />
-              </div>
+            <article className="cx-card flex gap-3 p-3" style={{ boxShadow: `0 4px 0 ${INK}` }}>
+              <span className="grid place-items-center rounded-full shrink-0" style={{ width: 40, height: 40, background: n.p ? PARTIES[n.p].color : '#FFF1C2', border: `2.5px solid ${INK}`, color: n.p ? '#fff' : INK }}>
+                <Icon size={19} strokeWidth={2.5} />
+              </span>
               <div className="min-w-0">
-                <div className="font-semibold text-sm text-slate-50">{n.title}</div>
-                <div className="text-sm text-slate-400 leading-snug">{n.text}</div>
+                <div className="font-black leading-tight">{n.title}</div>
+                <div className="text-sm font-semibold t-muted leading-snug mt-0.5">{n.text}</div>
               </div>
             </article>
           </React.Fragment>
@@ -2540,30 +2822,43 @@ function NewsTab({ g }) {
 }
 
 /* ============================================================
-   Modals: briefing, weekly report, events, debates
+   Modals
    ============================================================ */
-function BriefModal({ g, nat, proj, onClose }) {
+function WelcomeModal({ g, nat, proj, onStart, onSkip }) {
   const P = PARTIES[g.player];
   const p = g.player;
+  const steps = [
+    [MapIcon, '#7DD3FC', 'Campaign for 12 weeks', 'Each week you get 6 energy. Spend it on rallies and ads in the regions.'],
+    [Vote, '#FDE68A', 'Win seats on election night', '70 seats come from the national vote, 71 from local winners.'],
+    [Handshake, '#86EFAC', 'Team up to reach 71', 'Most winners need partners. Make friends with the right parties.'],
+  ];
   return (
-    <Sheet label="Campaign briefing">
+    <Sheet label="Welcome">
       <div style={GUTTER} className="pt-6 flex flex-col gap-4">
-        <Tricolor className="w-12" />
-        <Kicker>Campaign HQ · Day one</Kicker>
-        <h2 style={F_DISPLAY} className="text-4xl font-extrabold leading-none text-slate-50" >Twelve weeks to win the Seimas</h2>
-        <p className="text-slate-300 leading-relaxed">
-          You lead <span className="font-semibold text-slate-50">{P.full}</span>. Polls put you at <span style={F_MONO} className="text-slate-50">{nat[p].toFixed(1)}%</span>, worth a projected <span style={F_MONO} className="text-slate-50">{proj.seats[p]}</span> seats.
-        </p>
-        <div className="grid grid-cols-1 gap-2">
-          <div className="rounded-xl bg-slate-800 p-3"><Kicker>Strongholds</Kicker><div className="text-sm text-slate-100 mt-1">{P.strongholds}</div></div>
-          <div className="rounded-xl bg-slate-800 p-3"><Kicker>Passive · {P.trait}</Kicker><div className="text-sm text-slate-100 mt-1">{P.traitDesc}</div></div>
+        <div className="flex items-center gap-3">
+          <Advisor size={72} />
+          <div>
+            <div className="cx-title text-3xl leading-none">Hi! I’m Rūta.</div>
+            <div className="font-bold t-muted mt-1">Your campaign manager for {P.short}.</div>
+          </div>
         </div>
-        <ol className="flex flex-col gap-2 text-sm text-slate-300">
-          <li className="flex gap-3"><span className="text-amber-300 font-bold" style={F_MONO}>1</span><span>Each week you get 6 action points and fresh donations. Tap regions on the map to rally, advertise, canvass or attack.</span></li>
-          <li className="flex gap-3"><span className="text-amber-300 font-bold" style={F_MONO}>2</span><span>LRT hosts televised debates in weeks 4, 8 and 11. Breaking news lands every week or two.</span></li>
-          <li className="flex gap-3"><span className="text-amber-300 font-bold" style={F_MONO}>3</span><span>You need 71 of 141 seats to govern. Almost nobody wins alone, so your platform and political capital decide who will sit with you.</span></li>
-        </ol>
-        <Btn className="h-14 text-lg mt-1" onClick={onClose}>Open the war room <ArrowRight size={20} /></Btn>
+        <p className="font-semibold leading-relaxed">
+          We start at <span className="cx-num">{nat[p].toFixed(1)}%</span> in the polls, worth about <span className="cx-num">{proj.seats[p]}</span> seats. Here’s how we win:
+        </p>
+        <div className="flex flex-col gap-2">
+          {steps.map(([Icon, bg, t, d], i) => (
+            <div key={t} className="cx-soft p-3 flex gap-3 items-start">
+              <span className="grid place-items-center rounded-full shrink-0 cx-num" style={{ width: 40, height: 40, background: bg, border: `2.5px solid ${INK}` }}><Icon size={19} strokeWidth={2.5} /></span>
+              <div><div className="font-black">{i + 1}. {t}</div><div className="text-sm font-semibold t-muted">{d}</div></div>
+            </div>
+          ))}
+        </div>
+        <div className="cx-card cx-cream p-3" style={{ boxShadow: `0 4px 0 ${INK}` }}>
+          <div className="font-black">Your party’s superpower</div>
+          <div className="text-sm font-semibold mt-0.5">{P.perk}</div>
+        </div>
+        <Btn className="h-14 text-lg" onClick={onStart}>Show me how <ArrowRight size={20} /></Btn>
+        <Btn kind="white" className="h-12" onClick={onSkip}>I know how to play</Btn>
       </div>
     </Sheet>
   );
@@ -2574,65 +2869,57 @@ function ReportModal({ g, item, onClose }) {
   const cur = H[H.length - 1].shares;
   const prev = H[H.length - 2] ? H[H.length - 2].shares : cur;
   const d = cur[p] - prev[p];
-  const movers = PARTY_IDS.map((q) => ({ q, d: cur[q] - prev[q] })).sort((a, b) => Math.abs(b.d) - Math.abs(a.d)).slice(0, 5);
   const upcoming = g.queue.slice(1).map((x) => x.type);
   const attacks = item.moves.flatMap((m) => m.list.filter((x) => x.type === 'attack' && x.target === p).map((x) => ({ p: m.p, rid: x.rid })));
+  const movers = PARTY_IDS.filter((q) => q !== p).map((q) => ({ q, d: cur[q] - prev[q] })).sort((a, b) => b.d - a.d);
+  const riser = movers[0];
   return (
-    <Sheet label={`Week ${item.week} report`}>
+    <Sheet label={`Week ${item.week} recap`}>
       <div style={GUTTER} className="pt-6 flex flex-col gap-4">
-        <Kicker>Week {item.week} wrap-up · new poll published</Kicker>
-        <div className="flex items-end gap-4">
-          <div style={{ ...F_MONO, fontSize: 56, lineHeight: 0.9 }} className="font-bold text-slate-50">{cur[p].toFixed(1)}<span className="text-2xl text-slate-500">%</span></div>
-          <div className="pb-1 text-lg font-semibold" style={F_MONO}><Delta v={d} /> <span className="text-sm text-slate-400 font-normal" style={{ fontFamily: F_BODY }}>vs last week</span></div>
-        </div>
-        <div className="rounded-xl bg-slate-800 p-3">
-          <Kicker className="mb-2">Biggest movers</Kicker>
-          <div className="flex flex-col gap-1.5">
-            {movers.map((m) => (
-              <div key={m.q} className="flex items-center gap-2 text-sm">
-                <Swatch p={m.q} /><span className={`flex-1 ${m.q === p ? 'font-bold text-slate-50' : 'text-slate-200'}`}>{PARTIES[m.q].short}</span>
-                <span style={F_MONO} className="text-slate-300">{cur[m.q].toFixed(1)}%</span>
-                <span style={F_MONO} className="w-12 text-right"><Delta v={m.d} /></span>
-              </div>
-            ))}
+        <div className="cx-title text-3xl leading-none">Week {item.week} is over!</div>
+        <div className="cx-card p-4 flex items-center gap-4" style={{ background: d >= 0 ? '#DCFCE7' : '#FEE2E2' }}>
+          {d >= 0 ? <TrendingUp size={44} strokeWidth={2.6} style={{ color: '#15803D' }} /> : <TrendingDown size={44} strokeWidth={2.6} style={{ color: '#DC2626' }} />}
+          <div>
+            <div className="text-sm font-extrabold t-muted">New poll for {PARTIES[p].short}</div>
+            <div className="cx-num text-4xl leading-none">{cur[p].toFixed(1)}% <span className="text-xl"><Delta v={d} /></span></div>
           </div>
         </div>
-        {attacks.length > 0 && (
-          <div className="rounded-xl bg-rose-500/10 border border-rose-500/30 p-3 text-sm text-rose-100 flex gap-2">
-            <Swords size={18} className="shrink-0 text-rose-300" />
-            <span>Under fire: {attacks.map((a) => `${PARTIES[a.p].short} in ${REG[a.rid].name}`).join(', ')}. Ground game softens these hits.</span>
-          </div>
+        <div className="cx-soft p-3 flex flex-col gap-2 text-sm font-semibold">
+          <div className="font-black text-base">Meanwhile…</div>
+          {riser && riser.d > 0.1 && <div className="flex gap-2 items-start"><PartyDot p={riser.q} />{PARTIES[riser.q].short} gained the most this week ({fmtSigned(riser.d)}%).</div>}
+          {attacks.length > 0
+            ? <div className="flex gap-2 items-start"><Swords size={16} className="shrink-0 mt-0.5" style={{ color: '#DC2626' }} />Attack ads against you: {attacks.map((a) => `${PARTIES[a.p].short} in ${REG[a.rid].name}`).join(', ')}. Door-knocking protects you from these.</div>
+            : <div className="flex gap-2 items-start"><Shield size={16} className="shrink-0 mt-0.5" />No rival attacked you this week.</div>}
+          <div className="flex gap-2 items-start"><Wallet size={16} className="shrink-0 mt-0.5" style={{ color: '#15803D' }} />Supporters donated {fmtEur(g.lastIncome)}.</div>
+        </div>
+        <div className="cx-card cx-cream p-3 flex items-center gap-3" style={{ boxShadow: `0 4px 0 ${INK}` }}>
+          {upcoming.includes('debate') ? <Tv size={26} /> : upcoming.includes('event') ? <Newspaper size={26} /> : <Sparkles size={26} />}
+          <div className="font-black">{upcoming.includes('debate') ? 'Coming up: a live TV debate!' : upcoming.includes('event') ? 'Coming up: breaking news!' : 'A quiet start to the week.'}</div>
+        </div>
+        {g.tut === 5 && (
+          <Coach title="You’ve got the hang of it!">
+            Every week: spend your energy, then tap Next week. Polls change, rivals campaign and news breaks. TV debates come in weeks 4, 8 and 11. My tips stay on the map whenever you need them.
+          </Coach>
         )}
-        <div className="rounded-xl bg-slate-800 p-3">
-          <Kicker className="mb-2">Rival campaigns</Kicker>
-          <ul className="flex flex-col gap-1.5 text-sm text-slate-300">
-            {item.moves.map((m) => (
-              <li key={m.p} className="flex gap-2"><Swatch p={m.p} size={9} /><span className="-mt-1"><span className="font-semibold text-slate-100">{PARTIES[m.p].short}:</span> {describeMoves(m)}</span></li>
-            ))}
-          </ul>
-        </div>
-        <div className="grid grid-cols-2 gap-2 text-sm">
-          <div className="rounded-xl bg-slate-800 p-3"><Kicker>Donations in</Kicker><div className="text-lg font-bold text-emerald-300" style={F_MONO}>+{fmtEur(g.lastIncome)}</div></div>
-          <div className="rounded-xl bg-slate-800 p-3"><Kicker>Up next</Kicker><div className="text-sm font-semibold text-slate-100 mt-1">{upcoming.includes('debate') ? 'LRT TV debate' : upcoming.includes('event') ? 'Breaking news' : 'A quiet week'}</div></div>
-        </div>
         <Btn className="h-14 text-lg" onClick={onClose}>Start week {g.week} <ArrowRight size={20} /></Btn>
       </div>
     </Sheet>
   );
 }
 function OutcomeGrid({ before, after }) {
+  const money = after.money - before.money;
   const cells = [
-    ['National poll', <Delta key="a" v={after.share - before.share} />],
-    ['Budget', after.money === before.money ? <span key="b" className="text-slate-500">±0</span> : <span key="b" className={after.money > before.money ? 'text-emerald-400' : 'text-rose-400'}>{after.money > before.money ? '+' : '−'}{fmtEur(Math.abs(after.money - before.money))}</span>],
-    ['Momentum', <Delta key="c" v={after.mom - before.mom} />],
-    ['Political capital', <Delta key="d" v={after.pc - before.pc} d={0} />],
+    ['Your poll', <Delta key="a" v={after.share - before.share} unit="%" />],
+    ['Money', money === 0 ? <span key="b" className="t-muted">±0</span> : <span key="b" style={{ color: money > 0 ? '#15803D' : '#DC2626' }}>{money > 0 ? '+' : '−'}{fmtEur(Math.abs(money))}</span>],
+    ['Buzz', <Delta key="c" v={after.mom - before.mom} />],
+    ['Favours', <Delta key="d" v={after.pc - before.pc} d={0} />],
   ];
   return (
     <div className="grid grid-cols-2 gap-2">
       {cells.map(([l, v]) => (
-        <div key={l} className="rounded-xl bg-slate-800 p-3">
-          <div className="text-xs text-slate-400">{l}</div>
-          <div className="text-lg font-bold" style={F_MONO}>{v}</div>
+        <div key={l} className="cx-soft p-3">
+          <div className="text-xs font-extrabold t-muted">{l}</div>
+          <div className="cx-num text-xl">{v}</div>
         </div>
       ))}
     </div>
@@ -2642,33 +2929,34 @@ function EventModal({ g, item, onChoose, onClose }) {
   const ev = EVENT_MAP[item.id];
   const done = item.done;
   const Icon = ev.icon;
+  const pick = useMemo(() => adviseEvent(g, ev), [item.id]);
   return (
     <Sheet label="Breaking news">
       <div style={GUTTER} className="pt-6 flex flex-col gap-4">
         <div className="flex items-center gap-2">
-          <span className={`px-2 py-1 rounded text-white text-xs font-bold tracking-widest ${ev.scandal ? 'bg-rose-700' : 'bg-rose-600'} ${done ? '' : 'sbl-blink'}`} style={F_MONO}>{ev.scandal ? 'SCANDAL' : 'BREAKING'}</span>
-          <Kicker>{ev.cat} · Week {g.week}</Kicker>
+          <span className={`cx-chip px-3 py-1 text-sm text-white ${done ? '' : 'sbl-blink'}`} style={{ background: '#E5484D' }}>{ev.scandal ? 'SCANDAL!' : 'BREAKING NEWS'}</span>
+          <span className="text-sm font-extrabold t-muted">{ev.cat}</span>
         </div>
         <div className="flex gap-3 items-start">
-          <div className="w-12 h-12 rounded-xl bg-slate-800 grid place-items-center shrink-0"><Icon size={24} className="text-amber-300" /></div>
-          <h2 style={{ ...F_DISPLAY, textWrap: 'balance' }} className="text-3xl font-extrabold leading-none text-slate-50">{evTitle(ev, g)}</h2>
+          <span className="grid place-items-center rounded-2xl shrink-0" style={{ width: 52, height: 52, background: '#FFF1C2', border: `3px solid ${INK}` }}><Icon size={26} strokeWidth={2.5} /></span>
+          <h2 className="cx-title text-2xl leading-tight">{evTitle(ev, g)}</h2>
         </div>
-        <p className="text-slate-300 leading-relaxed">{ev.body}</p>
+        <p className="font-semibold leading-relaxed">{ev.body}</p>
         {!done ? (
-          <div className="flex flex-col gap-2">
-            <Kicker>How do you respond?</Kicker>
+          <div className="flex flex-col gap-3">
+            <div className="cx-title text-lg">What do you say?</div>
             {ev.choices.map((ch, i) => {
-              const bonus = ch.tag && TAG_BONUS[ch.tag] && TAG_BONUS[ch.tag][g.player] > 1;
               const chips = ch.risk ? [{ t: '50/50 gamble', good: false }] : fxChips(ch.fx);
+              const fits = ch.tag && TAG_BONUS[ch.tag] && TAG_BONUS[ch.tag][g.player] > 1;
               return (
-                <button key={ch.label} type="button" onClick={() => onChoose(i)} className="w-full rounded-xl bg-slate-800 border border-slate-700 p-3 text-left transition active:scale-95 hover:border-amber-400/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-300">
-                  <div className="flex items-start gap-2">
-                    <span className="font-semibold text-slate-50 flex-1">{ch.label}</span>
-                    {bonus && <span className="text-xs rounded-md bg-amber-400 text-slate-950 font-bold px-1.5 py-0.5 shrink-0">Your brand</span>}
+                <button key={ch.label} type="button" onClick={() => onChoose(i)} className={`cx-btn ${i === pick ? 'cx-cream' : 'cx-white'} w-full flex-col items-start text-left p-3`} style={{ gap: 8 }}>
+                  <div className="flex items-start gap-2 w-full">
+                    <span className="font-black text-base flex-1">{ch.label}</span>
+                    {i === pick && <span className="cx-chip px-2 py-0.5 text-xs shrink-0" style={{ background: SUN }}><Star size={12} style={{ fill: INK }} />Rūta’s pick</span>}
                   </div>
-                  <div className="flex flex-wrap gap-1.5 mt-2">
-                    {ch.tag && <span className="text-xs rounded-md bg-slate-950 text-slate-300 px-1.5 py-0.5">{TAG_NAMES[ch.tag]}</span>}
-                    {chips.map((c) => <span key={c.t} className={`text-xs rounded-md px-1.5 py-0.5 ${c.good ? 'bg-emerald-500/15 text-emerald-300' : 'bg-rose-500/15 text-rose-300'}`}>{c.t}</span>)}
+                  <div className="flex flex-wrap gap-1.5">
+                    {fits && <span className="cx-chip px-2 py-0.5 text-xs" style={{ background: '#E9D5FF' }}>Fits your party</span>}
+                    {chips.map((c) => <span key={c.t} className="cx-chip px-2 py-0.5 text-xs" style={{ background: c.good ? '#BBF7D0' : '#FECACA' }}>{c.t}</span>)}
                   </div>
                 </button>
               );
@@ -2676,9 +2964,9 @@ function EventModal({ g, item, onChoose, onClose }) {
           </div>
         ) : (
           <div className="flex flex-col gap-3 sbl-fade">
-            <div className="rounded-xl bg-slate-800 p-3 text-sm text-slate-200">
-              <span className="text-slate-400">You chose:</span> <span className="font-semibold text-slate-50">{ev.choices[done.ci].label}</span>
-              {done.note && <div className="mt-1 text-amber-200">{done.note}</div>}
+            <div className="cx-soft p-3 font-bold">
+              You chose: <span className="font-black">{ev.choices[done.ci].label}</span>
+              {done.note && <div className="mt-1" style={{ color: '#B45309' }}>{done.note}</div>}
             </div>
             <OutcomeGrid before={done.before} after={done.after} />
             <Btn className="h-14 text-lg" onClick={onClose}>Back to the campaign <ArrowRight size={20} /></Btn>
@@ -2689,44 +2977,30 @@ function EventModal({ g, item, onChoose, onClose }) {
   );
 }
 function reactionLabel(s) {
-  if (s >= 7.6) return ['The studio erupts', 'text-emerald-300'];
-  if (s >= 6.6) return ['Strong answer', 'text-emerald-300'];
-  if (s >= 5.6) return ['Solid', 'text-slate-200'];
-  if (s >= 4.6) return ['Flat', 'text-amber-300'];
-  return ['Disaster', 'text-rose-300'];
+  if (s >= 7.6) return ['The crowd goes wild!', '#15803D'];
+  if (s >= 6.6) return ['Great answer!', '#15803D'];
+  if (s >= 5.6) return ['Solid answer', INK];
+  if (s >= 4.6) return ['Hmm, a bit flat', '#B45309'];
+  return ['Ouch. That went badly', '#DC2626'];
 }
-function Worm({ pts }) {
-  const W = 320, H = 70;
-  const n = Math.max(pts.length - 1, 1);
-  const x = (i) => (i / Math.max(n, 18)) * W;
-  const y = (v) => H - (v / 10) * H;
-  const line = pts.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
-  const lastV = pts[pts.length - 1];
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto block rounded-lg bg-slate-950" role="img" aria-label="Audience reaction worm">
-      <rect x="0" y="0" width={W} height={H / 2} fill="#10B981" fillOpacity="0.06" />
-      <rect x="0" y={H / 2} width={W} height={H / 2} fill="#F43F5E" fillOpacity="0.06" />
-      <line x1="0" x2={W} y1={H / 2} y2={H / 2} stroke="#334155" strokeDasharray="3 3" />
-      <polyline points={line} fill="none" stroke={GOLD} strokeWidth="2.2" strokeLinejoin="round" strokeLinecap="round" />
-      <circle cx={x(pts.length - 1)} cy={y(lastV)} r="3.5" fill={GOLD} />
-    </svg>
-  );
-}
+const STYLE_NAMES = { technocrat: 'Expert', attack: 'Attack', security: 'Security', welfare: 'Welfare', populist: 'Populist', business: 'Business', youth: 'Youth', moderate: 'Calm', traditional: 'Family values', progressive: 'Progressive', green: 'Green' };
 function DebateModal({ g, item, onFinish, onClose }) {
   const D = DEBATES[item.id];
   const [qi, setQi] = useState(0);
   const [picks, setPicks] = useState([]);
   const [reveal, setReveal] = useState(null);
-  const [worm, setWorm] = useState([5, 5.1, 4.9, 5]);
+  const [meter, setMeter] = useState(5);
   const res = item.done;
   const Q = D.questions[qi];
+  const pickIdx = useMemo(() => {
+    let b = 0;
+    Q.answers.forEach((a, i) => { if (expectedAnswerScore(g, a) > expectedAnswerScore(g, Q.answers[b])) b = i; });
+    return b;
+  }, [qi]);
   const choose = (ai) => {
     if (reveal) return;
     const sc = scoreAnswer(g, Q.answers[ai]);
-    const pts = [];
-    let v = worm[worm.length - 1];
-    for (let k = 0; k < 6; k++) { v = clamp(v + (sc.score - v) * 0.4 + (Math.random() - 0.5) * 0.7, 0.2, 9.8); pts.push(v); }
-    setWorm([...worm, ...pts]);
+    setMeter(sc.score);
     setReveal({ ai, ...sc });
     setPicks([...picks, { qi, ai, score: sc.score }]);
   };
@@ -2735,70 +3009,80 @@ function DebateModal({ g, item, onFinish, onClose }) {
     else onFinish(picks);
   };
   return (
-    <Sheet label="LRT debate">
+    <Sheet label="TV debate">
       <div style={GUTTER} className="pt-6 flex flex-col gap-4">
         <div className="flex items-center gap-2">
-          <span className="px-2 py-1 rounded bg-slate-100 text-slate-950 text-xs font-extrabold tracking-widest" style={F_MONO}>LRT</span>
-          <span className="inline-flex items-center gap-1.5 text-xs font-bold text-rose-300" style={F_MONO}><span className="w-2 h-2 rounded-full bg-rose-500 sbl-blink" />LIVE</span>
-          <Kicker className="ml-auto">{D.subtitle}</Kicker>
+          <span className="cx-chip px-3 py-1 text-sm text-white" style={{ background: INK }}>LRT</span>
+          <span className="cx-chip px-3 py-1 text-sm" style={{ background: '#FECACA' }}><span className="w-2.5 h-2.5 rounded-full sbl-blink" style={{ background: '#DC2626' }} />LIVE</span>
+          <span className="text-sm font-extrabold t-muted ml-auto">Debate {item.id + 1} of 3</span>
         </div>
-        <h2 style={F_DISPLAY} className="text-3xl font-extrabold leading-none text-slate-50">{D.title}</h2>
+        <h2 className="cx-title text-3xl leading-none">TV debate: {D.title}</h2>
         {!res ? (
           <>
             <div className="flex gap-1.5" aria-label={`Question ${qi + 1} of ${D.questions.length}`}>
-              {D.questions.map((_, i) => <span key={i} className="h-1.5 flex-1 rounded-full" style={{ background: i < qi || (i === qi && reveal) ? GOLD : i === qi ? '#94A3B8' : '#334155' }} />)}
+              {D.questions.map((_, i) => <span key={i} className="flex-1 rounded-full" style={{ height: 10, border: `2px solid ${INK}`, background: i < qi || (i === qi && reveal) ? SUN : i === qi ? '#FFF1C2' : '#fff' }} />)}
             </div>
-            <div className="rounded-xl bg-slate-800 p-4">
-              <Kicker className="mb-1.5">Moderator · question {qi + 1}</Kicker>
-              <p className="text-lg text-slate-50 leading-snug" style={{ textWrap: 'balance' }}>{Q.q}</p>
+            <div className="cx-card p-4 relative" style={{ background: '#DDF0FB' }}>
+              <div className="text-sm font-extrabold t-muted mb-1">The host asks:</div>
+              <p className="cx-title text-xl leading-snug">{Q.q}</p>
             </div>
-            <Worm pts={worm} />
-            <div className="flex flex-col gap-2">
+            <div>
+              <div className="flex justify-between text-xs font-extrabold t-muted mb-1"><span>Crowd hates it</span><span>Crowd loves it</span></div>
+              <Bar value={meter} max={10} color={meter >= 6 ? '#22C55E' : meter >= 5 ? SUN : '#F87171'} mark={5} h={18} />
+            </div>
+            {item.id === 0 && qi === 0 && !reveal && (
+              <Coach title="Debate tip">Pick answers that fit your party and your promises. My favourite has a star.</Coach>
+            )}
+            <div className="flex flex-col gap-3">
               {Q.answers.map((a, i) => {
                 const chosen = reveal && reveal.ai === i;
                 return (
                   <button
                     key={a.t} type="button" disabled={!!reveal && !chosen} onClick={() => choose(i)}
-                    className={`w-full rounded-xl border p-3 text-left transition ${chosen ? 'bg-amber-400 text-slate-950 border-amber-300' : 'bg-slate-800 border-slate-700 text-slate-50 hover:border-amber-400/60 active:scale-95'} disabled:opacity-35`}
+                    className={`cx-btn ${chosen ? 'cx-sun' : i === pickIdx && !reveal ? 'cx-cream' : 'cx-white'} w-full flex-col items-start text-left p-3`}
+                    style={{ gap: 6 }}
                   >
-                    <div className="font-semibold leading-snug">{a.t}</div>
-                    <div className={`text-xs mt-1 ${chosen ? 'text-slate-800' : 'text-slate-400'}`}>{TAG_NAMES[a.style] || (a.style === 'technocrat' ? 'Technocratic' : a.style === 'attack' ? 'Attack' : a.style)}{a.pc ? ' · experts will object (−1 PC)' : ''}</div>
+                    <span className="font-black text-base leading-snug">{a.t}</span>
+                    <span className="flex flex-wrap gap-1.5">
+                      <span className="cx-chip px-2 py-0.5 text-xs">{STYLE_NAMES[a.style] || a.style}</span>
+                      {i === pickIdx && !reveal && <span className="cx-chip px-2 py-0.5 text-xs" style={{ background: SUN }}><Star size={12} style={{ fill: INK }} />Rūta’s pick</span>}
+                      {a.pc ? <span className="cx-chip px-2 py-0.5 text-xs" style={{ background: '#FECACA' }}>Experts will scoff: −1 favour</span> : null}
+                    </span>
                   </button>
                 );
               })}
             </div>
             {reveal && (
-              <div className="rounded-xl bg-slate-950 border border-slate-800 p-3 flex items-center gap-3 sbl-pop">
-                <div style={{ ...F_MONO, fontSize: 34 }} className="font-bold text-slate-50 leading-none">{reveal.score.toFixed(1)}</div>
+              <div className="cx-card p-3 flex items-center gap-3 sbl-pop" style={{ boxShadow: `0 4px 0 ${INK}` }}>
+                <div className="cx-num text-4xl leading-none">{reveal.score.toFixed(1)}</div>
                 <div className="flex-1 min-w-0">
-                  <div className={`font-semibold ${reactionLabel(reveal.score)[1]}`}>{reactionLabel(reveal.score)[0]}</div>
-                  {reveal.note && <div className={`text-xs ${reveal.note === 'On-message' ? 'text-emerald-300' : 'text-rose-300'}`}>{reveal.note}</div>}
+                  <div className="font-black" style={{ color: reactionLabel(reveal.score)[1] }}>{reactionLabel(reveal.score)[0]}</div>
+                  {reveal.note && <div className="text-xs font-extrabold" style={{ color: reveal.note === 'Fits your promises' ? '#15803D' : '#DC2626' }}>{reveal.note}</div>}
                 </div>
-                <Btn className="h-12 px-4" onClick={next}>{qi < D.questions.length - 1 ? 'Next' : 'Verdict'} <ArrowRight size={18} /></Btn>
+                <Btn className="h-12 px-4" onClick={next}>{qi < D.questions.length - 1 ? 'Next' : 'Results'} <ArrowRight size={18} /></Btn>
               </div>
             )}
           </>
         ) : (
           <div className="flex flex-col gap-3 sbl-fade">
-            <div className="rounded-xl bg-slate-800 p-4">
-              <Kicker className="mb-2">Snap poll · who won the debate?</Kicker>
+            <div className="cx-card p-4" style={{ boxShadow: `0 4px 0 ${INK}` }}>
+              <div className="cx-title text-lg mb-2">Viewers’ vote: who won?</div>
               <div className="flex flex-col gap-2">
-                {res.poll.map((x) => (
-                  <div key={x.p} className="grid items-center gap-2" style={{ gridTemplateColumns: '72px 1fr 44px' }}>
-                    <span className={`text-sm truncate ${x.p === g.player ? 'font-bold text-slate-50' : 'text-slate-300'}`}>{PARTIES[x.p].short}</span>
-                    <div className="h-5 rounded bg-slate-950 overflow-hidden"><div className="h-full" style={{ width: `${x.pct}%`, background: PARTIES[x.p].color }} /></div>
-                    <span className="text-sm text-right" style={F_MONO}>{x.pct.toFixed(0)}%</span>
+                {res.poll.map((x, i) => (
+                  <div key={x.p} className="grid items-center gap-2" style={{ gridTemplateColumns: '28px 84px 1fr 44px' }}>
+                    <span className="cx-num">{i === 0 ? <Trophy size={20} style={{ color: '#B45309' }} /> : `#${i + 1}`}</span>
+                    <span className={`text-sm truncate inline-flex items-center gap-1.5 ${x.p === g.player ? 'font-black' : 'font-bold'}`}><PartyDot p={x.p} size={11} />{x.p === g.player ? 'You' : PARTIES[x.p].short}</span>
+                    <Bar value={x.pct} max={100} color={PARTIES[x.p].color} h={16} />
+                    <span className="cx-num text-sm text-right">{x.pct.toFixed(0)}%</span>
                   </div>
                 ))}
               </div>
             </div>
-            <div className="grid grid-cols-3 gap-2">
-              <div className="rounded-xl bg-slate-800 p-3"><div className="text-xs text-slate-400">Your score</div><div className="text-lg font-bold text-slate-50" style={F_MONO}>{res.avg.toFixed(1)}</div></div>
-              <div className="rounded-xl bg-slate-800 p-3"><div className="text-xs text-slate-400">Finish</div><div className="text-lg font-bold text-slate-50" style={F_MONO}>#{res.rank}</div></div>
-              <div className="rounded-xl bg-slate-800 p-3"><div className="text-xs text-slate-400">Poll</div><div className="text-lg font-bold" style={F_MONO}><Delta v={res.delta} /></div></div>
+            <div className="cx-soft p-3 font-bold">
+              {res.won ? 'You won the debate! You get 2 favours and a big burst of buzz.' : res.avg > 6 ? 'A good night. The pundits liked you: +1 favour.' : 'Not your best night. Rivals will replay your weakest moment.'}
+              <div className="mt-1">Your poll: <Delta v={res.delta} unit="%" /></div>
             </div>
-            <p className="text-sm text-slate-300">{res.won ? 'You won the night: +2 political capital and a momentum surge.' : res.avg > 6 ? 'A respectable night. Pundits give you credit: +1 political capital.' : 'A forgettable performance. Rivals will clip your worst moment.'}</p>
-            <Btn className="h-14 text-lg" onClick={onClose}>Leave the studio <ArrowRight size={20} /></Btn>
+            <Btn className="h-14 text-lg" onClick={onClose}>Back to the campaign <ArrowRight size={20} /></Btn>
           </div>
         )}
       </div>
@@ -2807,89 +3091,86 @@ function DebateModal({ g, item, onFinish, onClose }) {
 }
 function HelpSheet({ onClose }) {
   const items = [
-    ['Goal', 'Become Prime Minister. That takes 71 of the Seimas’ 141 seats, alone or with coalition partners.'],
-    ['70 list seats', 'Split nationally by the Hare–Niemeyer largest-remainder method among parties with at least 5% of the vote. Below 5% you get none.'],
-    ['71 single-mandate seats', 'Win more than 50% in round one, or finish top-two and win the runoff two weeks later. Eliminated parties’ voters transfer by ideological closeness, and some stay home.'],
-    ['Each week', '6 action points plus donations scaled by your poll. Region actions have diminishing returns if repeated in the same week. Campaign gains fade slowly; ground game slows the fade and shields you.'],
-    ['Momentum', 'Multiplies your support everywhere. Debates, events and press conferences build it; scandals, U-turns and botched attacks drain it. A big poll lead attracts media scrutiny.'],
-    ['Political capital (PC)', 'Earned in debates, through back-channel talks and by careful choices. Spend it on lobbying cash or on sweeteners in coalition talks.'],
-    ['Platform', 'Moving toward a region’s ideal position wins votes there and loses them elsewhere. Drifting far from your founding line demotivates your base. Your final platform sets your compatibility with partners.'],
-    ['Coalitions', 'Invite partners, accept their policy demands or spend PC to win them over. Every partner must be willing (50+) and the bloc must reach 71. Stability falls with more parties and clashing partners.'],
+    [Crown, 'The goal', 'Become Prime Minister. You need 71 of the 141 seats in the Seimas, on your own or with partner parties.'],
+    [Zap, 'Energy & money', 'You get 6 energy every week, plus donations. Every move costs 1 energy and some money. Unused energy is lost.'],
+    [MapIcon, 'Regions', 'Tap a region to campaign there. Stripes mean a close race, which is where a push matters most. Repeating moves in one region in the same week works less well.'],
+    [BarChart3, 'How seats work', '70 seats are shared by the national vote (5% minimum). 71 go to local winners; if nobody gets 50%, the top two face a runoff.'],
+    [Flame, 'Buzz', 'Buzz lifts your support everywhere. Debates and good choices raise it; scandals and flip-flops lower it.'],
+    [Handshake, 'Favours', 'Earn favours from debates and “coffee with rivals”. After the vote, spend them to win partners.'],
+    [Building2, 'Promises', 'In HQ you can shift what you stand for. It wins some regions, loses others, and changes who likes you.'],
+    [Lightbulb, 'Stuck?', 'Follow Rūta’s tips on the map, or let her plan your week for you.'],
   ];
   return (
     <Sheet onClose={onClose} label="How to play">
-      <div style={GUTTER} className="pt-6 flex flex-col gap-4">
-        <div className="flex items-center justify-between">
-          <h2 style={F_DISPLAY} className="text-3xl font-extrabold leading-none text-slate-50">How the Seimas is won</h2>
-          <button type="button" onClick={onClose} aria-label="Close help" className="w-11 h-11 rounded-full bg-slate-800 grid place-items-center text-slate-200"><X size={20} /></button>
-        </div>
-        <dl className="flex flex-col gap-3">
-          {items.map(([t, d]) => (
-            <div key={t} className="rounded-xl bg-slate-800 p-3">
-              <dt className="font-semibold text-slate-50">{t}</dt>
-              <dd className="text-sm text-slate-300 leading-relaxed mt-1">{d}</dd>
-            </div>
-          ))}
-        </dl>
-        <Btn className="h-14 text-lg" onClick={onClose}>Got it</Btn>
+      <SheetHead title="How to play" onClose={onClose} />
+      <div style={GUTTER} className="pt-4 flex flex-col gap-3">
+        {items.map(([Icon, t, d]) => (
+          <div key={t} className="cx-soft p-3 flex gap-3 items-start">
+            <span className="grid place-items-center rounded-full shrink-0" style={{ width: 38, height: 38, background: '#FFF1C2', border: `2.5px solid ${INK}` }}><Icon size={18} strokeWidth={2.5} /></span>
+            <div><div className="font-black">{t}</div><div className="text-sm font-semibold leading-relaxed">{d}</div></div>
+          </div>
+        ))}
+        <Btn className="h-14 text-lg mt-1" onClick={onClose}>Got it!</Btn>
       </div>
     </Sheet>
   );
 }
-function ConfirmEnd({ g, onCancel, onConfirm }) {
+function ConfirmEnd({ g, onCancel, onConfirm, onAuto }) {
   return (
     <Sheet onClose={onCancel} label="End week">
       <div style={GUTTER} className="pt-6 flex flex-col gap-4">
-        <h2 style={F_DISPLAY} className="text-3xl font-extrabold leading-none text-slate-50">{g.week >= WEEKS ? 'Close the campaign?' : `End week ${g.week}?`}</h2>
-        <p className="text-slate-300">You still have <span className="font-bold text-amber-300" style={F_MONO}>{g.ap} action point{g.ap > 1 ? 's' : ''}</span>. Unused points don’t carry over.{g.week >= WEEKS ? ' Polls open next. There is no going back.' : ''}</p>
-        <div className="flex gap-2">
-          <Btn kind="ghost" className="h-14 flex-1" onClick={onCancel}>Keep campaigning</Btn>
-          <Btn className="h-14 flex-1" onClick={onConfirm}>{g.week >= WEEKS ? 'Go to the polls' : 'End week'}</Btn>
+        <div className="flex items-center gap-3">
+          <Advisor size={56} />
+          <div className="cx-title text-2xl leading-tight">Wait, you still have {g.ap} energy!</div>
         </div>
+        <p className="font-semibold">Energy doesn’t carry over to next week.{g.week >= WEEKS ? ' This is the last week. After this, the country votes!' : ''}</p>
+        <Btn className="h-14 text-base" onClick={onAuto}><Wand2 size={19} />Let Rūta spend it, then continue</Btn>
+        <Btn kind="white" className="h-12" onClick={onConfirm}>{g.week >= WEEKS ? 'Go straight to the vote' : 'Skip it and end the week'}</Btn>
+        <Btn kind="pale" className="h-12" onClick={onCancel}>Keep campaigning</Btn>
       </div>
     </Sheet>
   );
 }
 
 /* ============================================================
-   Title & party selection
+   Title & party picker
    ============================================================ */
 const SEIMAS_2024 = { LSDP: 52, TS: 28, NA: 20, DSVL: 14, LS: 12, LVZS: 8, LLRA: 3, KITI: 4 };
 function TitleScreen({ saved, onNew, onContinue }) {
+  const demoShares = useMemo(() => Object.fromEntries(REGIONS.map((r) => {
+    const t = sum(ALL_IDS.map((p) => r.base[p]));
+    return [r.id, Object.fromEntries(ALL_IDS.map((p) => [p, (r.base[p] / t) * 100]))];
+  })), []);
+  const demo = useMemo(() => ({ weekActs: {} }), []);
   return (
-    <div className="max-w-lg mx-auto min-h-screen flex flex-col" style={GUTTER}>
-      <div className="pt-10">
-        <Tricolor className="w-16 mb-6" h={4} />
-        <Kicker>Lietuvos Respublikos Seimo rinkimai</Kicker>
-        <h1 style={{ ...F_DISPLAY, fontSize: 'clamp(64px, 22vw, 112px)', lineHeight: 0.82, fontWeight: 900, fontStretch: '68%' }} className="mt-3 text-slate-50">SEIMAS</h1>
-        <div style={{ ...F_DISPLAY, fontWeight: 700 }} className="text-3xl text-amber-400 mt-1">Battle for Lithuania</div>
-        <p className="mt-4 text-slate-300 leading-relaxed">
-          Twelve weeks. 141 seats. Run the campaign war room for one of Lithuania’s parties, survive three LRT debates, win the runoffs and build a coalition of 71.
+    <div className="max-w-lg mx-auto min-h-screen flex flex-col" style={{ ...GUTTER, paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 24px)' }}>
+      <div className="pt-8 text-center">
+        <Tricolor className="w-16 mx-auto mb-4" h={6} />
+        <h1 className="cx-logo leading-none" style={{ fontSize: 'clamp(64px, 21vw, 104px)' }}>SEIMAS</h1>
+        <div className="inline-block mt-4 cx-chip px-4 py-1.5 cx-title text-lg" style={{ background: '#fff' }}>Battle for Lithuania</div>
+        <p className="mt-4 font-semibold leading-relaxed text-base">
+          Lead a party through a 12-week election campaign, win TV debates and runoffs, then team up to take 71 of the 141 seats.
         </p>
       </div>
-      <div className="mt-6 rounded-2xl bg-slate-900 border border-slate-800 p-3">
-        <Hemicycle seats={SEIMAS_2024} showCount={false} />
-        <div className="flex flex-wrap gap-x-3 gap-y-1 mt-2 text-xs text-slate-400">
-          {SEAT_ORDER.filter((p) => SEIMAS_2024[p]).map((p) => <span key={p} className="inline-flex items-center gap-1"><Swatch p={p} size={8} />{PARTIES[p].short} {SEIMAS_2024[p]}</span>)}
-        </div>
-        <div className="text-xs text-slate-500 mt-1">The Seimas elected in 2024</div>
-      </div>
-      <div className="grid grid-cols-3 gap-2 mt-3">
-        {[['70', 'list seats', '5% threshold'], ['71', 'single-mandate', 'two rounds'], ['71', 'for majority', 'of 141']].map(([n, a, b]) => (
-          <div key={a} className="rounded-xl bg-slate-900 border border-slate-800 p-3">
-            <div className="text-2xl font-bold text-slate-50" style={F_MONO}>{n}</div>
-            <div className="text-xs text-slate-300">{a}</div>
-            <div className="text-xs text-slate-500">{b}</div>
+      <Card className="mt-5" style={{ background: '#BFE6FA', padding: 6 }}>
+        <CartoonMap g={demo} shares={demoShares} sel={null} onSelect={() => {}} stars={[]} />
+      </Card>
+      <div className="grid grid-cols-3 gap-2 mt-4">
+        {[[MapIcon, '12 weeks', 'of campaigning'], [Tv, '3 debates', 'live on TV'], [Handshake, '71 seats', 'to govern']].map(([Icon, a, b]) => (
+          <div key={a} className="cx-card p-3 text-center" style={{ boxShadow: `0 4px 0 ${INK}` }}>
+            <Icon size={22} className="mx-auto" strokeWidth={2.5} />
+            <div className="cx-title text-base mt-1 leading-tight">{a}</div>
+            <div className="text-xs font-bold t-muted">{b}</div>
           </div>
         ))}
       </div>
-      <div className="mt-auto pt-8 pb-8 flex flex-col gap-3">
+      <div className="mt-auto pt-6 flex flex-col gap-3">
+        <Btn className="h-16 text-xl" onClick={onNew}><Play size={22} style={{ fill: INK }} />Play</Btn>
         {saved && (
-          <Btn kind="ghost" className="h-14 text-base" onClick={onContinue}>
-            <Play size={18} />Continue · {PARTIES[saved.player].short}, {saved.phase === 'campaign' ? `week ${saved.week}` : saved.phase === 'night' ? 'election night' : 'coalition talks'}
+          <Btn kind="white" className="h-14 text-base" onClick={onContinue}>
+            Continue {PARTIES[saved.player].short} · {saved.phase === 'campaign' ? `week ${saved.week}` : saved.phase === 'night' ? 'election night' : 'coalition talks'}
           </Btn>
         )}
-        <Btn className="h-14 text-lg" onClick={onNew}>New campaign <ArrowRight size={20} /></Btn>
       </div>
     </div>
   );
@@ -2897,53 +3178,55 @@ function TitleScreen({ saved, onNew, onContinue }) {
 function PartySelect({ onPick, onBack }) {
   const [sel, setSel] = useState(null);
   const startNat = useMemo(() => nationalShares(newGame('LSDP')), []);
-  const diffTone = { Standard: 'text-emerald-300', Hard: 'text-amber-300', 'Very hard': 'text-rose-300' };
+  const diffColor = { Easy: '#BBF7D0', Medium: '#FDE68A', Hard: '#FECACA' };
   return (
-    <div className="max-w-lg mx-auto min-h-screen" style={{ ...GUTTER, paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 110px)' }}>
+    <div className="max-w-lg mx-auto min-h-screen" style={{ ...GUTTER, paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 120px)' }}>
       <div className="pt-6 flex items-center gap-3">
-        <button type="button" onClick={onBack} aria-label="Back" className="w-11 h-11 rounded-full bg-slate-900 border border-slate-700 grid place-items-center text-slate-300"><ArrowRight size={18} className="rotate-180" /></button>
+        <button type="button" onClick={onBack} aria-label="Back" className="cx-btn cx-white shrink-0" style={{ width: 46, height: 46, borderRadius: 999 }}><ArrowRight size={20} className="rotate-180" /></button>
         <div>
-          <Kicker>Step 1 of 1</Kicker>
-          <h2 style={F_DISPLAY} className="text-3xl font-extrabold leading-none text-slate-50">Choose your party</h2>
+          <h2 className="cx-title text-3xl leading-none">Pick your party</h2>
+          <p className="text-sm font-bold t-muted mt-1">New to the game? Start with an Easy one.</p>
         </div>
       </div>
-      <div className="flex flex-col gap-2.5 mt-5">
+      <div className="flex flex-col gap-3 mt-5">
         {PARTY_IDS.map((p) => {
           const P = PARTIES[p];
           const on = sel === p;
           return (
             <button
               key={p} type="button" onClick={() => setSel(p)} aria-pressed={on}
-              className={`w-full text-left rounded-2xl border p-3 transition focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 ${on ? 'bg-slate-800 border-amber-400' : 'bg-slate-900 border-slate-800 hover:border-slate-600'}`}
+              className={`cx-btn ${on ? 'cx-cream' : 'cx-white'} w-full flex-col items-stretch text-left p-3`}
+              style={{ gap: 8, borderWidth: on ? 4 : 3 }}
             >
-              <div className="flex items-start gap-3">
-                <div className="w-2 self-stretch rounded-full" style={{ background: P.color }} />
+              <div className="flex items-center gap-3">
+                <span className="grid place-items-center rounded-full shrink-0 cx-title text-xs text-white" style={{ width: 52, height: 52, background: P.color, border: `3px solid ${INK}`, textShadow: `0 0 3px ${INK}` }}>{P.short.length > 5 ? P.short.slice(0, 4) : P.short}</span>
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-baseline justify-between gap-2">
-                    <span style={F_DISPLAY} className="text-2xl font-extrabold text-slate-50 leading-none">{P.short}</span>
-                    <span className="text-sm text-slate-300 shrink-0" style={F_MONO}>{startNat[p].toFixed(1)}%</span>
-                  </div>
-                  <div className="text-sm text-slate-300 mt-0.5">{P.name} · <span className="text-slate-400">{P.ideology}</span></div>
-                  <div className="flex flex-wrap gap-x-3 gap-y-1 mt-1.5 text-xs" style={F_MONO}>
-                    <span className={diffTone[P.difficulty]}>{P.difficulty}</span>
-                    <span className="text-slate-400">Funds {fmtEur(P.funds)}</span>
-                  </div>
-                  {on && (
-                    <div className="mt-3 flex flex-col gap-2 text-sm sbl-fade">
-                      <div><span className="text-slate-400">Strongholds: </span><span className="text-slate-100">{P.strongholds}</span></div>
-                      <div><span className="text-slate-400">{P.trait}: </span><span className="text-slate-100">{P.traitDesc}</span></div>
-                    </div>
-                  )}
+                  <div className="cx-title text-xl leading-tight">{P.short}</div>
+                  <div className="text-sm font-semibold t-muted leading-snug">{P.blurb}</div>
                 </div>
               </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="cx-chip px-2.5 py-0.5 text-xs" style={{ background: diffColor[P.difficulty] }}>
+                  {Array.from({ length: 3 }).map((_, i) => <Star key={i} size={12} style={{ fill: i < P.stars ? INK : 'transparent' }} />)}
+                  {P.difficulty}
+                </span>
+                <span className="cx-chip px-2.5 py-0.5 text-xs">Polling {startNat[p].toFixed(1)}%</span>
+                <span className="cx-chip px-2.5 py-0.5 text-xs">{fmtEur(P.funds)}</span>
+              </div>
+              {on && (
+                <div className="cx-soft p-3 text-sm font-semibold sbl-fade">
+                  <div><span className="font-black">Superpower: </span>{P.perk}</div>
+                  <div className="mt-1"><span className="font-black">Home turf: </span>{P.strongholds}</div>
+                </div>
+              )}
             </button>
           );
         })}
       </div>
-      <div className="fixed bottom-0 inset-x-0 z-20 bg-slate-950 border-t border-slate-800" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)' }}>
+      <div className="fixed bottom-0 inset-x-0 z-20" style={{ background: '#fff', borderTop: `3px solid ${INK}`, paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 14px)' }}>
         <div className="max-w-lg mx-auto pt-3" style={GUTTER}>
           <Btn className="h-14 w-full text-lg" disabled={!sel} onClick={() => onPick(sel)}>
-            {sel ? <>Lead {PARTIES[sel].short} <ArrowRight size={20} /></> : 'Pick a party'}
+            {sel ? <>Play as {PARTIES[sel].short} <ArrowRight size={20} /></> : 'Tap a party to choose it'}
           </Btn>
         </div>
       </div>
@@ -2956,6 +3239,23 @@ function PartySelect({ onPick, onBack }) {
    ============================================================ */
 const COUNT_SPAN = 0.55;
 const countedFrac = (r, prog) => clamp((prog - r.count) / COUNT_SPAN, 0, 1);
+function RunoffRow({ e, me }) {
+  const { a, b, sa, sb } = e.runoff;
+  const mine = a === me || b === me;
+  return (
+    <li className="rounded-2xl px-3 py-2 sbl-fade" style={{ border: `2.5px solid ${INK}`, background: mine ? '#FFF6D8' : '#fff' }}>
+      <div className="flex items-center justify-between gap-2">
+        <span className="font-black truncate">{e.name}</span>
+        <span className="text-sm font-extrabold inline-flex items-center gap-1 shrink-0"><PartyDot p={e.winner} size={11} />{PARTIES[e.winner].short} wins</span>
+      </div>
+      <div className="flex mt-1.5 overflow-hidden rounded-full" style={{ height: 12, border: `2px solid ${INK}` }}>
+        <div style={{ width: `${sa}%`, background: PARTIES[a].color, borderRight: `2px solid ${INK}` }} />
+        <div style={{ width: `${sb}%`, background: PARTIES[b].color }} />
+      </div>
+      <div className="flex justify-between text-xs font-extrabold t-muted mt-1"><span>{PARTIES[a].short} {sa.toFixed(1)}%</span><span>{PARTIES[b].short} {sb.toFixed(1)}%</span></div>
+    </li>
+  );
+}
 function ElectionNight({ g, onFinish }) {
   const E = g.election;
   const me = g.player;
@@ -3004,10 +3304,10 @@ function ElectionNight({ g, onFinish }) {
     return { shares, pr, fr, counted: tot / E.total };
   }, [prog, stage, E]);
   const skip = () => { setProg(1); setRo(runoffs.length); setStage('final'); };
-  const shownRunoffs = stage === 'final' ? runoffs.length : stage === 'runoff' ? ro : 0;
+  const shown = stage === 'final' ? runoffs.length : stage === 'runoff' ? ro : 0;
   const smdNow = Object.fromEntries(ALL_IDS.map((p) => [p, 0]));
   r1.forEach((e) => { if (live.fr[e.rid] >= 1) smdNow[e.winner] += 1; });
-  runoffs.slice(0, shownRunoffs).forEach((e) => { smdNow[e.winner] += 1; });
+  runoffs.slice(0, shown).forEach((e) => { smdNow[e.winner] += 1; });
   const seatsNow = Object.fromEntries(ALL_IDS.map((p) => [p, (live.counted > 0.04 ? live.pr[p] || 0 : 0) + smdNow[p]]));
   const declared = sum(Object.values(seatsNow));
   const clock = (() => {
@@ -3015,122 +3315,83 @@ function ElectionNight({ g, onFinish }) {
     const h = Math.floor(mins / 60) % 24, m = mins % 60;
     return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
   })();
-  const pending = REGIONS.filter((r) => live.fr[r.id] < 1).map((r) => (r.id === 'ABR' ? 'Abroad' : r.name));
   const order = ALL_IDS.filter((p) => E.seats[p] > 0).sort((a, b) => E.seats[b] - E.seats[a]);
   const largest = order.filter((p) => p !== 'KITI')[0];
-  const recent = runoffs.slice(Math.max(0, shownRunoffs - 6), shownRunoffs).reverse();
+  const recent = runoffs.slice(Math.max(0, shown - 5), shown).reverse();
+  const myRunoffs = runoffs.filter((e) => e.runoff.a === me || e.runoff.b === me);
   return (
     <div className="max-w-lg mx-auto min-h-screen" style={{ ...GUTTER, paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 32px)' }}>
       <div className="pt-6 flex items-center justify-between gap-3">
         <div>
-          <Kicker>Rinkimų naktis · Election night</Kicker>
-          <h2 style={F_DISPLAY} className="text-4xl font-extrabold leading-none text-slate-50">{stage === 'runoff' ? 'Runoff day' : stage === 'final' ? 'The new Seimas' : 'Polls closed'}</h2>
+          <div className="text-sm font-extrabold t-muted">Rinkimų naktis</div>
+          <h2 className="cx-title text-4xl leading-none">{stage === 'runoff' ? 'Runoff day' : stage === 'final' ? 'The results are in!' : 'Election night'}</h2>
         </div>
-        <div className="text-right">
-          <div className="text-2xl font-bold text-amber-300" style={F_MONO}>{stage === 'runoff' || stage === 'final' ? 'R2' : clock}</div>
-          {stage !== 'final' && <button type="button" onClick={skip} className="text-xs text-slate-400 inline-flex items-center gap-1 h-8">Skip <SkipForward size={14} /></button>}
+        <div className="flex flex-col items-end gap-1">
+          <span className="cx-chip px-3 py-1 cx-num text-lg">{stage === 'runoff' || stage === 'final' ? 'Round 2' : clock}</span>
+          {stage !== 'final' && <button type="button" onClick={skip} className="text-sm font-extrabold underline inline-flex items-center gap-1 h-9">Skip to results <SkipForward size={15} /></button>}
         </div>
       </div>
-      <div className="mt-4 rounded-2xl bg-slate-900 border border-slate-800 p-3">
+      <Card className="mt-4 p-3">
         <Hemicycle seats={seatsNow} highlight={me} label={`${P.short} seats`} />
-        <div className="flex items-center justify-between text-xs text-slate-400 mt-1" style={F_MONO}>
-          <span>{declared}/141 seats declared</span>
-          <span>{stage === 'count' ? `${Math.round(live.counted * 100)}% counted` : `Turnout ${(E.turnout * 100).toFixed(1)}%`}</span>
+        <div className="flex items-center justify-between text-sm font-extrabold t-muted mt-1">
+          <span>{declared} of 141 seats decided</span>
+          <span>{stage === 'count' ? `${Math.round(live.counted * 100)}% of votes counted` : `Turnout ${(E.turnout * 100).toFixed(1)}%`}</span>
         </div>
-        {stage === 'count' && (
-          <>
-            <div className="mt-2"><Meter value={live.counted * 100} color={GOLD} /></div>
-            {pending.length > 0 && <div className="text-xs text-slate-500 mt-1.5">Still counting: {pending.slice(0, 5).join(', ')}{pending.length > 5 ? '…' : ''}</div>}
-          </>
-        )}
-      </div>
-      <div className="mt-3">
-        <Section title="Multi-member vote" kicker="70 list seats · 5% threshold">
-          <PollBars shares={live.shares} highlight={me} threshold />
-        </Section>
-      </div>
+        {stage === 'count' && <div className="mt-2"><Bar value={live.counted * 100} color={SUN} h={16} /></div>}
+      </Card>
+      <Card className="mt-4 p-4">
+        <CardTitle sub="Shares out 70 seats. Under 5% gets nothing.">National vote</CardTitle>
+        <PollBars shares={live.shares} highlight={me} threshold />
+      </Card>
       {stage === 'r1' && (
-        <div className="mt-3 rounded-2xl bg-slate-900 border border-amber-400/50 p-4 flex flex-col gap-3 sbl-pop">
-          <Kicker>Single-mandate · round one</Kicker>
-          <p className="text-slate-200">
-            <span className="font-bold text-slate-50" style={F_MONO}>{r1.length}</span> of 71 constituencies elected an MP outright.{' '}
-            <span className="font-bold text-slate-50" style={F_MONO}>{runoffs.length}</span> go to runoffs in two weeks. Your candidates are in{' '}
-            <span className="font-bold text-amber-300" style={F_MONO}>{runoffs.filter((e) => e.runoff.a === me || e.runoff.b === me).length}</span> of them.
+        <Card className="mt-4 p-4 sbl-pop cx-cream">
+          <div className="cx-title text-2xl leading-tight">Round one done!</div>
+          <p className="font-semibold mt-1">
+            Only <span className="cx-num">{r1.length}</span> of 71 local districts picked a winner outright. The other <span className="cx-num">{runoffs.length}</span> go to a runoff between the top two. You’re in <span className="cx-num">{myRunoffs.length}</span> of them.
           </p>
-          {r1.length > 0 && (
-            <div className="flex flex-wrap gap-1.5">
-              {r1.map((e) => <span key={e.cid} className="text-xs rounded-md bg-slate-800 px-2 py-1 inline-flex items-center gap-1 text-slate-200"><Swatch p={e.winner} size={8} />{e.name} {e.r1[0].s.toFixed(0)}%</span>)}
-            </div>
-          )}
-          <Btn className="h-14 text-lg" onClick={() => setStage('runoff')}>Run the runoffs <ArrowRight size={20} /></Btn>
-        </div>
+          <Btn className="h-14 w-full text-lg mt-3" onClick={() => setStage('runoff')}>Run the runoffs <ArrowRight size={20} /></Btn>
+        </Card>
       )}
       {stage === 'runoff' && (
-        <div className="mt-3 rounded-2xl bg-slate-900 border border-slate-800 p-4">
-          <div className="flex justify-between items-center mb-2"><Kicker>Second round</Kicker><span className="text-xs text-slate-400" style={F_MONO}>{ro}/{runoffs.length}</span></div>
-          <ul className="flex flex-col gap-1.5">
-            {recent.map((e) => <RunoffRow key={e.cid} e={e} me={me} />)}
-          </ul>
-        </div>
+        <Card className="mt-4 p-4">
+          <CardTitle right={<span className="cx-num">{ro}/{runoffs.length}</span>}>Runoffs</CardTitle>
+          <ul className="flex flex-col gap-2">{recent.map((e) => <RunoffRow key={e.cid} e={e} me={me} />)}</ul>
+        </Card>
       )}
       {stage === 'final' && (
-        <div className="mt-3 flex flex-col gap-3 sbl-fade">
-          <div className="rounded-2xl bg-slate-900 border border-amber-400/50 p-4">
-            <Kicker>Result</Kicker>
-            <h3 style={F_DISPLAY} className="text-3xl font-extrabold leading-none mt-1 text-slate-50">
-              {E.seats[me] >= MAJORITY ? `${P.short} wins an outright majority` : largest === me ? `${P.short} is the largest party` : `${PARTIES[largest].short} is the largest party`}
+        <div className="mt-4 flex flex-col gap-4 sbl-fade">
+          <Card className="p-4 cx-cream">
+            <h3 className="cx-title text-3xl leading-tight">
+              {E.seats[me] >= MAJORITY ? `${P.short} wins a majority!` : largest === me ? `${P.short} is the biggest party!` : `${PARTIES[largest].short} is the biggest party`}
             </h3>
-            <p className="text-sm text-slate-300 mt-2">
-              You took <span style={F_MONO} className="text-slate-50">{E.natShares[me].toFixed(1)}%</span> of the list vote{E.natShares[me] < 5 ? ', below the 5% threshold' : ''} and <span style={F_MONO} className="text-slate-50">{E.seats[me]}</span> seats ({E.pr[me] || 0} list + {E.smdSeats[me]} single-mandate).
+            <p className="font-semibold mt-2">
+              You got <span className="cx-num">{E.natShares[me].toFixed(1)}%</span> of the national vote{E.natShares[me] < 5 ? ' (under 5%, so no list seats)' : ''} and <span className="cx-num">{E.seats[me]}</span> seats.
+              {E.seats[me] < MAJORITY ? ' Nobody has 71 on their own, so it’s time to build a team.' : ''}
             </p>
             <div className="mt-3"><SeatTable seats={E.seats} pr={E.pr} smd={E.smdSeats} highlight={me} /></div>
-          </div>
-          <div className="rounded-2xl bg-slate-900 border border-slate-800 p-3">
-            <button type="button" onClick={() => setShowAll(!showAll)} className="w-full flex items-center justify-between h-10 text-left">
-              <span className="font-semibold text-sm text-slate-100">All 71 constituencies</span>
-              <ChevronDown size={18} className={`text-slate-400 transition ${showAll ? 'rotate-180' : ''}`} />
-            </button>
-            {showAll && (
-              <ul className="flex flex-col gap-1.5 mt-2">
-                {E.smd.map((e) => (e.round === 2 ? <RunoffRow key={e.cid} e={e} me={me} withRegion /> : (
-                  <li key={e.cid} className="flex items-center gap-2 rounded-lg bg-slate-950 border border-slate-800 px-3 py-2 text-sm">
-                    <Swatch p={e.winner} size={12} /><span className="flex-1 min-w-0 truncate text-slate-100">{e.name}</span>
-                    <span className="text-xs text-slate-400" style={F_MONO}>{PARTIES[e.winner].short} {e.r1[0].s.toFixed(0)}% R1</span>
-                  </li>
-                )))}
-              </ul>
-            )}
-          </div>
-          <Btn className="h-14 text-lg" onClick={() => onFinish(E.seats[me] >= MAJORITY ? 'majority' : 'coalition')}>
-            {E.seats[me] >= MAJORITY ? <>Form a single-party government <Crown size={20} /></> : <>Open coalition talks <Handshake size={20} /></>}
+          </Card>
+          <Btn kind="pale" className="h-12 w-full" onClick={() => setShowAll(!showAll)}>{showAll ? 'Hide' : 'Show'} all 71 local districts</Btn>
+          {showAll && (
+            <ul className="flex flex-col gap-2">
+              {E.smd.map((e) => (e.round === 2 ? <RunoffRow key={e.cid} e={e} me={me} /> : (
+                <li key={e.cid} className="rounded-2xl px-3 py-2 flex items-center gap-2 bg-white" style={{ border: `2.5px solid ${INK}` }}>
+                  <PartyDot p={e.winner} size={12} /><span className="font-black flex-1 min-w-0 truncate">{e.name}</span>
+                  <span className="text-xs font-extrabold t-muted">{PARTIES[e.winner].short} won outright</span>
+                </li>
+              )))}
+            </ul>
+          )}
+          <Btn className="h-16 text-lg w-full" onClick={() => onFinish(E.seats[me] >= MAJORITY ? 'majority' : 'coalition')}>
+            {E.seats[me] >= MAJORITY ? <>Form your government <Crown size={22} /></> : <>Start building a team <Handshake size={22} /></>}
           </Btn>
         </div>
       )}
     </div>
   );
 }
-function RunoffRow({ e, me, withRegion }) {
-  const { a, b, sa, sb } = e.runoff;
-  const mine = a === me || b === me;
-  return (
-    <li className={`rounded-lg border px-3 py-2 text-sm sbl-fade ${mine ? 'bg-slate-800 border-amber-400/40' : 'bg-slate-950 border-slate-800'}`}>
-      <div className="flex items-center justify-between gap-2">
-        <span className="font-semibold text-slate-100 truncate">{e.name}{withRegion ? <span className="text-xs text-slate-500 font-normal"> · R2</span> : ''}</span>
-        <span className="text-xs inline-flex items-center gap-1 shrink-0 text-slate-200" style={F_MONO}><Swatch p={e.winner} size={9} />{PARTIES[e.winner].short} wins</span>
-      </div>
-      <div className="flex h-2 rounded-full overflow-hidden mt-1.5">
-        <div style={{ width: `${sa}%`, background: PARTIES[a].color }} />
-        <div style={{ width: `${sb}%`, background: PARTIES[b].color }} />
-      </div>
-      <div className="flex justify-between text-xs text-slate-400 mt-1" style={F_MONO}>
-        <span>{PARTIES[a].short} {sa.toFixed(1)}%</span><span>{PARTIES[b].short} {sb.toFixed(1)}%</span>
-      </div>
-    </li>
-  );
-}
 
 /* ============================================================
-   Coalition talks
+   Coalition builder
    ============================================================ */
 function CoalitionTalks({ g, act }) {
   const E = g.election;
@@ -3149,19 +3410,21 @@ function CoalitionTalks({ g, act }) {
   const largest = ranked[0];
   const junior = largest !== me ? aiCoalition(g, largest, me) : null;
   const juniorOk = !!junior && junior.ok && compat(g, largest, me) >= 45;
-  const sortedCands = cands.slice().sort((a, b) => (C.partners.includes(b) ? 1 : 0) - (C.partners.includes(a) ? 1 : 0) || will[b] - will[a]);
+  const tip = useMemo(() => suggestTeam(g), [g.election, g.player]);
+  const sorted = cands.slice().sort((a, b) => (C.partners.includes(b) ? 1 : 0) - (C.partners.includes(a) ? 1 : 0) || will[b] - will[a]);
   const toggle = (p) => act((gg) => {
     const c = gg.coal;
     c.partners = c.partners.includes(p) ? c.partners.filter((x) => x !== p) : [...c.partners, p];
     return null;
   });
+  const useTip = () => act((gg) => { gg.coal.partners = [...tip.partners]; return { ok: true, tone: 'good', msg: 'Invited Rūta’s suggested team.' }; });
   const accept = (p) => act((gg) => { gg.coal.accepted[p] = !gg.coal.accepted[p]; return null; });
   const sweeten = (p) => act((gg) => {
-    if (gg.pc < 2) return { ok: false, msg: 'Not enough political capital.' };
-    if ((gg.coal.sweet[p] || 0) >= 3) return { ok: false, msg: 'They can’t be sweetened any further.' };
+    if (gg.pc < 2) return { ok: false, msg: 'Not enough favours.' };
+    if ((gg.coal.sweet[p] || 0) >= 3) return { ok: false, msg: 'They can’t be won over any further.' };
     gg.pc -= 2;
     gg.coal.sweet[p] = (gg.coal.sweet[p] || 0) + 1;
-    return { ok: true, tone: 'good', msg: `${PARTIES[p].short} warms to the deal: willingness +7` };
+    return { ok: true, tone: 'good', msg: `${PARTIES[p].short} likes you more now` };
   });
   const sign = () => act((gg) => {
     gg.result = { kind: 'pm', partners: [...gg.coal.partners], stability: stability(gg, gg.coal), seats: total, cabinet: cabinet(gg, gg.coal.partners) };
@@ -3180,88 +3443,93 @@ function CoalitionTalks({ g, act }) {
     gg.phase = 'result';
     return null;
   });
-  const stabTone = stab >= 65 ? '#34D399' : stab >= 45 ? GOLD : '#F87171';
+  const harmony = stab >= 65 ? ['Happy team', '#15803D'] : stab >= 45 ? ['Some grumbling', '#B45309'] : ['Lots of fighting', '#DC2626'];
+  const tipIsCurrent = tip && tip.partners.length === C.partners.length && tip.partners.every((p) => C.partners.includes(p));
   return (
-    <div className="max-w-lg mx-auto min-h-screen" style={{ ...GUTTER, paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 170px)' }}>
+    <div className="max-w-lg mx-auto min-h-screen" style={{ ...GUTTER, paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 190px)' }}>
       <div className="pt-6">
-        <Kicker>Seimas · coalition talks</Kicker>
-        <h2 style={F_DISPLAY} className="text-4xl font-extrabold leading-none text-slate-50">Build a majority</h2>
-        <p className="text-sm text-slate-400 mt-1">
-          {largest === me ? 'As leader of the largest party, the President asks you to form a government.' : `${PARTIES[largest].short} is the largest party, but if you can assemble 71 seats the President will back you.`}
-        </p>
+        <h2 className="cx-title text-4xl leading-none">Build your team</h2>
+        <p className="font-semibold t-muted mt-1">Invite parties until your team has 71 seats. Everyone you invite has to be happy to join.</p>
       </div>
-      <div className="mt-4 rounded-2xl bg-slate-900 border border-slate-800 p-4 flex flex-col gap-3">
+      {tip && !tipIsCurrent && (
+        <Coach
+          className="mt-4"
+          title="My suggestion"
+          actions={<Btn className="h-11 px-4 text-sm" onClick={useTip}><Users size={17} />Invite this team</Btn>}
+        >
+          Team up with {tip.partners.map((p) => PARTIES[p].short).join(' + ')} for {tip.total} seats. {tip.minW >= 50 ? 'They should say yes.' : 'Some will need convincing: agree to their wishes or spend favours.'}
+        </Coach>
+      )}
+      {!tip && <Coach className="mt-4" title="This will be tough">No team that includes you reaches 71 easily. You could join the winners as a junior partner, or go into opposition.</Coach>}
+      <Card className="mt-4 p-4">
         <div className="flex items-end justify-between">
-          <div><Kicker>Coalition seats</Kicker><div className="text-4xl font-bold text-slate-50" style={F_MONO}>{total}<span className="text-lg text-slate-500">/141</span></div></div>
-          <div className={`text-sm font-semibold ${total >= MAJORITY ? 'text-emerald-300' : 'text-amber-300'}`}>{total >= MAJORITY ? `Majority +${total - MAJORITY + 1}` : `${MAJORITY - total} short`}</div>
-        </div>
-        <div className="relative h-5 rounded-md bg-slate-800 overflow-hidden flex">
-          {members.map((p) => <div key={p} style={{ width: `${(S[p] / 141) * 100}%`, background: PARTIES[p].color }} />)}
-          <div className="absolute top-0 bottom-0 w-0.5 bg-slate-50" style={{ left: `${(MAJORITY / 141) * 100}%` }} />
-        </div>
-        <div>
-          <div className="flex items-center justify-between text-sm"><span className="text-slate-300">Projected stability</span><span style={{ ...F_MONO, color: stabTone }} className="font-bold">{stab}</span></div>
-          <div className="mt-1.5"><Meter value={stab} color={stabTone} /></div>
-        </div>
-        <div>
-          <Kicker className="mb-1.5">Cabinet · 14 ministries</Kicker>
-          <div className="flex flex-wrap gap-1.5">
-            {members.filter((p) => p !== 'KITI').flatMap((p) => cab.alloc[p].map((m) => (
-              <span key={m} className="text-xs rounded-md px-2 py-1 text-slate-100" style={{ background: `${PARTIES[p].color}30`, border: `1px solid ${PARTIES[p].color}80` }}>{m}</span>
-            )))}
+          <div>
+            <div className="text-sm font-extrabold t-muted">Your team</div>
+            <div className="cx-num text-4xl leading-none">{total}<span className="text-lg t-muted"> / 71 needed</span></div>
           </div>
-          {cab.mine < 5 && C.partners.length > 0 && <p className="text-xs text-amber-200 mt-1.5">You keep only {cab.mine} ministries. A weak PM party hurts stability.</p>}
+          <span className="cx-chip px-3 py-1 text-sm" style={{ background: total >= MAJORITY ? '#BBF7D0' : '#FDE68A' }}>{total >= MAJORITY ? 'Majority!' : `${MAJORITY - total} more`}</span>
         </div>
-      </div>
-      <div className="mt-4 flex flex-col gap-2.5">
-        <Kicker>Potential partners</Kicker>
-        {sortedCands.map((p) => {
+        <div className="relative flex mt-3 overflow-hidden rounded-full" style={{ height: 22, border: `3px solid ${INK}`, background: '#E3EDF5' }}>
+          {members.map((p) => <div key={p} style={{ width: `${(S[p] / 141) * 100}%`, background: PARTIES[p].color, borderRight: `2px solid ${INK}` }} />)}
+          <div className="absolute top-0 bottom-0" style={{ left: `${(MAJORITY / 141) * 100}%`, width: 3, background: INK }} />
+        </div>
+        {C.partners.length > 0 && (
+          <div className="mt-3 flex items-center gap-2 font-extrabold">
+            <Mood w={stab} size={24} /><span style={{ color: harmony[1] }}>{harmony[0]}</span>
+            <span className="t-muted text-sm ml-auto">Team harmony {stab}/100</span>
+          </div>
+        )}
+        {C.partners.length > 0 && (
+          <div className="mt-3">
+            <div className="text-xs font-extrabold t-muted mb-1.5">Who runs which ministry (14)</div>
+            <div className="flex flex-wrap gap-1.5">
+              {members.filter((p) => p !== 'KITI').flatMap((p) => cab.alloc[p].map((m) => (
+                <span key={m} className="text-xs font-bold rounded-full px-2 py-0.5 inline-flex items-center gap-1" style={{ border: `2px solid ${INK}`, background: '#fff' }}><PartyDot p={p} size={9} />{m}</span>
+              )))}
+            </div>
+          </div>
+        )}
+      </Card>
+      <div className="mt-4 flex flex-col gap-3">
+        <h3 className="cx-title text-xl">Parties in the new Seimas</h3>
+        {sorted.map((p) => {
           const P = PARTIES[p];
           const inC = C.partners.includes(p);
           const w = will[p];
-          const status = w >= 65 ? ['Eager', 'text-emerald-300'] : w >= 50 ? ['Open', 'text-emerald-300'] : w >= 35 ? ['Reluctant', 'text-amber-300'] : ['Refuses', 'text-rose-300'];
+          const mood = w >= 65 ? 'Keen to join' : w >= 50 ? 'Willing' : w >= 35 ? 'Not sure' : 'Says no';
           const clashes = C.partners.filter((q) => q !== p && compat(g, p, q) < 25);
           return (
-            <div key={p} className={`rounded-2xl border p-3 ${inC ? 'border-amber-400/70 bg-slate-900' : 'border-slate-800 bg-slate-900'}`}>
+            <div key={p} className="cx-card p-3" style={{ background: inC ? '#FFF6D8' : '#fff', boxShadow: `0 4px 0 ${INK}` }}>
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-xl grid place-items-center font-bold text-lg text-slate-50 shrink-0" style={{ background: `${P.color}30`, border: `1px solid ${P.color}`, ...F_MONO }}>{S[p]}</div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-semibold text-slate-50 truncate">{P.short} <span className="text-slate-400 font-normal text-sm">{p === 'KITI' ? 'Independents' : P.name}</span></div>
-                  <div className="text-xs text-slate-400">Fit {compat(g, me, p)}% · <span className={status[1]}>{status[0]}</span></div>
+                <span className="grid place-items-center rounded-full shrink-0 cx-num text-lg text-white" style={{ width: 50, height: 50, background: P.color, border: `3px solid ${INK}`, textShadow: `0 0 3px ${INK}` }}>{S[p]}</span>
+                <div className="min-w-0 flex-1">
+                  <div className="cx-title text-lg leading-tight truncate">{p === 'KITI' ? 'Independents' : P.short}</div>
+                  <div className="inline-flex items-center gap-1.5 text-sm font-extrabold"><Mood w={w} size={18} />{mood}</div>
                 </div>
-                <Btn kind={inC ? 'outline' : 'ghost'} onClick={() => toggle(p)} className="h-11 px-3 text-sm shrink-0">{inC ? 'Remove' : 'Invite'}</Btn>
+                <Btn kind={inC ? 'white' : 'sun'} className="h-11 px-4 text-sm shrink-0" onClick={() => toggle(p)}>{inC ? 'Remove' : 'Invite'}</Btn>
               </div>
-              <div className="mt-2.5">
-                <div className="flex justify-between text-xs text-slate-400 mb-1"><span>Willingness</span><span style={F_MONO}>{w}/100 · needs 50</span></div>
-                <Meter value={w} color={w >= 50 ? '#34D399' : w >= 35 ? GOLD : '#F87171'} mark={50} />
-              </div>
-              <div className="mt-2.5 text-sm text-slate-300"><span className="text-slate-500">Demand: </span>{DEMANDS[p].text}</div>
-              {clashes.length > 0 && (
-                <div className="mt-2 text-xs text-rose-300 flex items-center gap-1.5"><AlertTriangle size={14} />Won’t sit comfortably with {clashes.map((q) => PARTIES[q].short).join(', ')}</div>
-              )}
+              <div className="mt-2.5"><Bar value={w} color={w >= 50 ? '#4ADE80' : w >= 35 ? SUN : '#F87171'} mark={50} h={14} /></div>
+              <div className="text-xs font-extrabold t-muted mt-1">Happiness {w}/100 · needs 50 to join</div>
+              <div className="mt-2 text-sm font-semibold"><span className="font-black">They want: </span>{DEMANDS[p].text}</div>
+              {clashes.length > 0 && <div className="mt-1.5 text-sm font-extrabold inline-flex items-center gap-1.5" style={{ color: '#DC2626' }}><AlertTriangle size={15} />Doesn’t get along with {clashes.map((q) => PARTIES[q].short).join(', ')}</div>}
               <div className="flex gap-2 mt-2.5">
-                <Btn kind={C.accepted[p] ? 'primary' : 'ghost'} onClick={() => accept(p)} className="flex-1 h-11 text-sm">
-                  {C.accepted[p] ? <><Check size={16} />Demand accepted</> : 'Accept demand · +15'}
-                </Btn>
-                <Btn kind="ghost" onClick={() => sweeten(p)} disabled={g.pc < 2 || (C.sweet[p] || 0) >= 3} className="h-11 px-3 text-sm shrink-0">
-                  <Sparkles size={16} />2 PC{C.sweet[p] ? ` ×${C.sweet[p]}` : ''}
-                </Btn>
+                <Btn kind={C.accepted[p] ? 'leaf' : 'white'} className="flex-1 h-11 text-sm" onClick={() => accept(p)}>{C.accepted[p] ? <><Check size={16} />Agreed</> : 'Agree to it (+15)'}</Btn>
+                <Btn kind="white" className="h-11 px-3 text-sm shrink-0" disabled={g.pc < 2 || (C.sweet[p] || 0) >= 3} onClick={() => sweeten(p)}><Handshake size={16} />2 favours</Btn>
               </div>
-              {inC && p !== 'KITI' && <div className="text-xs text-slate-400 mt-2">Gets {cab.counts[p]} ministr{cab.counts[p] === 1 ? 'y' : 'ies'}: {cab.alloc[p].join(', ')}</div>}
             </div>
           );
         })}
       </div>
-      <div className="fixed bottom-0 inset-x-0 z-20 bg-slate-950 border-t border-slate-800" style={{ paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)' }}>
+      <div className="fixed bottom-0 inset-x-0 z-20" style={{ background: '#fff', borderTop: `3px solid ${INK}`, paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)' }}>
         <div className="max-w-lg mx-auto pt-3 flex flex-col gap-2" style={GUTTER}>
-          <div className="flex items-center justify-between text-xs text-slate-400" style={F_MONO}>
-            <span>PC available: <span className="text-slate-100">{g.pc}</span></span>
-            <span>{unwilling.length ? `Not yet willing: ${unwilling.map((p) => PARTIES[p].short).join(', ')}` : total >= MAJORITY ? 'Ready to sign' : 'Need 71 seats'}</span>
+          <div className="flex items-center justify-between text-sm font-extrabold">
+            <span className="inline-flex items-center gap-1"><Handshake size={15} />{g.pc} favours</span>
+            <span className="t-muted">{unwilling.length ? `Not happy yet: ${unwilling.map((p) => PARTIES[p].short).join(', ')}` : total >= MAJORITY ? 'Ready to sign!' : 'Need 71 seats'}</span>
           </div>
-          <Btn className="h-14 text-lg w-full" disabled={!canSign} onClick={sign}><Handshake size={20} />Sign coalition agreement</Btn>
+          <Btn className="h-14 text-lg w-full" disabled={!canSign} onClick={sign}><Crown size={20} />Form the government</Btn>
           <div className="flex gap-2">
-            {juniorOk && <Btn kind="ghost" className="h-11 flex-1 text-sm" onClick={goJunior}>Join {PARTIES[largest].short} as junior partner</Btn>}
-            <Btn kind="outline" className="h-11 flex-1 text-sm" onClick={goOpp}>Go into opposition</Btn>
+            {juniorOk && <Btn kind="white" className="h-11 flex-1 text-sm" onClick={goJunior}>Join {PARTIES[largest].short} instead</Btn>}
+            <Btn kind="pale" className="h-11 flex-1 text-sm" onClick={goOpp}>Go into opposition</Btn>
           </div>
         </div>
       </div>
@@ -3276,16 +3544,16 @@ function gradeOf(g) {
   const R = g.result;
   const E = g.election;
   const seats = E.seats[g.player];
-  if (R.kind === 'majority') return ['S', 'Single-party majority', 'You govern alone, a feat no party has managed since 1992.'];
+  if (R.kind === 'majority') return ['S', 'You govern alone!', 'A single-party majority, something no party has managed since 1992.'];
   if (R.kind === 'pm') {
-    if (R.stability >= 65) return ['A', 'Prime Minister · stable majority', 'Your coalition looks built to last a full four-year term.'];
-    if (R.stability >= 45) return ['B', 'Prime Minister · workable coalition', 'You hold the keys to the government at Gedimino pr. 11, but expect late-night crisis meetings.'];
-    return ['C', 'Prime Minister · on borrowed time', 'You are Prime Minister, but analysts give the coalition a year before it cracks.'];
+    if (R.stability >= 65) return ['A', 'Prime Minister!', 'Your team gets along and looks set to last a full four years.'];
+    if (R.stability >= 45) return ['B', 'Prime Minister!', 'You run the government at Gedimino pr. 11, but expect some late-night arguments.'];
+    return ['C', 'Prime Minister (for now)', 'You got the top job, but your team is already squabbling.'];
   }
-  if (R.kind === 'junior') return [PARTIES[g.player].difficulty === 'Standard' ? 'C' : 'B', 'Junior coalition partner', `You enter government with ${R.ministries} ministr${R.ministries === 1 ? 'y' : 'ies'} under a ${PARTIES[R.leader].short}-led cabinet.`];
-  if (E.natShares[g.player] >= 5) return ['D', 'Opposition', 'You cleared the threshold and hold a sizeable bench, but someone else governs.'];
-  if (seats > 0) return ['E', 'Survived on single-mandate seats', 'Below 5% nationally, but your local candidates kept you in the chamber.'];
-  return ['F', 'Wiped out', 'No list seats, no constituencies. Time for a new party leader.'];
+  if (R.kind === 'junior') return [PARTIES[g.player].difficulty === 'Easy' ? 'C' : 'B', 'Junior partner', `You join a ${PARTIES[R.leader].short}-led government and run ${R.ministries} ministr${R.ministries === 1 ? 'y' : 'ies'}.`];
+  if (E.natShares[g.player] >= 5) return ['D', 'Opposition', 'You made it into the Seimas, but someone else is in charge.'];
+  if (seats > 0) return ['E', 'Hanging on', 'Under 5% nationally, but your local candidates kept you in the Seimas.'];
+  return ['F', 'Wiped out', 'No seats at all. Time for a new party leader…'];
 }
 function ResultScreen({ g, onRestart }) {
   const E = g.election;
@@ -3295,73 +3563,80 @@ function ResultScreen({ g, onRestart }) {
   const [grade, title, blurb] = gradeOf(g);
   const gov = R.kind === 'majority' ? [me] : R.kind === 'pm' ? [me, ...R.partners] : R.members || [];
   const deb = g.stats.debates;
-  const tone = { S: '#34D399', A: '#34D399', B: GOLD, C: GOLD, D: '#94A3B8', E: '#F87171', F: '#F87171' }[grade];
+  const medal = { S: '#FDB913', A: '#FDB913', B: '#CBD5E1', C: '#E8A46B', D: '#BFDBFE', E: '#FECACA', F: '#FECACA' }[grade];
   return (
     <div className="max-w-lg mx-auto min-h-screen" style={{ ...GUTTER, paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 32px)' }}>
-      <div className="pt-8 flex items-start gap-4">
-        <div className="sbl-pop rounded-2xl grid place-items-center shrink-0" style={{ width: 84, height: 84, background: `${tone}22`, border: `2px solid ${tone}` }}>
-          <span style={{ ...F_DISPLAY, fontSize: 52, fontWeight: 900, color: tone }}>{grade}</span>
+      <div className="pt-8 flex flex-col items-center text-center">
+        <div className="relative sbl-pop">
+          <div className="grid place-items-center rounded-full" style={{ width: 124, height: 124, background: medal, border: `4px solid ${INK}`, boxShadow: `0 6px 0 ${INK}` }}>
+            <span className="cx-title" style={{ fontSize: 64, lineHeight: 1 }}>{grade}</span>
+          </div>
+          {['S', 'A', 'B'].includes(grade) && <Medal size={34} className="absolute -bottom-2 -right-2" style={{ fill: '#fff' }} strokeWidth={2.4} />}
         </div>
-        <div className="min-w-0">
-          <Kicker>{P.short} · final verdict</Kicker>
-          <h2 style={{ ...F_DISPLAY, textWrap: 'balance' }} className="text-3xl font-extrabold leading-none text-slate-50 mt-1">{title}</h2>
-        </div>
+        <div className="text-sm font-extrabold t-muted mt-4">{P.short} · final result</div>
+        <h2 className="cx-title text-4xl leading-none mt-1">{title}</h2>
+        <p className="font-semibold mt-3 leading-relaxed">{blurb}</p>
       </div>
-      <p className="text-slate-300 mt-4 leading-relaxed">{blurb}</p>
-      <div className="mt-4 rounded-2xl bg-slate-900 border border-slate-800 p-3">
-        <Hemicycle seats={E.seats} highlight={me} dim={gov.length ? gov : null} label="government seats" showCount={false} />
+      <Card className="mt-5 p-3">
+        <Hemicycle seats={E.seats} highlight={me} dim={gov.length ? gov : null} showCount={false} />
         <div className="flex flex-wrap items-center gap-1.5 mt-2">
-          <span className="text-xs text-slate-400">Government:</span>
-          {gov.map((p) => <span key={p} className="text-xs rounded-md bg-slate-800 px-2 py-1 inline-flex items-center gap-1 text-slate-100"><Swatch p={p} size={8} />{PARTIES[p].short} {E.seats[p]}</span>)}
-          <span className="text-xs text-slate-300 ml-auto" style={F_MONO}>{sum(gov.map((p) => E.seats[p]))} seats</span>
+          <span className="text-sm font-extrabold">Government:</span>
+          {gov.map((p) => <PartyChip key={p} p={p}> {E.seats[p]}</PartyChip>)}
+          <span className="cx-num ml-auto">{sum(gov.map((p) => E.seats[p]))} seats</span>
         </div>
-        {R.kind === 'pm' && <div className="text-xs text-slate-400 mt-2">Stability {R.stability}/100 · you hold {R.cabinet.mine} of 14 ministries</div>}
-        {R.kind === 'opposition' && !R.ok && <div className="text-xs text-amber-200 mt-2">No stable majority exists: {PARTIES[R.leader].short} attempts a minority government.</div>}
-      </div>
-      <div className="grid grid-cols-2 gap-2 mt-3">
+        {R.kind === 'opposition' && !R.ok && <div className="text-sm font-bold mt-2" style={{ color: '#B45309' }}>Nobody could build a majority: {PARTIES[R.leader].short} tries to rule as a minority.</div>}
+      </Card>
+      <div className="grid grid-cols-2 gap-3 mt-4">
         {[
-          ['List vote', `${E.natShares[me].toFixed(1)}%`],
-          ['Seats', `${E.seats[me]} (${E.pr[me] || 0}+${E.smdSeats[me]})`],
-          ['Debates won', `${deb.filter((d) => d.won).length}/${deb.length}`],
-          ['Campaign actions', `${g.stats.actions}`],
-          ['Money spent', fmtEur(g.stats.spent)],
-          ['Turnout', `${(E.turnout * 100).toFixed(1)}%`],
+          ['National vote', `${E.natShares[me].toFixed(1)}%`],
+          ['Seats won', `${E.seats[me]}`],
+          ['Debates won', `${deb.filter((d) => d.won).length} of ${deb.length}`],
+          ['Moves made', `${g.stats.actions}`],
         ].map(([l, v]) => (
-          <div key={l} className="rounded-xl bg-slate-900 border border-slate-800 p-3">
-            <div className="text-xs text-slate-400">{l}</div>
-            <div className="text-lg font-bold text-slate-50" style={F_MONO}>{v}</div>
+          <div key={l} className="cx-card p-3" style={{ boxShadow: `0 4px 0 ${INK}` }}>
+            <div className="text-xs font-extrabold t-muted">{l}</div>
+            <div className="cx-num text-2xl">{v}</div>
           </div>
         ))}
       </div>
-      <div className="mt-3"><Section title="Final Seimas" kicker="141 seats"><SeatTable seats={E.seats} pr={E.pr} smd={E.smdSeats} highlight={me} /></Section></div>
-      <Btn className="h-14 text-lg w-full mt-5" onClick={onRestart}><RotateCcw size={20} />New campaign</Btn>
+      <Card className="mt-4 p-4"><CardTitle>Final Seimas</CardTitle><SeatTable seats={E.seats} pr={E.pr} smd={E.smdSeats} highlight={me} /></Card>
+      <Btn className="h-16 text-xl w-full mt-5" onClick={onRestart}><RotateCcw size={22} />Play again</Btn>
     </div>
   );
 }
 
 /* ============================================================
-   Toast & queue
+   Toast, queue & root
    ============================================================ */
 function Toast({ t }) {
-  const bg = t.ok === false || t.tone === 'bad' ? 'bg-rose-600 text-white' : t.tone === 'warn' ? 'bg-amber-300 text-slate-950' : 'bg-slate-100 text-slate-950';
+  const bad = t.ok === false || t.tone === 'bad';
+  const bg = bad ? '#E5484D' : t.tone === 'warn' ? '#FDE68A' : '#fff';
   return (
-    <div className="fixed inset-x-0 z-50 pointer-events-none flex justify-center" style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 100px)', ...GUTTER }} role="status" aria-live="polite">
-      <div key={t.id} className={`sbl-toast max-w-md w-full rounded-xl px-4 py-3 text-sm font-semibold shadow-2xl ${bg}`}>{t.msg}</div>
+    <div className="fixed inset-x-0 z-50 pointer-events-none flex justify-center" style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 104px)', ...GUTTER }} role="status" aria-live="polite">
+      <div key={t.id} className="sbl-toast max-w-md w-full rounded-2xl px-4 py-3 font-extrabold" style={{ background: bg, color: bad ? '#fff' : INK, border: `3px solid ${INK}`, boxShadow: `0 5px 0 ${INK}` }}>{t.msg}</div>
     </div>
   );
 }
 function QueueModal({ g, item, act, nat, proj }) {
-  const shift = () => act((gg) => { gg.queue.shift(); return null; });
-  if (item.type === 'brief') return <BriefModal g={g} nat={nat} proj={proj} onClose={shift} />;
+  const shift = () => act((gg) => {
+    if (gg.queue[0] && gg.queue[0].type === 'report' && gg.tut === 5) gg.tut = 99;
+    gg.queue.shift();
+    return null;
+  });
+  if (item.type === 'brief') {
+    return (
+      <WelcomeModal
+        g={g} nat={nat} proj={proj}
+        onStart={() => act((gg) => { gg.tut = 1; gg.queue.shift(); return null; })}
+        onSkip={() => act((gg) => { gg.tut = 99; gg.queue.shift(); return null; })}
+      />
+    );
+  }
   if (item.type === 'report') return <ReportModal g={g} item={item} onClose={shift} />;
   if (item.type === 'event') return <EventModal g={g} item={item} onChoose={(i) => act((gg) => { resolveEvent(gg, i); return null; })} onClose={shift} />;
   if (item.type === 'debate') return <DebateModal key={`d${item.id}`} g={g} item={item} onFinish={(picks) => act((gg) => { gg.queue[0].done = resolveDebate(gg, item.id, picks); return null; })} onClose={shift} />;
   return null;
 }
-
-/* ============================================================
-   Root component
-   ============================================================ */
 export default function SeimasGame({ hotData } = {}) {
   const [game, setGame] = useState(() => (hotData && hotData.game) || null);
   const [screen, setScreen] = useState(() => (hotData && hotData.game ? 'game' : 'title'));
@@ -3376,7 +3651,7 @@ export default function SeimasGame({ hotData } = {}) {
   const toastTimer = useRef(null);
 
   useEffect(() => {
-    if (!document.querySelector('link[href*="fonts.googleapis.com/css2?family=Archivo"]')) {
+    if (!document.querySelector('link[href*="family=Fredoka"]')) {
       const l = document.createElement('link');
       l.rel = 'stylesheet';
       l.href = FONT_HREF;
@@ -3394,13 +3669,17 @@ export default function SeimasGame({ hotData } = {}) {
     if (!res || !res.msg) return;
     setToast({ ...res, id: Date.now() });
     clearTimeout(toastTimer.current);
-    toastTimer.current = setTimeout(() => setToast(null), 2800);
+    toastTimer.current = setTimeout(() => setToast(null), 2600);
   };
   const act = (fn) => {
     const cur = gameRef.current;
     if (!cur) return null;
     const g = clone(cur);
     const res = fn(g);
+    if (g.phase === 'campaign') {
+      if (g.tut === 2 && g.stats.actions > cur.stats.actions) g.tut = 3;
+      if (g.tut === 3 && g.ap === 0) g.tut = 4;
+    }
     gameRef.current = g;
     setGame(g);
     flash(res);
@@ -3412,14 +3691,29 @@ export default function SeimasGame({ hotData } = {}) {
       shares: Object.fromEntries(REGIONS.map((r) => [r.id, regionShares(game, r)])),
       nat: nationalShares(game),
       proj: simulateElection(game, false),
+      recs: recommendMoves(game, 3),
     };
   }, [game]);
   const goTab = (t) => { setTab(t); try { window.scrollTo({ top: 0 }); } catch (e) { /* ignore */ } };
-  const doEnd = () => {
+  const openRegion = (rid) => {
+    setSel(rid);
+    if (gameRef.current && gameRef.current.tut === 1) act((g) => { g.tut = 2; return null; });
+  };
+  const closeRegion = () => {
+    setSel(null);
+    const g0 = gameRef.current;
+    if (g0 && g0.tut === 2) act((g) => { g.tut = 1; return null; });
+  };
+  const skipTips = () => act((g) => { g.tut = 99; return null; });
+  const doEnd = (auto) => {
     setConfirmEnd(false);
     setSel(null);
-    act((g) => { endWeek(g); return null; });
-    goTab(tab);
+    act((g) => {
+      if (auto) autoPlan(g);
+      endWeek(g);
+      return null;
+    });
+    goTab('map');
   };
   const restart = () => {
     writeSave(null);
@@ -3437,19 +3731,19 @@ export default function SeimasGame({ hotData } = {}) {
   } else if (screen === 'title' || !game) {
     body = <TitleScreen saved={saved} onNew={() => setScreen('select')} onContinue={() => { gameRef.current = saved; setGame(saved); setScreen('game'); }} />;
   } else if (game.phase === 'campaign' && derived) {
-    const { shares, nat, proj } = derived;
+    const { shares, nat, proj, recs } = derived;
     body = (
       <>
         <Header g={game} nat={nat} onHelp={() => setHelp(true)} />
-        <main className="max-w-lg mx-auto" style={{ ...GUTTER, paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 120px)' }}>
-          {tab === 'map' && <MapTab g={game} shares={shares} proj={proj} sel={sel} onSelect={setSel} />}
+        <main className="max-w-lg mx-auto" style={{ ...GUTTER, paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 128px)' }}>
+          {tab === 'map' && <MapTab g={game} shares={shares} proj={proj} sel={sel} onSelect={openRegion} act={act} recs={recs} skipTips={skipTips} />}
           {tab === 'polls' && <PollsTab g={game} nat={nat} proj={proj} />}
-          {tab === 'platform' && <PlatformTab g={game} act={act} />}
+          {tab === 'hq' && <HQTab g={game} act={act} />}
           {tab === 'news' && <NewsTab g={game} />}
         </main>
-        <BottomNav tab={tab} setTab={goTab} g={game} onEnd={() => (game.ap > 0 ? setConfirmEnd(true) : doEnd())} />
-        {sel && <RegionDrawer g={game} rid={sel} proj={proj} onClose={() => setSel(null)} onAction={(rid, type) => act((g) => doRegionAction(g, rid, type))} />}
-        {confirmEnd && <ConfirmEnd g={game} onCancel={() => setConfirmEnd(false)} onConfirm={doEnd} />}
+        <BottomNav tab={tab} setTab={goTab} g={game} glowEnd={game.tut === 4 || (game.ap === 0 && game.tut >= 5)} onEnd={() => (game.ap > 0 ? setConfirmEnd(true) : doEnd(false))} />
+        {sel && <RegionDrawer g={game} rid={sel} proj={proj} onClose={closeRegion} onAction={(rid, type) => { const first = gameRef.current.tut === 2; act((g) => doRegionAction(g, rid, type)); if (first) setSel(null); }} tutStep={game.tut} onSkipTips={skipTips} />}
+        {confirmEnd && <ConfirmEnd g={game} onCancel={() => setConfirmEnd(false)} onConfirm={() => doEnd(false)} onAuto={() => doEnd(true)} />}
         {help && <HelpSheet onClose={() => setHelp(false)} />}
         {game.queue.length > 0 && <QueueModal g={game} item={game.queue[0]} act={act} nat={nat} proj={proj} />}
       </>
@@ -3474,7 +3768,7 @@ export default function SeimasGame({ hotData } = {}) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 antialiased" style={{ fontFamily: F_BODY }}>
+    <div className="sbl min-h-screen antialiased">
       <style>{GLOBAL_CSS}</style>
       {body}
       {toast && <Toast t={toast} />}
