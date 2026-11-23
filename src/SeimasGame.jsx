@@ -14,7 +14,7 @@ import {
   Factory, Tractor, Plane, Anchor, GraduationCap, Globe, Coins, HandCoins, Handshake, Crown, Vote,
   RotateCcw, HelpCircle, AlertTriangle, Flame, Mic, Scale, Leaf, Info, ArrowRight, TramFront, TrainFront,
   Languages, PiggyBank, Trophy, Music, Mail, SkipForward, Check, Tv, Target, Briefcase, Play, Sparkles,
-  ShieldAlert, Siren, Flag, Star, Smile, Meh, Frown, Wand2, Lightbulb, Medal, Landmark, Heart, Sprout,
+  ShieldAlert, Siren, Flag, Star, Smile, Meh, Frown, Lightbulb, Medal, Landmark, Heart, Sprout,
   Wheat, LockOpen, Rocket, Dices, Search, Cloud, CloudRain, Sun, Gavel, Ticket, Eye,
 } from 'lucide-react';
 
@@ -1819,16 +1819,8 @@ function hemiLayout(total, rows) {
 const HEMI = hemiLayout(141, 8);
 
 /* ============================================================
-   Advisor (Rūta)
+   Race status helpers
    ============================================================ */
-const ACTION_WHY = {
-  rally: bi('Rallies fire up your fans and get them to the polls.', 'Mitingai uždega rėmėjus ir atveda juos prie balsadėžių.'),
-  digital: bi('Online ads reach young voters in the cities.', 'Reklama internete pasiekia jaunus miestų rinkėjus.'),
-  tv: bi('TV & radio reach older voters in the villages.', 'TV ir radijas pasiekia vyresnius kaimų rinkėjus.'),
-  door: bi('Door-knocking protects your voters from rival attacks.', 'Agitacija apsaugo jūsų rinkėjus nuo varžovų puolimų.'),
-  star: bi('A famous local candidate can tip a close district.', 'Žinomas vietos kandidatas gali nulemti lygią apygardą.'),
-  attack: bi('An attack ad can knock the leader down a peg.', 'Puolamoji reklama gali nuleisti lyderį žemyn.'),
-};
 function raceInfo(g, r, sharesIn) {
   const p = g.player;
   const s = sharesIn || regionShares(g, r);
@@ -1855,101 +1847,6 @@ function raceText(info) {
   return tt(`${R} is ahead by ${x}`, `${R} priekyje ${x}`);
 }
 function attackBackfire(g, r) { return BACKFIRE[g.player] + (g.player === 'TS' && r.urban < 0.6 ? 0.1 : 0) + 0.06 * g.attacksThisWeek; }
-const vrkRoom = (g) => VRK_LIMIT - g.stats.spent;
-function bestActionIn(g, r, info) {
-  const p = g.player;
-  let best = null;
-  for (const type of ['rally', 'digital', 'tv']) {
-    const cost = actionCost(type, r, p);
-    if (cost > g.money || cost > vrkRoom(g)) continue;
-    const gain = actionPreview(g, r.id, type);
-    const sc = gain / Math.pow(cost, 0.3);
-    if (!best || sc > best.sc) best = { type, gain, cost, sc };
-  }
-  const doorCost = actionCost('door', r, p);
-  if (Math.abs(info.gap) < 5 && g.gg[r.id][p] < 45 && doorCost <= g.money && doorCost <= vrkRoom(g)) {
-    const sc = (actionPreview(g, r.id, 'door') + 0.45) / Math.pow(doorCost, 0.3);
-    if (!best || sc > best.sc) best = { type: 'door', gain: actionPreview(g, r.id, 'door'), cost: doorCost, sc };
-  }
-  const st = starTarget(g, r.id);
-  if (st && st.gap < 0 && st.gap > -4 && g.money >= actionCost('star', r, p) + 60 && actionCost('star', r, p) <= vrkRoom(g)) {
-    const sc = 1.4 / Math.pow(actionCost('star', r, p), 0.3);
-    if (!best || sc > best.sc) best = { type: 'star', gain: 0, cost: actionCost('star', r, p), sc };
-  }
-  return best;
-}
-function recommendMoves(g, limit = 3) {
-  const p = g.player;
-  const nat = nationalShares(g)[p];
-  const nearLine = nat < 6.5;
-  const recs = [];
-  for (const r of REGIONS) {
-    const info = raceInfo(g, r);
-    const best = bestActionIn(g, r, info);
-    if (!best) continue;
-    const closeness = Math.exp(-Math.abs(info.gap) / 6);
-    const smd = r.seats * closeness * (nearLine ? 0.35 : 1);
-    const pr = ((r.voters * r.turnout) / 90) * (nearLine ? 1.6 : 0.6);
-    const fat = FATIGUE[Math.min(g.weekActs[r.id] || 0, FATIGUE.length - 1)];
-    const score = best.sc * (smd + pr) * fat;
-    let why;
-    if (nearLine) why = tt(`You need 5% nationally to win list seats. ${rl(r)} has plenty of voters who like you.`, `Norint gauti daugiamandatės vietų, reikia 5 % visoje šalyje. ${rl(r)} – daug jums palankių rinkėjų.`);
-    else if (Math.abs(info.gap) < 4) why = tt(`${raceText(info)}. A small push here could swing ${r.seats} ${seatsWord(r.seats)}.`, `${raceText(info)}. Mažas postūmis čia gali nulemti: ${r.seats} ${seatsWord(r.seats)}.`);
-    else if (info.gap < 0) why = tt(`${raceText(info)}, but ${r.seats} ${seatsWord(r.seats)} are worth chasing.`, `${raceText(info)}, bet verta kovoti: ${r.seats} ${seatsWord(r.seats)}.`);
-    else why = tt(`${raceText(info)}. Keep these ${r.seats} ${seatsWord(r.seats)} safe.`, `${raceText(info)}. Išsaugokite: ${r.seats} ${seatsWord(r.seats)}.`);
-    recs.push({ kind: 'region', rid: r.id, type: best.type, cost: best.cost, gain: best.gain, score, why });
-  }
-  recs.sort((a, b) => b.score - a.score);
-  const out = [];
-  const cheapest = Math.min(...REGIONS.map((r) => actionCost('rally', r, p)));
-  if (g.money < cheapest * 3 && g.ap >= 1) out.push({ kind: 'national', id: 'gala', why: tt('Money is running low, and every move costs euros.', 'Pinigų lieka mažai, o kiekvienas žingsnis kainuoja.') });
-  for (const rc of recs) {
-    if (out.length >= limit) break;
-    if (!out.some((o) => o.rid === rc.rid)) out.push(rc);
-  }
-  return out;
-}
-const runRec = (g, rec) => (rec.kind === 'national' ? doNational(g, rec.id) : doRegionAction(g, rec.rid, rec.type));
-function autoPlan(g) {
-  const done = [];
-  let guard = 0;
-  while (g.ap > 0 && guard < 12) {
-    guard += 1;
-    const [rec] = recommendMoves(g, 1);
-    if (!rec) break;
-    const res = runRec(g, rec);
-    if (!res.ok) break;
-    done.push(rec.kind === 'national' ? tt('a fundraiser', 'lėšų rinkimas') : rs(rec.rid));
-  }
-  if (!done.length) return { ok: false, msg: tt('Nothing affordable left to do this week.', 'Šią savaitę įperkamų žingsnių neliko.') };
-  const places = [...new Set(done)];
-  const more = places.length > 3 ? tt(' and more', ' ir kt.') : '';
-  return { ok: true, tone: 'good', msg: tt(`Rūta spent ${done.length} energy: ${places.slice(0, 3).join(', ')}${more}.`, `Rūta panaudojo ${done.length} energijos: ${places.slice(0, 3).join(', ')}${more}.`) };
-}
-function adviseEvent(g, ev) {
-  let best = 0, bestScore = -Infinity;
-  ev.choices.forEach((ch, i) => {
-    let score;
-    if (ch.risk) score = -0.5;
-    else {
-      const t = clone(g);
-      const before = nationalShares(t)[t.player];
-      applyFx(t, ch.fx, ch.tag, ev.scandal);
-      score = (nationalShares(t)[t.player] - before) + 0.12 * (t.pc - g.pc) + (t.money - g.money) / 500 - Math.max(0, t.scandal - g.scandal) / 25;
-    }
-    if (score > bestScore) { bestScore = score; best = i; }
-  });
-  return best;
-}
-function expectedAnswerScore(g, ans) {
-  let s = ans.base + ((STYLE_BONUS[g.player] || {})[ans.style] || 0);
-  if (ans.axis) {
-    const st = (g.stance[ans.axis[0]] / 90) * ans.axis[1];
-    if (st >= 0.3) s += 1.2 * st;
-    else if (st <= -0.3) s += 2.8 * st;
-  }
-  return s;
-}
 function coalitionPaths(g, seats) {
   const me = g.player;
   const others = PARTY_IDS.filter((p) => p !== me && seats[p] > 0);
@@ -2310,25 +2207,14 @@ function TrendChart({ history, player }) {
 const TOKENS = { VNO: { pos: CITY_POS.VNO, r: 40 }, KNS: { pos: CITY_POS.KNS, r: 34 }, ABR: { pos: [770, 588], r: 32 } };
 const COUNTY_IDS = Object.keys(COUNTY_SHAPES);
 const WAVES = [[-26, 70], [-14, 150], [-28, 230], [-10, 330], [30, 400]];
-function starPath(cx, cy, R, r) {
-  const pts = [];
-  for (let i = 0; i < 10; i++) {
-    const a = -Math.PI / 2 + (i * Math.PI) / 5;
-    const rad = i % 2 ? r : R;
-    pts.push(`${(cx + Math.cos(a) * rad).toFixed(1)},${(cy + Math.sin(a) * rad).toFixed(1)}`);
-  }
-  return `M${pts.join('L')}Z`;
-}
 function regionLook(s) {
   const ord = PARTY_IDS.slice().sort((a, b) => s[b] - s[a]);
   return { lead: ord[0], tossup: s[ord[0]] - s[ord[1]] < 3 };
 }
-function CartoonMap({ shares, sel, onSelect, stars }) {
-  const starSet = new Set(stars || []);
+function CartoonMap({ shares, sel, onSelect }) {
   const key = (id) => (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(id); } };
   const txt = { fill: INK, stroke: '#fff', strokeWidth: 7, paintOrder: 'stroke', strokeLinejoin: 'round', style: { fontFamily: FONT_TITLE }, fontWeight: 700 };
-  const aria = (id, look) => `${rl(id)}: ${REG[id].seats} ${seatsWord(REG[id].seats)}, ${tt('leading', 'pirmauja')} ${partyShort(look.lead)}${starSet.has(id) ? tt(', recommended', ', rekomenduojama') : ''}`;
-  const star = (x, y, id) => <path key={`s-${id}`} className="cx-bob" d={starPath(x, y, 19, 8.5)} fill={SUN} stroke={INK} strokeWidth="3.5" strokeLinejoin="round" pointerEvents="none" />;
+  const aria = (id, look) => `${rl(id)}: ${REG[id].seats} ${seatsWord(REG[id].seats)}, ${tt('leading', 'pirmauja')} ${partyShort(look.lead)}`;
   return (
     <svg viewBox="-40 -26 870 660" className="cx-map w-full h-auto block select-none" role="group" aria-label={tt('Map of Lithuania’s electoral regions', 'Lietuvos rinkimų regionų žemėlapis')}>
       <defs>
@@ -2382,8 +2268,6 @@ function CartoonMap({ shares, sel, onSelect, stars }) {
         const [x, y] = t.pos;
         return <text key={`n-${id}`} x={x} y={id === 'ABR' ? y - t.r - 12 : y + t.r + 28} textAnchor="middle" fontSize="25" {...txt} pointerEvents="none">{rs(id)}</text>;
       })}
-      {COUNTY_IDS.filter((id) => starSet.has(id)).map((id) => { const [lx, ly] = COUNTY_SHAPES[id].label; return star(lx + 26, ly - 38, id); })}
-      {Object.entries(TOKENS).filter(([id]) => starSet.has(id)).map(([id, t]) => star(t.pos[0] + t.r * 0.8, t.pos[1] - t.r * 0.85, id))}
     </svg>
   );
 }
@@ -2395,15 +2279,13 @@ function StatusPill({ status }) {
   const S = STATUS_LOOK[status];
   return <span className="cx-chip px-2.5 py-0.5 text-xs whitespace-nowrap" style={{ background: S.bg }}>{L(S.label)}</span>;
 }
-function RegionRow({ r, g, s, mySeats, star, onClick }) {
+function RegionRow({ r, g, s, mySeats, onClick }) {
   const info = raceInfo(g, r, s);
   const acts = g.weekActs[r.id] || 0;
   return (
     <button type="button" onClick={onClick} className="cx-tap cx-card w-full flex items-center gap-3 px-3 py-3 text-left" style={{ boxShadow: `0 4px 0 ${INK}` }}>
       <div className="relative shrink-0 grid place-items-center rounded-full cx-num text-lg" style={{ width: 48, height: 48, background: PARTIES[info.lead].color, border: `3px solid ${INK}`, color: '#fff', textShadow: `0 0 3px ${INK}, 0 0 1px ${INK}` }}>
         {r.seats}
-        {star && <Star size={20} className="absolute -top-2 -right-2" style={{ color: INK, fill: SUN }} strokeWidth={2.5} aria-hidden="true" />}
-        {star && <span className="sr-only">{tt('Recommended:', 'Rekomenduojama:')}</span>}
       </div>
       <div className="min-w-0 flex-1">
         <div className="cx-title text-lg leading-tight truncate">{rl(r)}</div>
@@ -2417,7 +2299,7 @@ function RegionRow({ r, g, s, mySeats, star, onClick }) {
     </button>
   );
 }
-function ActionTile({ type, g, r, rival, onAction, best }) {
+function ActionTile({ type, g, r, rival, onAction }) {
   const A = ACTIONS[type];
   const p = g.player;
   const cost = actionCost(type, r, p);
@@ -2432,12 +2314,10 @@ function ActionTile({ type, g, r, rival, onAction, best }) {
   } else effect = tt(`About +${nf((actionPreview(g, r.id, type) * 100) / (100 - und))}% for you`, `Apie +${nf((actionPreview(g, r.id, type) * 100) / (100 - und))} % jums`);
   const Icon = A.icon;
   return (
-    <button type="button" disabled={disabled} onClick={() => onAction(r.id, type)} className={`cx-btn ${best ? 'cx-cream' : 'cx-white'} flex-col items-start text-left p-3`} style={{ minHeight: 132, justifyContent: 'flex-start', gap: 6 }}>
+    <button type="button" disabled={disabled} onClick={() => onAction(r.id, type)} className="cx-btn cx-white flex-col items-start text-left p-3" style={{ minHeight: 132, justifyContent: 'flex-start', gap: 6 }}>
       <div className="flex items-center gap-2 w-full">
         <span className="grid place-items-center rounded-full shrink-0" style={{ width: 36, height: 36, background: A.color, border: `2.5px solid ${INK}` }}><Icon size={18} strokeWidth={2.5} /></span>
         <span className="cx-title text-base leading-tight">{L(A.label)}</span>
-        {best && <Star size={18} className="ml-auto shrink-0" style={{ fill: SUN }} strokeWidth={2.5} aria-hidden="true" />}
-        {best && <span className="sr-only">{tt('(Rūta’s pick)', '(Rūtos pasirinkimas)')}</span>}
       </div>
       <span className="text-sm font-semibold t-muted leading-snug">{L(A.desc)}</span>
       <span className="text-sm font-extrabold leading-snug" style={{ color: type === 'attack' ? '#B91C1C' : GREEN }}>{effect}</span>
@@ -2449,7 +2329,6 @@ function RegionDrawer({ g, rid, proj, onClose, onAction, tutStep, onSkipTips }) 
   const r = REG[rid];
   const p = g.player;
   const info = raceInfo(g, r);
-  const best = bestActionIn(g, r, info);
   const cons = proj.smd.filter((e) => e.rid === rid);
   const mine = cons.filter((e) => e.winner === p).length;
   const acts = g.weekActs[rid] || 0;
@@ -2476,20 +2355,14 @@ function RegionDrawer({ g, rid, proj, onClose, onAction, tutStep, onSkipTips }) 
             ))}
           </div>
         </div>
-        {tutStep === 2 ? (
+        {tutStep === 2 && (
           <Coach title={tt('This is a region card', 'Tai regiono kortelė')} onSkip={onSkipTips}>
-            {tt('Each button is a move you can make here. The one with the star is my pick. Tap it!', 'Kiekvienas mygtukas – tai veiksmas šiame regione. Pažymėtas žvaigždute – mano patarimas. Spauskite jį!')}
+            {tt('Each button is a move you can make here. Every move shows its cost and roughly what it does. Think about this race, then pick one.', 'Kiekvienas mygtukas – tai veiksmas šiame regione. Matote jo kainą ir apytikslį poveikį. Įvertinkite kovą ir pasirinkite.')}
           </Coach>
-        ) : best && g.ap > 0 ? (
-          <div className="flex items-center gap-3">
-            <Advisor size={40} />
-            <p className="text-sm font-semibold leading-snug flex-1"><span className="font-black">{tt('Rūta’s pick:', 'Rūtos patarimas:')} {L(ACTIONS[best.type].label).toLowerCase()}.</span> {L(ACTION_WHY[best.type])}</p>
-          </div>
-        ) : g.ap === 0 ? (
-          <div className="cx-soft p-3 text-sm font-bold">{tt('Out of energy this week. Tap Next week to refill.', 'Šią savaitę energijos nebeliko. Spauskite „Kita savaitė“.')}</div>
-        ) : null}
+        )}
+        {g.ap === 0 && <div className="cx-soft p-3 text-sm font-bold">{tt('Out of energy this week. Tap Next week to refill.', 'Šią savaitę energijos nebeliko. Spauskite „Kita savaitė“.')}</div>}
         <div className="grid grid-cols-2 gap-3">
-          {['rally', 'digital', 'tv', 'door', 'star', 'attack'].map((t) => <ActionTile key={t} type={t} g={g} r={r} rival={info.rival} onAction={onAction} best={best && best.type === t} />)}
+          {['rally', 'digital', 'tv', 'door', 'star', 'attack'].map((t) => <ActionTile key={t} type={t} g={g} r={r} rival={info.rival} onAction={onAction} />)}
         </div>
         {acts >= 2 && <p className="text-sm font-bold" style={{ color: AMBER }}>{tt('Voters here are getting tired of you this week. Each extra move here works less well.', 'Šio regiono rinkėjai šią savaitę jau pavargo nuo jūsų. Kiekvienas papildomas veiksmas čia veikia silpniau.')}</p>}
         <button type="button" onClick={() => setMore(!more)} className="cx-btn cx-pale w-full h-12 justify-between px-4">
@@ -2660,62 +2533,50 @@ function Warnings({ g }) {
     </div>
   );
 }
-function TipsCard({ g, recs, act, onOpen }) {
+function RaceBriefing({ g, shares, onOpen }) {
   if (g.ap <= 0) {
     return <Coach title={tt('That’s your week done!', 'Savaitė baigta!')}>{tt('You’ve used all your energy. Tap the big yellow Next week button to see how the polls move.', 'Panaudojote visą energiją. Spauskite didelį geltoną mygtuką „Kita savaitė“ ir pažiūrėkite, kaip pasikeis reitingai.')}</Coach>;
   }
+  const races = REGIONS.map((r) => ({ r, info: raceInfo(g, r, shares[r.id]) })).filter((x) => Math.abs(x.info.gap) < 4).sort((a, b) => Math.abs(a.info.gap) - Math.abs(b.info.gap));
   return (
-    <Card className="p-3 cx-cream">
+    <Card className="p-3">
       <div className="flex items-center gap-3">
-        <Advisor size={46} />
+        <span className="grid place-items-center rounded-full shrink-0" style={{ width: 42, height: 42, background: '#FDE68A', border: `2.5px solid ${INK}` }}><Target size={21} strokeWidth={2.5} /></span>
         <div className="min-w-0 flex-1">
-          <div className="cx-title text-lg leading-tight">{tt(`Rūta’s tips for week ${g.week}`, `Rūtos patarimai ${g.week} savaitei`)}</div>
-          <div className="text-sm font-semibold t-muted">{tt(`You have ${g.ap} energy left. Here’s where it counts most.`, `Liko ${g.ap} energijos. Štai kur ji svarbiausia.`)}</div>
+          <div className="cx-title text-lg leading-tight">{tt(`Week ${g.week}: your call`, `${g.week} savaitė: sprendžiate jūs`)}</div>
+          <div className="text-sm font-semibold t-muted">{tt(`${g.ap} energy left. These are the closest races right now.`, `Liko ${g.ap} energijos. Štai šiuo metu lygiausios kovos.`)}</div>
         </div>
       </div>
-      <div className="flex flex-col gap-2 mt-3">
-        {recs.slice(0, 2).map((rc, i) => {
-          const isRegion = rc.kind === 'region';
-          const A = isRegion ? ACTIONS[rc.type] : null;
-          const Icon = isRegion ? A.icon : HandCoins;
-          const title = isRegion ? tt(`${L(A.label)} in ${rl(rc.rid)}`, `${L(A.label)}: ${rl(rc.rid)}`) : tt('Host a donor dinner', 'Surengti rėmėjų vakarienę');
-          return (
-            <div key={`${rc.rid || rc.id}-${i}`} className="bg-white rounded-2xl p-3" style={{ border: `2.5px solid ${INK}` }}>
-              <div className="flex items-start gap-3">
-                <span className="grid place-items-center rounded-full shrink-0" style={{ width: 38, height: 38, background: isRegion ? A.color : '#86EFAC', border: `2.5px solid ${INK}` }}><Icon size={19} strokeWidth={2.5} /></span>
-                <div className="min-w-0 flex-1">
-                  <div className="font-black leading-tight">{title}</div>
-                  <div className="text-sm font-semibold t-muted leading-snug mt-0.5">{rc.why}</div>
-                </div>
-              </div>
-              <div className="flex gap-2 mt-2.5">
-                <Btn className="h-11 flex-1 text-sm" onClick={() => act((gg) => runRec(gg, rc))}>{tt('Do it', 'Daryti')} <span className="inline-flex items-center gap-0.5"><Zap size={14} style={{ fill: INK }} />1</span>{isRegion ? ` · ${fmtEur(rc.cost)}` : ''}</Btn>
-                {isRegion && <Btn kind="white" className="h-11 px-3 text-sm" onClick={() => onOpen(rc.rid)}>{tt('See region', 'Regionas')}</Btn>}
-              </div>
-            </div>
-          );
-        })}
-      </div>
-      <Btn kind="white" className="h-12 w-full mt-3 text-sm" onClick={() => act((gg) => autoPlan(gg))}><Wand2 size={18} />{tt('Let Rūta plan the rest of my week', 'Tegul Rūta suplanuoja likusią savaitę')}</Btn>
+      {races.length ? (
+        <div className="flex flex-wrap gap-2 mt-3">
+          {races.map(({ r, info }) => (
+            <button key={r.id} type="button" onClick={() => onOpen(r.id)} className="cx-chip cx-tap px-3 py-1.5 text-sm" style={{ background: info.gap >= 0 ? '#DCFCE7' : '#FEF3C7' }}>
+              <PartyDot p={info.lead} size={11} />{rs(r)}
+              <span className="cx-num" style={{ color: info.gap >= 0 ? GREEN : AMBER }}>{fmtSigned(info.gap)}</span>
+              <span className="t-muted text-xs">· {r.seats}</span>
+            </button>
+          ))}
+        </div>
+      ) : <p className="text-sm font-semibold t-muted mt-3">{tt('No region is within 4 points right now.', 'Šiuo metu nė viename regione skirtumas nesiekia 4 punktų.')}</p>}
+      <p className="text-xs font-bold t-muted mt-2">{tt('Number = your lead (+) or gap (−) in points · after the dot = seats', 'Skaičius – jūsų persvara (+) arba atsilikimas (−) punktais · po taško – mandatai')}</p>
     </Card>
   );
 }
-function MapTab({ g, shares, proj, sel, onSelect, act, recs, skipTips }) {
+function MapTab({ g, shares, proj, sel, onSelect, skipTips }) {
   const rows = REGIONS.slice().sort((a, b) => b.seats - a.seats);
   const p = g.player;
-  const starIds = recs.filter((r) => r.kind === 'region').slice(0, g.tut === 1 ? 1 : 2).map((r) => r.rid);
   const leaders = [...new Set(REGIONS.map((r) => regionLook(shares[r.id]).lead))];
   return (
     <div className="flex flex-col gap-4 pt-4">
       <Ticker g={g} />
       {g.tut === 1 && (
         <Coach title={tt('Let’s make your first move!', 'Žengiame pirmą žingsnį!')} onSkip={skipTips}>
-          {tt('This is Lithuania. Each colour shows who’s winning that region right now. Tap the region with the bouncing star. That’s where I think you can win the most.', 'Tai Lietuva. Spalva rodo, kas dabar pirmauja regione. Paspauskite regioną su šokinėjančia žvaigždute – ten, mano manymu, galite laimėti daugiausia.')}
+          {tt('This is Lithuania. Each colour shows who’s winning that region, and stripes mark close races. Tap any region you think is worth fighting for.', 'Tai Lietuva. Spalva rodo, kas pirmauja regione, o juostos žymi lygias kovas. Paspauskite regioną, dėl kurio, jūsų manymu, verta kovoti.')}
         </Coach>
       )}
       {g.tut === 3 && (
-        <Coach title={tt('Nice, voters are moving your way!', 'Puiku, rinkėjai pasuko jūsų pusėn!')} onSkip={skipTips} actions={<Btn className="h-11 px-4 text-sm" onClick={() => act((gg) => autoPlan(gg))}><Wand2 size={17} />{tt('Plan my week for me', 'Suplanuok mano savaitę')}</Btn>}>
-          {tt('Every move costs 1 energy plus some money. You get 6 energy each week. Spend the rest yourself on the map, or let me do it.', 'Kiekvienas veiksmas kainuoja 1 energiją ir šiek tiek pinigų. Kas savaitę gaunate 6 energijos. Likusią išleiskite patys arba patikėkite man.')}
+        <Coach title={tt('Nice, that’s your first move!', 'Puiku – pirmas žingsnis žengtas!')} onSkip={skipTips}>
+          {tt('Every move costs 1 energy plus some money. You get 6 energy each week. Spend the rest wherever you think it matters most.', 'Kiekvienas veiksmas kainuoja 1 energiją ir šiek tiek pinigų. Kas savaitę gaunate 6 energijos. Likusią išleiskite ten, kur, jūsų manymu, svarbiausia.')}
         </Coach>
       )}
       {g.tut === 4 && (
@@ -2724,9 +2585,9 @@ function MapTab({ g, shares, proj, sel, onSelect, act, recs, skipTips }) {
         </Coach>
       )}
       {(g.tut === 0 || g.tut >= 5) && <Warnings g={g} />}
-      {(g.tut === 0 || g.tut >= 5) && <TipsCard g={g} recs={recs} act={act} onOpen={onSelect} />}
+      {(g.tut === 0 || g.tut >= 5) && <RaceBriefing g={g} shares={shares} onOpen={onSelect} />}
       <Card className="overflow-hidden" style={{ background: '#BFE6FA', padding: 6 }}>
-        <CartoonMap shares={shares} sel={sel} onSelect={onSelect} stars={starIds} />
+        <CartoonMap shares={shares} sel={sel} onSelect={onSelect} />
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 px-2 pb-1.5 pt-1 text-sm font-extrabold">
           {leaders.map((q) => <span key={q} className="inline-flex items-center gap-1.5"><PartyDot p={q} size={13} />{partyShort(q)}</span>)}
           <span className="t-muted text-xs w-full">{tt('Colour = who’s ahead · stripes = close race · number = seats', 'Spalva – kas pirmauja · juostos – lygi kova · skaičius – mandatai')}</span>
@@ -2734,7 +2595,7 @@ function MapTab({ g, shares, proj, sel, onSelect, act, recs, skipTips }) {
       </Card>
       <div className="flex flex-col gap-2.5">
         <h3 className="cx-title text-xl">{tt('All regions', 'Visi regionai')}</h3>
-        {rows.map((r) => <RegionRow key={r.id} r={r} g={g} s={shares[r.id]} star={starIds.includes(r.id)} mySeats={proj.smd.filter((e) => e.rid === r.id && e.winner === p).length} onClick={() => onSelect(r.id)} />)}
+        {rows.map((r) => <RegionRow key={r.id} r={r} g={g} s={shares[r.id]} mySeats={proj.smd.filter((e) => e.rid === r.id && e.winner === p).length} onClick={() => onSelect(r.id)} />)}
       </div>
     </div>
   );
@@ -2870,7 +2731,7 @@ function HQTab({ g, act, openSheet }) {
         </div>
       </div>
       <Card className="p-4">
-        <CardTitle sub={tt('The Central Electoral Commission caps campaign spending.', 'Vyriausioji rinkimų komisija riboja kampanijos išlaidas.')} info={<InfoTip title={tt('VRK limit', 'VRK limitas')}>{tt('In Lithuania the VRK (Central Electoral Commission) limits how much a party may spend on its campaign. Go over and you get a fine plus a scandal. Rūta never plans past the limit, but you can.', 'Lietuvoje VRK (Vyriausioji rinkimų komisija) riboja, kiek partija gali išleisti kampanijai. Viršijus – bauda ir skandalas. Rūta limito neviršija, bet jūs galite.')}</InfoTip>}>{tt('Spending limit', 'Išlaidų limitas')}</CardTitle>
+        <CardTitle sub={tt('The Central Electoral Commission caps campaign spending.', 'Vyriausioji rinkimų komisija riboja kampanijos išlaidas.')} info={<InfoTip title={tt('VRK limit', 'VRK limitas')}>{tt('In Lithuania the VRK (Central Electoral Commission) limits how much a party may spend on its campaign. Go over and you get a fine plus a scandal.', 'Lietuvoje VRK (Vyriausioji rinkimų komisija) riboja, kiek partija gali išleisti kampanijai. Viršijus – bauda ir skandalas.')}</InfoTip>}>{tt('Spending limit', 'Išlaidų limitas')}</CardTitle>
         <Bar value={g.stats.spent} max={VRK_LIMIT} color={vrkPct > 1 ? '#F87171' : vrkPct > 0.85 ? SUN : '#4ADE80'} h={18} />
         <div className="flex justify-between text-sm font-extrabold mt-1.5"><span>{fmtEur(g.stats.spent)}</span><span className="t-muted">{tt('limit', 'limitas')} {fmtEur(VRK_LIMIT)}</span></div>
         {g.vrkHit && <p className="text-sm font-bold mt-1" style={{ color: RED }}>{tt('You already broke the limit and were fined.', 'Limitą jau viršijote ir gavote baudą.')}</p>}
@@ -3268,7 +3129,7 @@ function ReportModal({ g, item, onClose }) {
           {upcoming.includes('debate') ? <Tv size={26} /> : upcoming.includes('event') ? <Newspaper size={26} /> : <Sparkles size={26} />}
           <div className="font-black">{upcoming.includes('debate') ? tt('Coming up: a live LRT debate!', 'Netrukus – tiesioginiai LRT debatai!') : upcoming.includes('event') ? tt('Coming up: breaking news!', 'Netrukus – skubi naujiena!') : tt('A quiet start to the week.', 'Rami savaitės pradžia.')}</div>
         </div>
-        {g.tut === 5 && <Coach title={tt('You’ve got the hang of it!', 'Jau perpratote!')}>{tt('Every week: spend your energy, then tap Next week. Polls change, rivals campaign and news breaks. LRT debates come in weeks 4, 8 and 11. My tips stay on the map whenever you need them.', 'Kas savaitę: išleiskite energiją ir spauskite „Kita savaitė“. Keičiasi apklausos, varžovai agituoja, pasirodo naujienos. LRT debatai – 4, 8 ir 11 savaitėmis. Mano patarimai visada laukia žemėlapyje.')}</Coach>}
+        {g.tut === 5 && <Coach title={tt('You’ve got the hang of it!', 'Jau perpratote!')}>{tt('Every week: spend your energy, then tap Next week. Polls change, rivals campaign and news breaks. LRT debates come in weeks 4, 8 and 11. The rest is up to you!', 'Kas savaitę: išleiskite energiją ir spauskite „Kita savaitė“. Keičiasi apklausos, varžovai agituoja, pasirodo naujienos. LRT debatai – 4, 8 ir 11 savaitėmis. Toliau – jūsų sprendimai!')}</Coach>}
         <Btn className="h-14 text-lg" onClick={onClose}>{tt(`Start week ${g.week}`, `Pradėti ${g.week} savaitę`)} <ArrowRight size={20} /></Btn>
       </div>
     </Sheet>
@@ -3288,7 +3149,6 @@ function EventModal({ g, item, onChoose, onClose }) {
   const ev = EVENT_MAP[item.id];
   const done = item.done;
   const Icon = ev.icon;
-  const pick = useMemo(() => adviseEvent(g, ev), [item.id]);
   return (
     <Sheet label={tt('Breaking news', 'Skubi naujiena')}>
       <div style={GUTTER} className="pt-6 flex flex-col gap-4">
@@ -3308,10 +3168,9 @@ function EventModal({ g, item, onChoose, onClose }) {
               const chips = ch.risk ? [{ t: tt('50/50 gamble', 'Loterija 50/50'), good: false }] : fxChips(ch.fx);
               const fits = ch.tag && TAG_BONUS[ch.tag] && TAG_BONUS[ch.tag][g.player] > 1;
               return (
-                <button key={i} type="button" onClick={() => onChoose(i)} className={`cx-btn ${i === pick ? 'cx-cream' : 'cx-white'} w-full flex-col items-start text-left p-3`} style={{ gap: 8 }}>
+                <button key={i} type="button" onClick={() => onChoose(i)} className="cx-btn cx-white w-full flex-col items-start text-left p-3" style={{ gap: 8 }}>
                   <div className="flex items-start gap-2 w-full">
                     <span className="font-black text-base flex-1">{L(ch.label)}</span>
-                    {i === pick && <span className="cx-chip px-2 py-0.5 text-xs shrink-0" style={{ background: SUN }}><Star size={12} style={{ fill: INK }} />{tt('Rūta’s pick', 'Rūtos patarimas')}</span>}
                   </div>
                   <div className="flex flex-wrap gap-1.5">
                     {fits && <span className="cx-chip px-2 py-0.5 text-xs" style={{ background: '#E9D5FF' }}>{tt('Fits your party', 'Tinka jūsų partijai')}</span>}
@@ -3347,11 +3206,6 @@ function DebateModal({ g, item, onFinish, onClose }) {
   const [meter, setMeter] = useState(5);
   const res = item.done;
   const Q = D.questions[qi];
-  const pickIdx = useMemo(() => {
-    let b = 0;
-    Q.answers.forEach((a, i) => { if (expectedAnswerScore(g, a) > expectedAnswerScore(g, Q.answers[b])) b = i; });
-    return b;
-  }, [qi]);
   const choose = (ai) => {
     if (reveal) return;
     const sc = scoreAnswer(g, Q.answers[ai]);
@@ -3390,16 +3244,15 @@ function DebateModal({ g, item, onFinish, onClose }) {
               <div className="flex justify-between text-xs font-extrabold t-muted mb-1"><span>{tt('Audience hates it', 'Žiūrovams nepatinka')}</span><span>{tt('Audience loves it', 'Žiūrovai sužavėti')}</span></div>
               <Bar value={meter} max={10} color={meter >= 6 ? '#22C55E' : meter >= 5 ? SUN : '#F87171'} mark={5} h={18} />
             </div>
-            {item.id === 0 && qi === 0 && !reveal && <Coach title={tt('Debate tip', 'Debatų patarimas')}>{tt('Pick answers that fit your party and your promises. My favourite has a star.', 'Rinkitės atsakymus, kurie tinka jūsų partijai ir pažadams. Mano favoritas pažymėtas žvaigždute.')}</Coach>}
+            {item.id === 0 && qi === 0 && !reveal && <Coach title={tt('Debate tip', 'Debatų patarimas')}>{tt('Answers that fit your party’s style and your promises go down best. Contradicting your own promises costs you.', 'Geriausiai vertinami atsakymai, atitinkantys jūsų partijos stilių ir pažadus. Prieštaraujant savo pažadams – prarasite.')}</Coach>}
             <div className="flex flex-col gap-3">
               {Q.answers.map((a, i) => {
                 const chosen = reveal && reveal.ai === i;
                 return (
-                  <button key={i} type="button" disabled={!!reveal && !chosen} onClick={() => choose(i)} className={`cx-btn ${chosen ? 'cx-sun' : i === pickIdx && !reveal ? 'cx-cream' : 'cx-white'} w-full flex-col items-start text-left p-3`} style={{ gap: 6 }}>
+                  <button key={i} type="button" disabled={!!reveal && !chosen} onClick={() => choose(i)} className={`cx-btn ${chosen ? 'cx-sun' : 'cx-white'} w-full flex-col items-start text-left p-3`} style={{ gap: 6 }}>
                     <span className="font-black text-base leading-snug">{L(a.t)}</span>
                     <span className="flex flex-wrap gap-1.5">
                       <span className="cx-chip px-2 py-0.5 text-xs">{L(STYLE_NAMES[a.style])}</span>
-                      {i === pickIdx && !reveal && <span className="cx-chip px-2 py-0.5 text-xs" style={{ background: SUN }}><Star size={12} style={{ fill: INK }} />{tt('Rūta’s pick', 'Rūtos patarimas')}</span>}
                       {a.pc ? <span className="cx-chip px-2 py-0.5 text-xs" style={{ background: '#FECACA' }}>{tt('Experts will scoff: −1 favour', 'Ekspertai pasišieps: −1 ryšys')}</span> : null}
                     </span>
                   </button>
@@ -3452,7 +3305,7 @@ function HelpSheet({ onClose }) {
     [BarChart3, tt('How seats work', 'Kaip skirstomi mandatai'), tt('70 seats are shared by the national vote (5% minimum). 71 go to local winners; if nobody gets 50%, the top two face a runoff two weeks later.', '70 vietų paskirstoma pagal balsus visoje šalyje (būtina bent 5 %). 71 tenka apygardų nugalėtojams; jei niekas negauna 50 %, po dviejų savaičių vyksta antrasis turas.')],
     [Gavel, tt('VRK spending limit', 'VRK išlaidų limitas'), tt(`The electoral commission lets you spend ${fmtEur(VRK_LIMIT)} in total. Spend more and you are fined.`, `Rinkimų komisija leidžia išleisti iš viso ${fmtEur(VRK_LIMIT)}. Išleidus daugiau – bauda.`)],
     [Dices, tt('Risky money', 'Rizikingi pinigai'), tt('The casino and sports bets can refill your budget fast, but you usually lose, and every bet can leak to the press.', 'Kazino ir lažybos gali greitai papildyti biudžetą, bet dažniausiai pralošiate, o kiekvienas statymas gali nutekėti žiniasklaidai.')],
-    [Lightbulb, tt('Stuck?', 'Nežinote, ką daryti?'), tt('Follow Rūta’s tips on the map, or let her plan your week for you.', 'Sekite Rūtos patarimus žemėlapyje arba leiskite jai suplanuoti savaitę.')],
+    [Lightbulb, tt('Thinking tips', 'Kaip mąstyti'), tt('Close races (stripes) swing the most seats. Big regions matter for the national vote too. Watch your money, the VRK limit and scandal risk, and keep potential partners happy with your promises.', 'Lygios kovos (juostos) nulemia daugiausia mandatų. Dideli regionai svarbūs ir bendram balsų skaičiui. Stebėkite pinigus, VRK limitą ir skandalo riziką, o pažadais neatstumkite būsimų partnerių.')],
     [Info, tt('About this game', 'Apie žaidimą'), tt('A fictional simulation of the 2028 Seimas election. Real parties and leaders appear for context; every event, quote and result is invented. Party emblems are original designs, not official logos.', 'Išgalvota 2028 m. Seimo rinkimų simuliacija. Tikros partijos ir lyderiai naudojami tik kontekstui; visi įvykiai, citatos ir rezultatai išgalvoti. Partijų ženkliukai sukurti žaidimui, tai ne oficialūs logotipai.')],
   ];
   return (
@@ -3470,7 +3323,7 @@ function HelpSheet({ onClose }) {
     </Sheet>
   );
 }
-function ConfirmEnd({ g, onCancel, onConfirm, onAuto }) {
+function ConfirmEnd({ g, onCancel, onConfirm }) {
   return (
     <Sheet onClose={onCancel} label={tt('End week', 'Baigti savaitę')}>
       <div style={GUTTER} className="pt-6 flex flex-col gap-4">
@@ -3479,8 +3332,7 @@ function ConfirmEnd({ g, onCancel, onConfirm, onAuto }) {
           <div className="cx-title text-2xl leading-tight">{tt(`Wait, you still have ${g.ap} energy!`, `Palaukite – dar liko ${g.ap} energijos!`)}</div>
         </div>
         <p className="font-semibold">{tt('Energy doesn’t carry over to next week.', 'Energija į kitą savaitę nepersikelia.')}{g.week >= WEEKS ? tt(' This is the last week. After this, the country votes!', ' Tai paskutinė savaitė – po jos šalis balsuoja!') : ''}</p>
-        <Btn className="h-14 text-base" onClick={onAuto}><Wand2 size={19} />{tt('Let Rūta spend it, then continue', 'Tegul Rūta ją išleidžia, tada tęsti')}</Btn>
-        <Btn kind="white" className="h-12" onClick={onConfirm}>{g.week >= WEEKS ? tt('Go straight to the vote', 'Iš karto į rinkimus') : tt('Skip it and end the week', 'Praleisti ir baigti savaitę')}</Btn>
+        <Btn className="h-14 text-base" onClick={onConfirm}>{g.week >= WEEKS ? tt('Go straight to the vote', 'Iš karto į rinkimus') : tt('End the week anyway', 'Vis tiek baigti savaitę')}</Btn>
         <Btn kind="pale" className="h-12" onClick={onCancel}>{tt('Keep campaigning', 'Toliau agituoti')}</Btn>
       </div>
     </Sheet>
@@ -3505,7 +3357,7 @@ function TitleScreen({ saved, onNew, onContinue, lang, setLang }) {
         <p className="mt-4 font-semibold leading-relaxed text-base">{tt('Lead a real Lithuanian party through a 12-week campaign, win LRT debates and runoffs, then build a coalition of 71 out of 141 seats.', 'Veskite tikrą Lietuvos partiją per 12 savaičių kampaniją, laimėkite LRT debatus ir antruosius turus, o tada suburkite 71 iš 141 Seimo narių koaliciją.')}</p>
       </div>
       <Card className="mt-5" style={{ background: '#BFE6FA', padding: 6 }}>
-        <CartoonMap shares={demoShares} sel={null} onSelect={() => {}} stars={[]} />
+        <CartoonMap shares={demoShares} sel={null} onSelect={() => {}} />
       </Card>
       <div className="grid grid-cols-3 gap-2 mt-4">
         {[[MapIcon, tt('12 weeks', '12 savaičių'), tt('of campaigning', 'kampanijos')], [Tv, tt('3 debates', '3 debatai'), tt('live on LRT', 'tiesiogiai LRT')], [Handshake, '71', tt('seats to govern', 'mandatas valdžiai')]].map(([Icon, a, b]) => (
@@ -3758,7 +3610,6 @@ function CoalitionTalks({ g, act }) {
   const tip = useMemo(() => suggestTeam(g), [g.election, g.player]);
   const sorted = cands.slice().sort((a, b) => (C.partners.includes(b) ? 1 : 0) - (C.partners.includes(a) ? 1 : 0) || will[b] - will[a]);
   const toggle = (p) => act((gg) => { const c = gg.coal; c.partners = c.partners.includes(p) ? c.partners.filter((x) => x !== p) : [...c.partners, p]; return null; });
-  const useTip = () => act((gg) => { gg.coal.partners = [...tip.partners]; return { ok: true, tone: 'good', msg: tt('Invited Rūta’s suggested team.', 'Pakviesta Rūtos siūloma koalicija.') }; });
   const accept = (p) => act((gg) => { gg.coal.accepted[p] = !gg.coal.accepted[p]; return null; });
   const sweeten = (p) => act((gg) => {
     if (gg.pc < 2) return { ok: false, msg: tt('Not enough favours.', 'Nepakanka ryšių.') };
@@ -3776,18 +3627,12 @@ function CoalitionTalks({ g, act }) {
   const goJunior = () => act((gg) => { gg.result = { kind: 'junior', leader: largest, members: junior.members, seats: junior.total, ministries: Math.max(1, Math.round((S[me] / junior.total) * 14)) }; gg.phase = 'result'; return null; });
   const goOpp = () => act((gg) => { const Lp = ranked.find((p) => p !== me); const ai = aiCoalition(gg, Lp, null); gg.result = { kind: 'opposition', leader: Lp, members: ai.members, seats: ai.total, ok: ai.ok }; gg.phase = 'result'; return null; });
   const harmony = stab >= 65 ? [tt('Happy team', 'Darni komanda'), GREEN] : stab >= 45 ? [tt('Some grumbling', 'Šiek tiek bambėjimo'), AMBER] : [tt('Lots of fighting', 'Daug barnių'), RED];
-  const tipIsCurrent = tip && tip.partners.length === C.partners.length && tip.partners.every((p) => C.partners.includes(p));
   return (
     <div className="max-w-lg mx-auto min-h-screen" style={{ ...GUTTER, paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 190px)' }}>
       <div className="pt-6">
         <h2 className="cx-title text-4xl leading-none">{tt('Build your coalition', 'Burkite koaliciją')}</h2>
         <p className="font-semibold t-muted mt-1">{tt('Invite parties until your team has 71 seats. Everyone you invite has to be happy to join.', 'Kvieskite partijas, kol komanda turės 71 mandatą. Visi pakviestieji turi norėti prisijungti.')}</p>
       </div>
-      {tip && !tipIsCurrent && (
-        <Coach className="mt-4" title={tt('My suggestion', 'Mano pasiūlymas')} actions={<Btn className="h-11 px-4 text-sm" onClick={useTip}><Users size={17} />{tt('Invite this team', 'Pakviesti šią komandą')}</Btn>}>
-          {tt(`Team up with ${tip.partners.map((p) => partyShort(p)).join(' + ')} for ${tip.total} seats. ${tip.minW >= 50 ? 'They should say yes.' : 'Some will need convincing: agree to their wishes or spend favours.'}`, `Junkitės su ${tip.partners.map((p) => partyShort(p)).join(' + ')} – iš viso ${tip.total} ${seatsWord(tip.total)}. ${tip.minW >= 50 ? 'Jie turėtų sutikti.' : 'Kai kuriuos reikės įtikinti: priimkite jų reikalavimus arba panaudokite ryšius.'}`)}
-        </Coach>
-      )}
       {!tip && <Coach className="mt-4" title={tt('This will be tough', 'Bus sunku')}>{tt('No team that includes you reaches 71 easily. You could join the winners as a junior partner, or go into opposition.', 'Jokia koalicija su jumis lengvai nesurenka 71. Galite prisijungti prie nugalėtojų kaip jaunesnysis partneris arba likti opozicijoje.')}</Coach>}
       <Card className="mt-4 p-4">
         <div className="flex items-end justify-between">
@@ -4049,7 +3894,6 @@ export default function SeimasGame({ hotData } = {}) {
       shares: Object.fromEntries(REGIONS.map((r) => [r.id, regionShares(game, r)])),
       nat: nationalShares(game),
       proj: simulateElection(game, false),
-      recs: recommendMoves(game, 3),
     };
   }, [game, lang]);
   const goTab = (t) => { setTab(t); try { window.scrollTo({ top: 0 }); } catch (e) { /* ignore */ } };
@@ -4057,9 +3901,9 @@ export default function SeimasGame({ hotData } = {}) {
   const closeRegion = () => { setSel(null); const g0 = gameRef.current; if (g0 && g0.tut === 2) act((g) => { g.tut = 1; return null; }); };
   const skipTips = () => act((g) => { g.tut = 99; return null; });
   const openSheet = (name) => setSheet(name);
-  const doEnd = (auto) => {
+  const doEnd = () => {
     setConfirmEnd(false); setSel(null); setSheet(null);
-    act((g) => { if (auto) autoPlan(g); endWeek(g); return null; });
+    act((g) => { endWeek(g); return null; });
     goTab('map');
   };
   const restart = () => { writeSave(null); setGame(null); gameRef.current = null; setSaved(null); setSel(null); setTab('map'); setScreen('select'); };
@@ -4070,22 +3914,22 @@ export default function SeimasGame({ hotData } = {}) {
   } else if (screen === 'title' || !game) {
     body = <TitleScreen lang={lang} setLang={setLang} saved={saved} onNew={() => setScreen('select')} onContinue={() => { gameRef.current = saved; setGame(saved); setScreen('game'); }} />;
   } else if (game.phase === 'campaign' && derived) {
-    const { shares, nat, proj, recs } = derived;
+    const { shares, nat, proj } = derived;
     body = (
       <>
         <Header g={game} proj={proj} onHelp={() => setHelp(true)} lang={lang} setLang={setLang} />
         <main className="max-w-lg mx-auto" style={{ ...GUTTER, paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 128px)' }}>
-          {tab === 'map' && <MapTab g={game} shares={shares} proj={proj} sel={sel} onSelect={openRegion} act={act} recs={recs} skipTips={skipTips} />}
+          {tab === 'map' && <MapTab g={game} shares={shares} proj={proj} sel={sel} onSelect={openRegion} skipTips={skipTips} />}
           {tab === 'polls' && <PollsTab g={game} nat={nat} proj={proj} />}
           {tab === 'hq' && <HQTab g={game} act={act} openSheet={openSheet} />}
           {tab === 'news' && <NewsTab g={game} />}
         </main>
-        <BottomNav tab={tab} setTab={goTab} g={game} glowEnd={game.tut === 4 || (game.ap === 0 && game.tut >= 5)} onEnd={() => (game.ap > 0 ? setConfirmEnd(true) : doEnd(false))} />
+        <BottomNav tab={tab} setTab={goTab} g={game} glowEnd={game.tut === 4 || (game.ap === 0 && game.tut >= 5)} onEnd={() => (game.ap > 0 ? setConfirmEnd(true) : doEnd())} />
         {sel && <RegionDrawer g={game} rid={sel} proj={proj} onClose={closeRegion} onAction={(rid, type) => { const first = gameRef.current.tut === 2; act((g) => doRegionAction(g, rid, type)); if (first) setSel(null); }} tutStep={game.tut} onSkipTips={skipTips} />}
         {sheet === 'casino' && <CasinoSheet g={game} act={act} onClose={() => setSheet(null)} />}
         {sheet === 'bet' && <BetSheet g={game} act={act} onClose={() => setSheet(null)} />}
         {sheet === 'kompro' && <KomproSheet g={game} act={act} onClose={() => setSheet(null)} />}
-        {confirmEnd && <ConfirmEnd g={game} onCancel={() => setConfirmEnd(false)} onConfirm={() => doEnd(false)} onAuto={() => doEnd(true)} />}
+        {confirmEnd && <ConfirmEnd g={game} onCancel={() => setConfirmEnd(false)} onConfirm={doEnd} />}
         {help && <HelpSheet onClose={() => setHelp(false)} />}
         {game.queue.length > 0 && <QueueModal g={game} item={game.queue[0]} act={act} nat={nat} proj={proj} />}
       </>

@@ -6,8 +6,8 @@ A friendly, cartoon-style strategy game about the **2028 Lithuanian Seimas elect
 
 ## Playing
 
-- **Rūta, your campaign manager**, walks you through the first week step by step. After that she suggests the best moves each week. You can carry out a suggestion in one tap, or let her plan the rest of your week.
-- **The map** shows Lithuania's real county outlines, coloured by whoever leads in each region. Close races are striped, and bouncing stars mark Rūta's recommended regions. Tap a region to see the race and every move you can make there.
+- **Rūta, your campaign manager**, walks you through the first week and explains the rules. She never picks moves for you: every decision is yours.
+- **The map** shows Lithuania's real county outlines, coloured by whoever leads in each region. Close races are striped, and each week a short briefing lists the tightest races with your lead or gap. Tap a region to see the race and every move you can make there.
 - **Plain-language moves.** Each move shows its cost (energy and euros) and its expected effect before you tap.
 
 ## Parties and leaders (as of November 2026)
@@ -26,7 +26,7 @@ A friendly, cartoon-style strategy game about the **2028 Lithuanian Seimas elect
 ## Systems
 
 - **Star candidates.** Recruit a famous local face to boost one single-mandate district. AI parties field some too.
-- **VRK spending limit.** Campaign spending is capped. Going over brings a fine and a scandal, and Rūta never plans past the limit.
+- **VRK spending limit.** Campaign spending is capped. Going over brings a fine and a scandal.
 - **Risky money.** A casino with real European roulette odds, and bets on Žalgiris games. Both lose money on average, and every bet has a 12% chance of leaking to the press.
 - **Kompromat.** Pay investigators to dig up dirt on a rival: a 45% chance of a hit and a 20% chance of being exposed yourself.
 - **Voter groups.** Pensioners, young people, farmers, business owners, teachers and doctors, and minorities. Each group reacts to your promises, your news choices and your debate answers.
