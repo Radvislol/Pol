@@ -54,49 +54,89 @@ const fmtInt = (n) => Math.round(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, 
    Typography & look
    ============================================================ */
 const FONT_HREF =
-  'https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@500;600;700;800;900&display=swap';
-const FONT_TITLE = "'Fredoka', 'Baloo 2', 'Trebuchet MS', system-ui, sans-serif";
+  'https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,500;0,600;0,700;0,800;1,600;1,700;1,800&family=Barlow:wght@400;500;600;700;800&display=swap';
+const FONT_TITLE = "'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif";
 const F_DISPLAY = { fontFamily: FONT_TITLE, fontWeight: 700 };
 const F_MONO = { fontFamily: FONT_TITLE, fontVariantNumeric: 'tabular-nums', fontWeight: 600 };
-const F_BODY = "'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
+const F_BODY = "'Barlow', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif";
 const GUTTER = {
   paddingLeft: 'max(16px, env(safe-area-inset-left, 0px))',
   paddingRight: 'max(16px, env(safe-area-inset-right, 0px))',
 };
 const FLAG = { y: '#FDB913', g: '#006A44', r: '#C1272D' };
-const INK = '#1F2544';
-const SUN = '#FDB913';
+// Dark "political drama" palette.
+const INK = '#0F131B';
+const SUN = '#F5A524';
 const GOLD = SUN;
-const MUTED = '#56607A';
-const GREEN = '#15803D';
-const RED = '#DC2626';
-const AMBER = '#B45309';
+const MUTED = '#98A2B3';
+const GREEN = '#4ADE80';
+const RED = '#F87171';
+const AMBER = '#FBBF24';
+const TEXT = '#ECEFF4';
+const PANEL = '#181E29';
+const PANEL2 = '#212836';
+const PANEL3 = '#2A3242';
+const LINE = 'rgba(255,255,255,0.10)';
+const LINE2 = 'rgba(255,255,255,0.18)';
+const SHADOW = '0 10px 28px rgba(0,0,0,0.35)';
+const GOOD_BG = 'rgba(74,222,128,0.14)';
+const BAD_BG = 'rgba(248,113,113,0.15)';
+const WARN_BG = 'rgba(251,191,36,0.15)';
+const ACC_BG = 'rgba(245,165,36,0.14)';
+const MAP_SEA = '#0E1828';
+// Party colour darkened towards the panel colour, for tinted rows.
+const tint = (c, k = 0.55) => mixHex(c, '#141922', k);
 
 const GLOBAL_CSS = `
-.sbl { --ink: #1F2544; --sky: #A9DCF6; --paper: #FFFFFF; --paper2: #EEF6FC; --muted: #56607A; --sun: #FDB913;
-  --leaf: #1F9D55; --berry: #E5484D; color: var(--ink); background: var(--sky); font-family: 'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
-.sbl ::selection { background: #FDE68A }
-.cx-card { background: var(--paper); border: 3px solid var(--ink); border-radius: 22px; box-shadow: 0 5px 0 var(--ink); }
-.cx-soft { background: var(--paper2); border-radius: 16px; }
+.sbl { --ink: #0F131B; --bg: #0D1118; --panel: #181E29; --panel2: #212836; --panel3: #2A3242; --line: rgba(255,255,255,.10); --line2: rgba(255,255,255,.18);
+  --text: #ECEFF4; --muted: #98A2B3; --sun: #F5A524; --acc: #F5A524; --good: #4ADE80; --bad: #F87171; --warn: #FBBF24;
+  color: var(--text); background: var(--bg); font-family: 'Barlow', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  position: relative; isolation: isolate; }
+.sbl ::selection { background: rgba(245,165,36,.4) }
+.sbl ::-webkit-scrollbar { width: 8px; height: 8px } .sbl ::-webkit-scrollbar-thumb { background: rgba(255,255,255,.14); border-radius: 8px } .sbl ::-webkit-scrollbar-track { background: transparent }
+.cx-card { background: linear-gradient(180deg, rgba(34,41,55,.97), rgba(22,27,37,.97)); border: 1px solid var(--line); border-radius: 14px;
+  box-shadow: 0 12px 32px rgba(0,0,0,.38), inset 0 1px 0 rgba(255,255,255,.05); }
+.cx-soft { background: rgba(255,255,255,.045); border: 1px solid rgba(255,255,255,.05); border-radius: 10px; }
+.cx-panel2 { background: var(--panel2); }
 :where(.cx-btn) { display: inline-flex; align-items: center; justify-content: center; gap: 8px; text-align: center; }
-.cx-btn { border: 3px solid var(--ink); border-radius: 16px; box-shadow: 0 5px 0 var(--ink); font-weight: 800; color: var(--ink);
-  background: var(--paper); cursor: pointer; user-select: none; -webkit-user-select: none;
-  transition: transform .08s ease, box-shadow .08s ease, background-color .15s ease; }
-.cx-btn:active:not(:disabled) { transform: translateY(4px); box-shadow: 0 1px 0 var(--ink); }
-.cx-btn:disabled { opacity: .45; cursor: not-allowed; box-shadow: 0 3px 0 var(--ink); }
-.cx-btn:focus-visible, .cx-tap:focus-visible { outline: 3px solid #2563EB; outline-offset: 3px; }
-.cx-tap { cursor: pointer; transition: transform .08s ease; }
-.cx-tap:active { transform: scale(.98); }
-.cx-sun { background: var(--sun); } .cx-leaf { background: var(--leaf); color: #fff; } .cx-berry { background: var(--berry); color: #fff; }
-.cx-white { background: #fff; } .cx-pale { background: #DDF0FB; } .cx-cream { background: #FFF6D8; } .cx-night { background: #2A2F55; color: #fff; }
+.cx-btn { border: 1px solid var(--line2); border-radius: 10px; font-weight: 700; color: var(--text); background: var(--panel3);
+  cursor: pointer; user-select: none; -webkit-user-select: none; box-shadow: 0 4px 14px rgba(0,0,0,.25), inset 0 1px 0 rgba(255,255,255,.07);
+  transition: transform .08s ease, filter .15s ease, background-color .15s ease, border-color .15s ease; }
+.cx-btn:hover:not(:disabled) { filter: brightness(1.1); border-color: rgba(255,255,255,.32); }
+.cx-btn:active:not(:disabled) { transform: translateY(1px) scale(.99); }
+.cx-btn:disabled { opacity: .38; cursor: not-allowed; }
+.cx-btn:focus-visible, .cx-tap:focus-visible { outline: 2px solid var(--acc); outline-offset: 2px; }
+.cx-cta { font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif; font-style: italic; font-weight: 700; letter-spacing: .015em; }
+.cx-tap { cursor: pointer; transition: transform .08s ease, border-color .15s ease, background-color .15s ease; }
+.cx-tap:hover { border-color: rgba(255,255,255,.24); }
+.cx-tap:active { transform: scale(.99); }
+.cx-sun { background: linear-gradient(180deg, #FFBA3F, #EE980F); color: #1B1204; border-color: rgba(0,0,0,.3);
+  box-shadow: 0 6px 20px rgba(245,165,36,.25), inset 0 1px 0 rgba(255,255,255,.4); }
+.cx-leaf { background: linear-gradient(180deg, #34B26A, #22874D); color: #fff; }
+.cx-berry { background: linear-gradient(180deg, #E5484D, #C2353A); color: #fff; }
+.cx-white { background: var(--panel3); color: var(--text); }
+.cx-pale { background: rgba(255,255,255,.06); color: var(--text); }
+.cx-cream { background: linear-gradient(180deg, rgba(245,165,36,.13), rgba(245,165,36,.05)), var(--panel); border-color: rgba(245,165,36,.35); }
+.cx-night { background: var(--panel); color: var(--text); }
+.cx-quote { background: #F3F4F6; color: #11141B; border: 0; border-radius: 18px; box-shadow: 0 8px 20px rgba(0,0,0,.35); }
+.cx-quote:hover:not(:disabled) { background: #fff; transform: translateX(3px); }
+.cx-quote:disabled { opacity: .35; }
+.cx-quote.cx-sun { background: linear-gradient(180deg, #FFBA3F, #EE980F); }
 :where(.cx-chip) { display: inline-flex; align-items: center; gap: 6px; }
-.cx-chip { border: 2.5px solid var(--ink); border-radius: 999px; background: #fff; font-weight: 800; }
-.cx-title { font-family: 'Fredoka', 'Baloo 2', 'Trebuchet MS', system-ui, sans-serif; font-weight: 700; letter-spacing: -0.01em; text-wrap: balance; }
-.cx-num { font-family: 'Fredoka', 'Baloo 2', 'Trebuchet MS', system-ui, sans-serif; font-variant-numeric: tabular-nums; font-weight: 600; }
+.cx-chip { border: 1px solid var(--line2); border-radius: 999px; background: rgba(255,255,255,.06); color: var(--text); font-weight: 700; }
+.cx-pill { display: inline-flex; align-items: center; gap: 6px; background: #F3F4F6; color: #11141B; border-radius: 999px;
+  font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif; font-weight: 700; font-variant-numeric: tabular-nums; box-shadow: 0 3px 10px rgba(0,0,0,.3); }
+.cx-title { font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif; font-style: italic; font-weight: 700; letter-spacing: .005em; text-wrap: balance; }
+.cx-num { font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif; font-variant-numeric: tabular-nums; font-weight: 700; }
+.cx-kicker { font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif; font-style: italic; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--acc); }
+.cx-bar { background: #07090D; color: #fff; }
 .t-muted { color: var(--muted); }
-.cx-track { background: #E3EDF5; border: 2.5px solid var(--ink); border-radius: 999px; overflow: hidden; }
-.cx-logo { font-family: 'Fredoka', 'Baloo 2', 'Trebuchet MS', system-ui, sans-serif; font-weight: 700; color: var(--sun);
-  -webkit-text-stroke: 4px var(--ink); paint-order: stroke fill; text-shadow: 0 7px 0 var(--ink); letter-spacing: 0.01em; }
+.cx-track { background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.10); border-radius: 999px; overflow: hidden; }
+.cx-logo { font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif; font-style: italic; font-weight: 800; color: #fff; letter-spacing: .01em;
+  text-shadow: 0 10px 40px rgba(0,0,0,.7); }
+.cx-scene svg { filter: saturate(.82) contrast(1.06); }
+.cx-scene svg path, .cx-scene svg rect, .cx-scene svg circle, .cx-scene svg ellipse, .cx-scene svg line, .cx-scene svg polyline { stroke-opacity: .55; }
+.cx-map-dark path, .cx-map-dark circle { transition: fill .35s ease }
 .cx-wheel { transition: transform 3.4s cubic-bezier(.12,.75,.12,1); transform-box: fill-box; transform-origin: center; }
 .cx-ticker-wrap { overflow: hidden; white-space: nowrap; }
 .cx-ticker { display: inline-flex; gap: 32px; padding-left: 100%; animation: cx-ticker 38s linear infinite; }
@@ -105,7 +145,7 @@ const GLOBAL_CSS = `
 @keyframes cx-fade { from { opacity: 0 } to { opacity: 1 } }
 @keyframes cx-pop { 0% { transform: scale(.7); opacity: 0 } 70% { transform: scale(1.06) } 100% { transform: scale(1); opacity: 1 } }
 @keyframes cx-bob { 0%, 100% { transform: translateY(0) } 50% { transform: translateY(-7px) } }
-@keyframes cx-glow { 0% { box-shadow: 0 5px 0 var(--ink), 0 0 0 0 rgba(253,185,19,.9) } 100% { box-shadow: 0 5px 0 var(--ink), 0 0 0 14px rgba(253,185,19,0) } }
+@keyframes cx-glow { 0% { box-shadow: 0 0 0 0 rgba(245,165,36,.75) } 100% { box-shadow: 0 0 0 16px rgba(245,165,36,0) } }
 @keyframes cx-blink { 0%, 100% { opacity: 1 } 50% { opacity: .4 } }
 @keyframes cx-fall { 0% { transform: translateY(-12vh) rotate(0deg) } 100% { transform: translateY(112vh) rotate(760deg) } }
 @keyframes cx-shake { 0%, 100% { transform: translateX(0) } 25% { transform: translateX(-6px) } 75% { transform: translateX(6px) } }
@@ -117,7 +157,7 @@ const GLOBAL_CSS = `
 .cx-shake { animation: cx-shake .35s ease 2 }
 .cx-bob { animation: cx-bob 1.1s ease-in-out infinite; transform-box: fill-box; transform-origin: center }
 .cx-glow { animation: cx-glow 1.3s ease-out infinite }
-.cx-confetti { position: fixed; top: 0; width: 11px; height: 15px; border: 2px solid var(--ink); border-radius: 3px; z-index: 70; pointer-events: none; animation: cx-fall linear forwards; }
+.cx-confetti { position: fixed; top: 0; width: 9px; height: 14px; border-radius: 2px; z-index: 70; pointer-events: none; animation: cx-fall linear forwards; }
 .sbl-scroll { -webkit-overflow-scrolling: touch; overscroll-behavior: contain }
 .cx-map path, .cx-map circle { transition: fill .35s ease }
 @keyframes cx-ping { 0% { transform: scale(1); opacity: .7 } 100% { transform: scale(2.3); opacity: 0 } }
@@ -2555,10 +2595,10 @@ function raceInfo(g, r, sharesIn) {
   return { s, ord, lead, rival, gap, rank, status };
 }
 const STATUS_LOOK = {
-  safe: { label: bi('Winning', 'Pirmaujate'), bg: '#BBF7D0' },
-  close: { label: bi('Toss-up', 'Lygi kova'), bg: '#FDE68A' },
-  behind: { label: bi('Behind', 'Atsiliekate'), bg: '#FED7AA' },
-  far: { label: bi('Long shot', 'Mažai šansų'), bg: '#FECACA' },
+  safe: { label: bi('Winning', 'Pirmaujate'), bg: 'rgba(74,222,128,0.18)', fg: '#86EFAC' },
+  close: { label: bi('Toss-up', 'Lygi kova'), bg: 'rgba(251,191,36,0.2)', fg: '#FCD34D' },
+  behind: { label: bi('Behind', 'Atsiliekate'), bg: 'rgba(251,146,60,0.18)', fg: '#FDBA74' },
+  far: { label: bi('Long shot', 'Mažai šansų'), bg: 'rgba(248,113,113,0.18)', fg: '#FCA5A5' },
 };
 function raceText(info) {
   const R = partyShort(info.rival);
@@ -2640,7 +2680,7 @@ function writeSave(g) {
    ============================================================ */
 function Tricolor({ className = '', h = 5 }) {
   return (
-    <div className={`flex flex-col overflow-hidden rounded-md ${className}`} style={{ border: `2.5px solid ${INK}` }} aria-hidden="true">
+    <div className={`flex flex-col overflow-hidden rounded-sm ${className}`} style={{ boxShadow: '0 4px 14px rgba(0,0,0,.4)' }} aria-hidden="true">
       <span style={{ background: FLAG.y, height: h }} />
       <span style={{ background: FLAG.g, height: h }} />
       <span style={{ background: FLAG.r, height: h }} />
@@ -2648,7 +2688,7 @@ function Tricolor({ className = '', h = 5 }) {
   );
 }
 function Btn({ children, onClick, disabled, kind = 'sun', className = '', ...rest }) {
-  return <button type="button" onClick={onClick} disabled={disabled} className={`cx-btn cx-${kind} ${className}`} {...rest}>{children}</button>;
+  return <button type="button" onClick={onClick} disabled={disabled} className={`cx-btn cx-cta cx-${kind} ${className}`} {...rest}>{children}</button>;
 }
 function Card({ children, className = '', style }) {
   return <section className={`cx-card ${className}`} style={style}>{children}</section>;
@@ -2657,26 +2697,35 @@ function CardTitle({ children, sub, right, info }) {
   return (
     <div className="flex items-start justify-between gap-3 mb-3">
       <div className="min-w-0">
-        <h3 className="cx-title text-xl leading-tight inline-flex items-center gap-2">{children}{info}</h3>
-        {sub && <p className="text-sm t-muted font-semibold mt-0.5">{sub}</p>}
+        <h3 className="cx-title text-xl leading-tight inline-flex items-center gap-2"><span className="inline-block rounded-sm shrink-0" style={{ width: 4, height: 18, background: SUN }} />{children}{info}</h3>
+        {sub && <p className="text-sm t-muted font-medium mt-1 leading-snug">{sub}</p>}
       </div>
       {right}
     </div>
   );
 }
 function PartyDot({ p, size = 14 }) {
-  return <span className="inline-block rounded-full shrink-0" style={{ width: size, height: size, background: PARTIES[p].color, border: `2px solid ${INK}` }} />;
+  return <span className="inline-block rounded-full shrink-0" style={{ width: size, height: size, background: PARTIES[p].color, boxShadow: '0 0 0 1.5px rgba(255,255,255,.55)' }} />;
 }
 function PartyEmblem({ p, size = 48, label }) {
   const P = PARTIES[p];
   const Icon = P.emblem;
+  const uid = useId().replace(/:/g, '');
+  const h = Math.round(size * 1.1);
   return (
-    <span className="relative inline-grid place-items-center rounded-full shrink-0" style={{ width: size, height: size, background: P.color, border: `3px solid ${INK}` }} aria-hidden="true">
-      <span className="grid place-items-center rounded-full bg-white" style={{ width: size * 0.62, height: size * 0.62, border: `2px solid ${INK}` }}>
-        <Icon size={size * 0.34} strokeWidth={2.6} style={{ color: P.color === '#EAB308' ? '#A16207' : P.color }} />
-      </span>
+    <span className="relative inline-block shrink-0" style={{ width: size, height: h }} aria-hidden="true">
+      <svg viewBox="0 0 64 70" width={size} height={h} style={{ display: 'block', filter: 'drop-shadow(0 3px 5px rgba(0,0,0,.5))' }}>
+        <defs>
+          <linearGradient id={`sr${uid}`} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#F2D99A" /><stop offset="1" stopColor="#A9823C" /></linearGradient>
+          <linearGradient id={`sf${uid}`} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor={mixHex(P.color, '#FFFFFF', 0.18)} /><stop offset="1" stopColor={mixHex(P.color, '#000000', 0.3)} /></linearGradient>
+        </defs>
+        <path d="M32 2 L60 10 V33 C60 51 47 62 32 68 C17 62 4 51 4 33 V10 Z" fill={`url(#sr${uid})`} />
+        <path d="M32 7 L55 13.5 V33 C55 48 44.5 57.5 32 62.5 C19.5 57.5 9 48 9 33 V13.5 Z" fill={`url(#sf${uid})`} />
+        <path d="M32 7 L55 13.5 V30 C44 26 20 26 9 30 V13.5 Z" fill="#fff" opacity="0.12" />
+      </svg>
+      <span className="absolute inset-x-0 top-0 grid place-items-center" style={{ height: h * 0.9 }}><Icon size={Math.round(size * 0.4)} strokeWidth={2.4} color="#fff" /></span>
       {label != null && (
-        <span className="absolute -bottom-1.5 -right-1.5 cx-num text-xs rounded-full px-1.5 bg-white" style={{ border: `2px solid ${INK}`, lineHeight: '18px' }}>{label}</span>
+        <span className="absolute -bottom-1 -right-2 cx-pill text-xs px-1.5" style={{ lineHeight: '18px' }}>{label}</span>
       )}
     </span>
   );
@@ -2687,8 +2736,8 @@ function PartyChip({ p, children }) {
 function Bar({ value, max = 100, color = SUN, mark, h = 14 }) {
   return (
     <div className="cx-track relative" style={{ height: h }}>
-      <div className="h-full" style={{ width: `${clamp((value / max) * 100, 0, 100)}%`, background: color, borderRight: value > 0 ? `2px solid ${INK}` : 'none' }} />
-      {mark != null && <div className="absolute top-0 bottom-0" style={{ left: `${(mark / max) * 100}%`, width: 3, background: INK }} />}
+      <div className="h-full" style={{ width: `${clamp((value / max) * 100, 0, 100)}%`, background: `linear-gradient(180deg, ${mixHex(color, '#FFFFFF', 0.18)}, ${color})`, borderRadius: 999 }} />
+      {mark != null && <div className="absolute top-0 bottom-0" style={{ left: `${(mark / max) * 100}%`, width: 2, background: 'rgba(255,255,255,.85)' }} />}
     </div>
   );
 }
@@ -2756,11 +2805,11 @@ const HAIR_FRONT = {
   bob: 'M18.8 30 C18.6 21 25 16.8 32 16.8 C39 16.8 45.4 21 45.2 30 C44 26.2 42 24.6 40 24.6 L24 24.6 C22 24.6 20 26.2 18.8 30 Z',
   bun: 'M18.8 30 C18.6 21 25 17 32 17 C39 17 45.4 21 45.2 30 C42 25.4 37.6 23.4 32 23.4 C26.4 23.4 22 25.4 18.8 30 Z',
 };
-function FaceArt({ who, mood = 'happy', ring, uid }) {
+function FaceArt({ who, mood = 'happy', ring, uid, shape = 'circle' }) {
   const P = PARTIES[who];
   const lk = LOOKS[who] || LOOKS.KITI;
   const acc = lk.acc || (P ? P.color : SUN);
-  const bg = lk.bg || (P ? mixHex(P.color, '#FFFFFF', 0.62) : '#E2E8F0');
+  const base = P ? P.color : lk.bg ? mixHex(lk.bg, '#334155', 0.35) : '#64748B';
   const skin = SKIN[lk.s || 0];
   const gl = lk.glasses;
   const by = gl ? -1.3 : 0;
@@ -2768,29 +2817,38 @@ function FaceArt({ who, mood = 'happy', ring, uid }) {
   const browD = mood === 'sad' ? ['M24.6 28.6 L29.6 26.9', 'M34.4 26.9 L39.4 28.6'] : mood === 'grr' ? ['M24.6 27 L29.6 28.6', 'M34.4 28.6 L39.4 27'] : ['M24.6 28.4 Q27.1 26.8 29.6 28.2', 'M34.4 28.2 Q36.9 26.8 39.4 28.4'];
   const my = lk.mous ? 1 : 0;
   const mouth = {
-    happy: <path d={`M27 ${38 + my} Q32 ${43 + my} 37 ${38 + my}`} fill="none" stroke={INK} strokeWidth="2.2" strokeLinecap="round" />,
-    grin: <path d={`M26.4 ${37.4 + my} Q32 ${45.5 + my} 37.6 ${37.4 + my} Z`} fill="#7F1D1D" stroke={INK} strokeWidth="2" strokeLinejoin="round" />,
-    ok: <path d={`M27.6 ${39.6 + my} Q32 ${41 + my} 36.4 ${39.6 + my}`} fill="none" stroke={INK} strokeWidth="2.2" strokeLinecap="round" />,
-    sad: <path d={`M27.4 ${41.4 + my} Q32 ${37.6 + my} 36.6 ${41.4 + my}`} fill="none" stroke={INK} strokeWidth="2.2" strokeLinecap="round" />,
-    wow: <ellipse cx="32" cy={40 + my} rx="2.6" ry="3" fill="#7F1D1D" stroke={INK} strokeWidth="1.8" />,
-    grr: <path d={`M27.6 ${40.4 + my} L36.4 ${40.4 + my}`} fill="none" stroke={INK} strokeWidth="2.4" strokeLinecap="round" />,
+    happy: <path d={`M27 ${38 + my} Q32 ${43 + my} 37 ${38 + my}`} fill="none" stroke={INK} strokeWidth="1.5" strokeLinecap="round" />,
+    grin: <path d={`M26.4 ${37.4 + my} Q32 ${45.5 + my} 37.6 ${37.4 + my} Z`} fill="#7F1D1D" stroke={INK} strokeWidth="1.4" strokeLinejoin="round" />,
+    ok: <path d={`M27.6 ${39.6 + my} Q32 ${41 + my} 36.4 ${39.6 + my}`} fill="none" stroke={INK} strokeWidth="1.5" strokeLinecap="round" />,
+    sad: <path d={`M27.4 ${41.4 + my} Q32 ${37.6 + my} 36.6 ${41.4 + my}`} fill="none" stroke={INK} strokeWidth="1.5" strokeLinecap="round" />,
+    wow: <ellipse cx="32" cy={40 + my} rx="2.6" ry="3" fill="#7F1D1D" stroke={INK} strokeWidth="1.3" />,
+    grr: <path d={`M27.6 ${40.4 + my} L36.4 ${40.4 + my}`} fill="none" stroke={INK} strokeWidth="1.6" strokeLinecap="round" />,
   }[mood] || null;
   const eyeR = mood === 'wow' ? 2.3 : 1.9;
   const top = lk.top;
   return (
     <g>
-      <defs><clipPath id={`pc${uid}`}><circle cx="32" cy="32" r="29.5" /></clipPath></defs>
-      <circle cx="32" cy="32" r="29.5" fill={bg} />
+      <defs>
+        <clipPath id={`pc${uid}`}>{shape === 'circle' ? <circle cx="32" cy="32" r="29.5" /> : shape === 'sq' ? <rect x="2" y="2" width="60" height="60" rx="9" /> : <rect x="0" y="0" width="64" height="64" />}</clipPath>
+        <radialGradient id={`bg${uid}`} cx="50%" cy="38%" r="70%"><stop offset="0" stopColor={mixHex(base, '#1B2333', 0.35)} /><stop offset="1" stopColor="#0A0D14" /></radialGradient>
+        <radialGradient id={`fs${uid}`} cx="42%" cy="36%" r="70%"><stop offset="0" stopColor={mixHex(skin, '#FFFFFF', 0.14)} /><stop offset="0.7" stopColor={skin} /><stop offset="1" stopColor={mixHex(skin, '#6B3A22', 0.28)} /></radialGradient>
+        <linearGradient id={`sh${uid}`} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#FFFFFF" stopOpacity="0.14" /><stop offset="1" stopColor="#000000" stopOpacity="0.32" /></linearGradient>
+        <linearGradient id={`hl${uid}`} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#FFFFFF" stopOpacity="0.22" /><stop offset="0.5" stopColor="#FFFFFF" stopOpacity="0" /></linearGradient>
+      </defs>
+      {shape === 'circle' ? <circle cx="32" cy="32" r="29.5" fill={`url(#bg${uid})`} /> : <rect x={shape === 'sq' ? 2 : 0} y={shape === 'sq' ? 2 : 0} width={shape === 'sq' ? 60 : 64} height={shape === 'sq' ? 60 : 64} rx={shape === 'sq' ? 9 : 0} fill={`url(#bg${uid})`} />}
       <g clipPath={`url(#pc${uid})`}>
-        <circle cx="32" cy="70" r="30" fill="#FFFFFF" opacity="0.35" />
-        {lk.hood && <path d="M12 64 C10 40 16 13 32 12 C48 13 54 40 52 64 Z" fill={top} stroke={INK} strokeWidth="2.5" />}
-        {HAIR_BACK[lk.hair] && <path d={HAIR_BACK[lk.hair]} fill={lk.hc} stroke={INK} strokeWidth="2.5" strokeLinejoin="round" />}
-        {lk.hair === 'bun' && <circle cx="32" cy="14.6" r="5.6" fill={lk.hc} stroke={INK} strokeWidth="2.4" />}
-        <path d="M11.5 66 C12.5 53 20.5 47.6 32 47.6 C43.5 47.6 51.5 53 52.5 66 Z" fill={lk.suit || top || '#475569'} stroke={INK} strokeWidth="2.5" strokeLinejoin="round" />
-        <path d="M28 43.5 L28 49.5 Q32 52.5 36 49.5 L36 43.5 Z" fill={skin} stroke={INK} strokeWidth="2.2" strokeLinejoin="round" />
+        <circle cx="32" cy="74" r="34" fill={base} opacity="0.35" />
+        <circle cx="32" cy="30" r="26" fill="#FFFFFF" opacity="0.04" />
+        {lk.hood && <path d="M12 64 C10 40 16 13 32 12 C48 13 54 40 52 64 Z" fill={top} stroke={INK} strokeWidth="1.7" />}
+        {HAIR_BACK[lk.hair] && <path d={HAIR_BACK[lk.hair]} fill={lk.hc} stroke={INK} strokeWidth="1.7" strokeLinejoin="round" />}
+        {lk.hair === 'bun' && <circle cx="32" cy="14.6" r="5.6" fill={lk.hc} stroke={INK} strokeWidth="1.6" />}
+        <path d="M11.5 66 C12.5 53 20.5 47.6 32 47.6 C43.5 47.6 51.5 53 52.5 66 Z" fill={lk.suit || top || '#475569'} stroke={INK} strokeWidth="1.7" strokeLinejoin="round" />
+        <path d="M11.5 66 C12.5 53 20.5 47.6 32 47.6 C43.5 47.6 51.5 53 52.5 66 Z" fill={`url(#sh${uid})`} />
+        <path d="M28 43.5 L28 49.5 Q32 52.5 36 49.5 L36 43.5 Z" fill={mixHex(skin, '#6B3A22', 0.12)} stroke={INK} strokeWidth="1.5" strokeLinejoin="round" />
+        <ellipse cx="32" cy="45.6" rx="5.6" ry="2.2" fill="#000" opacity="0.16" />
         {lk.suit && !lk.hood && (
           <g>
-            <path d="M26.8 48.4 L32 58.5 L37.2 48.4 Q32 51.6 26.8 48.4 Z" fill="#FFFFFF" stroke={INK} strokeWidth="1.8" strokeLinejoin="round" />
+            <path d="M26.8 48.4 L32 58.5 L37.2 48.4 Q32 51.6 26.8 48.4 Z" fill="#FFFFFF" stroke={INK} strokeWidth="1.3" strokeLinejoin="round" />
             {lk.bow
               ? <path d="M27.6 49.6 L31.4 51.4 L27.6 53.2 Z M36.4 49.6 L32.6 51.4 L36.4 53.2 Z" fill={acc} stroke={INK} strokeWidth="1.5" strokeLinejoin="round" />
               : <path d="M30.9 50.2 L33.1 50.2 L34 56 L32 59.5 L30 56 Z" fill={acc} stroke={INK} strokeWidth="1.5" strokeLinejoin="round" />}
@@ -2804,23 +2862,23 @@ function FaceArt({ who, mood = 'happy', ring, uid }) {
             <rect x="26.5" y="47.4" width="11" height="9" fill="none" stroke={INK} strokeWidth="1.5" />
           </g>
         )}
-        {lk.steth && <path d="M25 48 C24 55 28 58.5 32 58.5 C36 58.5 40 55 39 48 M32 58.5 L32 61" fill="none" stroke="#334155" strokeWidth="1.8" strokeLinecap="round" />}
-        <circle cx="18.8" cy="33.2" r="2.9" fill={skin} stroke={INK} strokeWidth="2" />
-        <circle cx="45.2" cy="33.2" r="2.9" fill={skin} stroke={INK} strokeWidth="2" />
+        {lk.steth && <path d="M25 48 C24 55 28 58.5 32 58.5 C36 58.5 40 55 39 48 M32 58.5 L32 61" fill="none" stroke="#334155" strokeWidth="1.3" strokeLinecap="round" />}
+        <circle cx="18.8" cy="33.2" r="2.9" fill={skin} stroke={INK} strokeWidth="1.4" />
+        <circle cx="45.2" cy="33.2" r="2.9" fill={skin} stroke={INK} strokeWidth="1.4" />
         {lk.earring && <circle cx="18.6" cy="37.4" r="1.4" fill={SUN} stroke={INK} strokeWidth="1" />}
-        <ellipse cx="32" cy="31.6" rx="13.2" ry="14.2" fill={skin} stroke={INK} strokeWidth="2.5" />
+        <ellipse cx="32" cy="31.6" rx="13.2" ry="14.2" fill={`url(#fs${uid})`} stroke={INK} strokeWidth="1.7" />
         {lk.beard && (
           <path
             d="M19.4 33.6 C19.8 44 25 47.4 32 47.4 C39 47.4 44.2 44 44.6 33.6 C43.6 39 41 42.2 38 42.8 C35 43.3 29 43.3 26 42.8 C23 42.2 20.4 39 19.4 33.6 Z"
-            fill={lk.hc} opacity={lk.beard === 'stubble' ? 0.28 : 0.95} stroke={lk.beard === 'stubble' ? 'none' : INK} strokeWidth="2" strokeLinejoin="round"
+            fill={lk.hc} opacity={lk.beard === 'stubble' ? 0.28 : 0.95} stroke={lk.beard === 'stubble' ? 'none' : INK} strokeWidth="1.4" strokeLinejoin="round"
           />
         )}
         {(lk.mous || lk.beard === 'full') && <path d="M26.8 37.6 C28.8 35.8 31 36.2 32 37.2 C33 36.2 35.2 35.8 37.2 37.6 C35.6 38.8 33.6 38.6 32 38 C30.4 38.6 28.4 38.8 26.8 37.6 Z" fill={lk.hc} stroke={INK} strokeWidth="1.5" strokeLinejoin="round" />}
         {HAIR_FRONT[lk.hair] && (
-          <path d={HAIR_FRONT[lk.hair]} fill={lk.hc} opacity={lk.hair === 'shaved' ? 0.6 : 1} stroke={INK} strokeWidth="2.3" strokeLinejoin="round" />
+          <g><path d={HAIR_FRONT[lk.hair]} fill={lk.hc} opacity={lk.hair === 'shaved' ? 0.6 : 1} stroke={INK} strokeWidth="1.6" strokeLinejoin="round" /><path d={HAIR_FRONT[lk.hair]} fill={`url(#hl${uid})`} /></g>
         )}
         {lk.hair === 'receding' && (
-          <g fill={lk.hc} stroke={INK} strokeWidth="2" strokeLinejoin="round">
+          <g fill={lk.hc} stroke={INK} strokeWidth="1.4" strokeLinejoin="round">
             <path d="M18.9 34 C18.4 27.5 19.6 24 22.4 22.2 C21.6 26 21.6 29.6 22.2 34 Z" />
             <path d="M45.1 34 C45.6 27.5 44.4 24 41.6 22.2 C42.4 26 42.4 29.6 41.8 34 Z" />
           </g>
@@ -2830,36 +2888,38 @@ function FaceArt({ who, mood = 'happy', ring, uid }) {
           <path d={browD[0]} /><path d={browD[1]} />
         </g>
         {mood === 'grin'
-          ? <g fill="none" stroke={INK} strokeWidth="2" strokeLinecap="round"><path d="M24.8 33 Q27 30.6 29.2 33" /><path d="M34.8 33 Q37 30.6 39.2 33" /></g>
-          : <g fill={INK}><circle cx="27" cy="32.6" r={eyeR} /><circle cx="37" cy="32.6" r={eyeR} /></g>}
-        {gl === 'round' && <g fill="#FFFFFF" fillOpacity="0.18" stroke={INK} strokeWidth="1.8"><circle cx="27" cy="32.6" r="4.4" /><circle cx="37" cy="32.6" r="4.4" /><path d="M31.4 32.2 L32.6 32.2" /></g>}
-        {gl === 'rect' && <g fill="#FFFFFF" fillOpacity="0.18" stroke={INK} strokeWidth="1.8"><rect x="22.4" y="29.4" width="9" height="6.6" rx="1.8" /><rect x="32.6" y="29.4" width="9" height="6.6" rx="1.8" /><path d="M31.4 31.6 L32.6 31.6" /></g>}
-        <circle cx="23.2" cy="37.4" r="2.2" fill="#F28B82" opacity="0.6" /><circle cx="40.8" cy="37.4" r="2.2" fill="#F28B82" opacity="0.6" />
+          ? <g fill="none" stroke={INK} strokeWidth="1.4" strokeLinecap="round"><path d="M24.8 33 Q27 30.6 29.2 33" /><path d="M34.8 33 Q37 30.6 39.2 33" /></g>
+          : <g><g fill={INK}><circle cx="27" cy="32.6" r={eyeR} /><circle cx="37" cy="32.6" r={eyeR} /></g><g fill="#fff" opacity="0.85"><circle cx="27.7" cy="31.9" r="0.6" /><circle cx="37.7" cy="31.9" r="0.6" /></g></g>}
+        {gl === 'round' && <g fill="#FFFFFF" fillOpacity="0.18" stroke={INK} strokeWidth="1.3"><circle cx="27" cy="32.6" r="4.4" /><circle cx="37" cy="32.6" r="4.4" /><path d="M31.4 32.2 L32.6 32.2" /></g>}
+        {gl === 'rect' && <g fill="#FFFFFF" fillOpacity="0.18" stroke={INK} strokeWidth="1.3"><rect x="22.4" y="29.4" width="9" height="6.6" rx="1.8" /><rect x="32.6" y="29.4" width="9" height="6.6" rx="1.8" /><path d="M31.4 31.6 L32.6 31.6" /></g>}
+        <circle cx="23.2" cy="37.4" r="2.4" fill="#E07A6E" opacity="0.22" /><circle cx="40.8" cy="37.4" r="2.4" fill="#E07A6E" opacity="0.22" />
+        <path d="M32.6 33.4 Q30.9 37 32.9 37.8" fill="none" stroke={mixHex(skin, '#5A2E1A', 0.55)} strokeWidth="1.1" strokeLinecap="round" />
         {mouth}
         {lk.headset && (
-          <g fill="none" stroke={INK} strokeWidth="2.4" strokeLinecap="round">
+          <g fill="none" stroke={INK} strokeWidth="1.6" strokeLinecap="round">
             <path d="M17.6 31 C17 14 47 14 46.4 31" />
             <rect x="15" y="29" width="5" height="8" rx="2" fill="#334155" />
-            <path d="M17.6 36.6 C18.6 41.6 22.4 43 26 42.2" strokeWidth="1.8" />
+            <path d="M17.6 36.6 C18.6 41.6 22.4 43 26 42.2" strokeWidth="1.3" />
             <circle cx="26.4" cy="42.1" r="1.4" fill={INK} />
           </g>
         )}
-        {lk.visor && <path d="M17.2 25.6 C22 21.6 42 21.6 46.8 25.6 L48.6 28.4 C42 24.6 22 24.6 15.4 28.4 Z" fill="#16A34A" fillOpacity="0.85" stroke={INK} strokeWidth="2" strokeLinejoin="round" />}
+        {lk.visor && <path d="M17.2 25.6 C22 21.6 42 21.6 46.8 25.6 L48.6 28.4 C42 24.6 22 24.6 15.4 28.4 Z" fill="#16A34A" fillOpacity="0.85" stroke={INK} strokeWidth="1.4" strokeLinejoin="round" />}
         {lk.hat && (
-          <g stroke={INK} strokeWidth="2.3" strokeLinejoin="round">
+          <g stroke={INK} strokeWidth="1.6" strokeLinejoin="round">
             <path d="M21 23.6 C20.6 12.4 43.4 12.4 43 23.6 Z" fill="#57534E" />
             <path d="M21.2 21 L42.8 21 L43 23.6 L21 23.6 Z" fill="#1F2544" />
             <ellipse cx="32" cy="24" rx="17.4" ry="3.4" fill="#57534E" />
           </g>
         )}
         {lk.cap && (
-          <g stroke={INK} strokeWidth="2.3" strokeLinejoin="round">
+          <g stroke={INK} strokeWidth="1.6" strokeLinejoin="round">
             <path d="M18.8 26.4 C18.4 15.6 45.6 15.6 45.2 26.4 Z" fill={lk.cap} />
             <path d="M30 26.2 C36 24 44 24.4 50.6 26.8 C46 29 36 28.8 30 26.2 Z" fill={lk.cap} />
           </g>
         )}
       </g>
-      <circle cx="32" cy="32" r="29.5" fill="none" stroke={ring || INK} strokeWidth={ring ? 4 : 3} />
+      {shape === 'circle' && <circle cx="32" cy="32" r="29.5" fill="none" stroke={ring || 'rgba(255,255,255,0.6)'} strokeWidth={ring ? 3 : 1.6} />}
+      {shape === 'sq' && <rect x="2" y="2" width="60" height="60" rx="9" fill="none" stroke={ring || (P ? P.color : 'rgba(255,255,255,0.6)')} strokeWidth={ring ? 3 : 2.2} />}
     </g>
   );
 }
@@ -2867,17 +2927,19 @@ function faceName(who) {
   const P = PARTIES[who];
   return P ? (P.leader || partyShort(who)) : CHAR_NAMES[who] ? L(CHAR_NAMES[who]) : '';
 }
-function Portrait({ who, size = 56, mood = 'happy', badge, ring, title }) {
+function Portrait({ who, size = 56, mood = 'happy', badge, ring, title, square, frameless }) {
   const uid = useId().replace(/:/g, '');
   const P = PARTIES[who];
+  const fluid = typeof size === 'string';
+  const num = fluid ? 96 : size;
   return (
-    <span className="relative inline-block shrink-0 align-middle" style={{ width: size, height: size }}>
-      <svg viewBox="0 0 64 64" width={size} height={size} role="img" aria-label={title || faceName(who)} style={{ display: 'block' }}>
-        <FaceArt who={who} mood={mood} ring={ring} uid={uid} />
+    <span className="relative inline-block shrink-0 align-middle" style={fluid ? { width: size, aspectRatio: '1 / 1', display: 'block' } : { width: size, height: size }}>
+      <svg viewBox="0 0 64 64" width={fluid ? '100%' : size} height={fluid ? '100%' : size} role="img" aria-label={title || faceName(who)} style={{ display: 'block' }}>
+        <FaceArt who={who} mood={mood} ring={ring} uid={uid} shape={frameless ? 'full' : square ? 'sq' : 'circle'} />
       </svg>
       {badge && P && who !== 'KITI' && (
-        <span className="absolute" style={{ right: -Math.round(size * 0.08), bottom: -Math.round(size * 0.06) }}>
-          <PartyEmblem p={who} size={Math.max(20, Math.round(size * 0.42))} />
+        <span className="absolute" style={{ right: -Math.round(num * 0.1), bottom: -Math.round(num * 0.1) }}>
+          <PartyEmblem p={who} size={Math.max(18, Math.round(num * 0.36))} />
         </span>
       )}
     </span>
@@ -2925,9 +2987,9 @@ const SCENE_CAP = {
   night: bi('Election night at the Seimas', 'Rinkimų naktis prie Seimo'),
 };
 const REGION_SCENE = { VNO: 'vilnius', VLC: 'trakai', KNS: 'kaunas', KNC: 'fields', KLP: 'klaipeda', TEL: 'lakes', TAU: 'fields', SIA: 'crosses', PAN: 'town', UTE: 'lakes', ALY: 'town', MAR: 'fields', ABR: 'world' };
-const SW = { stroke: INK, strokeWidth: 2.4, strokeLinejoin: 'round' };
+const SW = { stroke: INK, strokeWidth: 1.8, strokeLinejoin: 'round' };
 function SkyCloud({ x, y, s = 1 }) {
-  return <path transform={`translate(${x} ${y}) scale(${s})`} d="M0 14 C-1 7 6 3 11 6 C13 -1 25 -2 28 5 C34 3 39 8 37 14 Z" fill="#FFFFFF" {...SW} strokeWidth={2 / s} />;
+  return <path transform={`translate(${x} ${y}) scale(${s})`} d="M0 14 C-1 7 6 3 11 6 C13 -1 25 -2 28 5 C34 3 39 8 37 14 Z" fill="#F6DCCB" opacity="0.42" />;
 }
 function TriFlag({ x, y, w = 18, pole = 22 }) {
   const h = w * 0.6;
@@ -2964,53 +3026,53 @@ function sceneRand(seed) {
 }
 function SceneArt({ kind, uid, parties }) {
   const night = kind === 'night' || kind === 'studio';
-  const sky = night ? ['#1B2050', '#3B3F7A'] : ['#78C6F3', '#D3F0FF'];
-  const water = (y, c = '#4FA3E0') => (
+  const sky = night ? ['#070B1C', '#1B2150', '#353A70'] : ['#22365A', '#71819F', '#E9AE7E'];
+  const water = (y, c = '#3E6E9A') => (
     <g>
       <rect x="-2" y={y} width="364" height={142 - y} fill={c} stroke={INK} strokeWidth="2.4" />
       {[0, 1, 2].map((i) => <path key={i} d={`M${30 + i * 110} ${y + 14 + (i % 2) * 10} q8 -5 16 0 t16 0`} fill="none" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" opacity="0.8" />)}
     </g>
   );
-  const ground = (c = '#7ACB5A', d = 'M-2 112 C60 99 120 104 180 109 C240 114 300 100 362 105 L362 142 L-2 142 Z') => <path d={d} fill={c} {...SW} />;
+  const ground = (c = '#5C8F48', d = 'M-2 112 C60 99 120 104 180 109 C240 114 300 100 362 105 L362 142 L-2 142 Z') => <path d={d} fill={c} {...SW} />;
   let body = null;
   if (kind === 'vilnius') {
     body = (
       <g>
-        {[[8, 78, 26, 34], [36, 70, 22, 42], [210, 74, 26, 38], [300, 80, 30, 32], [334, 72, 26, 40]].map(([x, y, w, h], i) => <rect key={i} x={x} y={y} width={w} height={h} fill="#EAF2F9" stroke={INK} strokeWidth="1.8" />)}
-        <rect x="246" y="46" width="16" height="66" fill="#F8FAFC" stroke={INK} strokeWidth="2" />
-        <path d="M244 46 L254 30 L264 46 Z" fill="#F8FAFC" {...SW} strokeWidth="2" />
+        {[[8, 78, 26, 34], [36, 70, 22, 42], [210, 74, 26, 38], [300, 80, 30, 32], [334, 72, 26, 40]].map(([x, y, w, h], i) => <rect key={i} x={x} y={y} width={w} height={h} fill="#A9B4C4" stroke={INK} strokeWidth="1.8" />)}
+        <rect x="246" y="46" width="16" height="66" fill="#D3D9E2" stroke={INK} strokeWidth="2" />
+        <path d="M244 46 L254 30 L264 46 Z" fill="#D3D9E2" {...SW} strokeWidth="2" />
         <rect x="250" y="56" width="8" height="10" rx="4" fill="#94A3B8" stroke={INK} strokeWidth="1.4" />
-        <path d="M266 112 L266 72 L298 72 L298 112 Z" fill="#F8FAFC" stroke={INK} strokeWidth="2" />
-        <path d="M262 72 L282 58 L302 72 Z" fill="#F1F5F9" {...SW} strokeWidth="2" />
+        <path d="M266 112 L266 72 L298 72 L298 112 Z" fill="#D3D9E2" stroke={INK} strokeWidth="2" />
+        <path d="M262 72 L282 58 L302 72 Z" fill="#C6CDD8" {...SW} strokeWidth="2" />
         {[270, 278, 286, 294].map((x) => <line key={x} x1={x} x2={x} y1="76" y2="110" stroke={INK} strokeWidth="1.4" opacity="0.5" />)}
-        <path d="M64 114 C84 82 104 68 140 66 C176 68 196 84 216 114 Z" fill="#5DBB4A" {...SW} />
-        {[[82, 98], [96, 86], [190, 92], [204, 104], [112, 78]].map(([x, y], i) => <circle key={i} cx={x} cy={y} r="7" fill="#2F9E55" stroke={INK} strokeWidth="1.8" />)}
-        <path d="M118 112 C126 98 134 86 140 80" fill="none" stroke="#E7D3A8" strokeWidth="3" strokeLinecap="round" />
-        <rect x="126" y="34" width="28" height="34" fill="#C0582E" stroke={INK} strokeWidth="2.4" />
+        <path d="M64 114 C84 82 104 68 140 66 C176 68 196 84 216 114 Z" fill="#4E8642" {...SW} />
+        {[[82, 98], [96, 86], [190, 92], [204, 104], [112, 78]].map(([x, y], i) => <circle key={i} cx={x} cy={y} r="7" fill="#2E7448" stroke={INK} strokeWidth="1.8" />)}
+        <path d="M118 112 C126 98 134 86 140 80" fill="none" stroke="#B9A57E" strokeWidth="3" strokeLinecap="round" />
+        <rect x="126" y="34" width="28" height="34" fill="#A2492A" stroke={INK} strokeWidth="2.4" />
         <Bricks x={126} y={34} w={28} h={34} />
         <line x1="134" y1="36" x2="134" y2="66" stroke={INK} strokeWidth="1.2" opacity="0.4" /><line x1="146" y1="36" x2="146" y2="66" stroke={INK} strokeWidth="1.2" opacity="0.4" />
         <path d="M136 52 L136 46 Q140 42 144 46 L144 52 Z" fill="#1F2544" />
-        <Battlement x={124} y={28} w={32} n={4} fill="#C0582E" />
+        <Battlement x={124} y={28} w={32} n={4} fill="#A2492A" />
         <TriFlag x={140} y={6} w={20} pole={22} />
       </g>
     );
   } else if (kind === 'trakai') {
     body = (
       <g>
-        <path d="M-2 92 C40 84 80 88 120 86 C170 84 220 90 260 86 C300 82 330 88 362 86 L362 100 L-2 100 Z" fill="#2F8F4E" {...SW} />
+        <path d="M-2 92 C40 84 80 88 120 86 C170 84 220 90 260 86 C300 82 330 88 362 86 L362 100 L-2 100 Z" fill="#2B6A43" {...SW} />
         {[20, 46, 300, 326, 350].map((x, i) => <Pine key={i} x={x} y={90} s={0.8} />)}
         {water(96)}
-        <ellipse cx="200" cy="104" rx="96" ry="9" fill="#5DBB4A" stroke={INK} strokeWidth="2.2" />
-        <rect x="132" y="66" width="136" height="36" fill="#C0582E" stroke={INK} strokeWidth="2.4" />
+        <ellipse cx="200" cy="104" rx="96" ry="9" fill="#4E8642" stroke={INK} strokeWidth="2.2" />
+        <rect x="132" y="66" width="136" height="36" fill="#A2492A" stroke={INK} strokeWidth="2.4" />
         <Bricks x={132} y={66} w={136} h={36} />
-        <Battlement x={132} y={60} w={136} n={9} fill="#C0582E" />
+        <Battlement x={132} y={60} w={136} n={9} fill="#A2492A" />
         {[[118, 58], [266, 58]].map(([x, y]) => (
           <g key={x}>
-            <rect x={x} y={y} width="16" height={102 - y} fill="#B4502A" stroke={INK} strokeWidth="2.2" />
+            <rect x={x} y={y} width="16" height={102 - y} fill="#934025" stroke={INK} strokeWidth="2.2" />
             <path d={`M${x - 3} ${y} L${x + 8} ${y - 18} L${x + 19} ${y} Z`} fill="#9F1D20" {...SW} strokeWidth="2" />
           </g>
         ))}
-        <rect x="186" y="34" width="30" height="68" fill="#C0582E" stroke={INK} strokeWidth="2.4" />
+        <rect x="186" y="34" width="30" height="68" fill="#A2492A" stroke={INK} strokeWidth="2.4" />
         <Bricks x={186} y={34} w={30} h={68} />
         <path d="M182 34 L201 10 L220 34 Z" fill="#9F1D20" {...SW} />
         {[194, 204].map((x) => <path key={x} d={`M${x} 52 L${x} 46 Q${x + 2.5} 43 ${x + 5} 46 L${x + 5} 52 Z`} fill="#1F2544" />)}
@@ -3024,37 +3086,37 @@ function SceneArt({ kind, uid, parties }) {
   } else if (kind === 'kaunas') {
     body = (
       <g>
-        <path d="M-2 96 C50 88 90 92 140 94 C200 96 260 86 362 90 L362 142 L-2 142 Z" fill="#7ACB5A" {...SW} />
+        <path d="M-2 96 C50 88 90 92 140 94 C200 96 260 86 362 90 L362 142 L-2 142 Z" fill="#5C8F48" {...SW} />
         <path d="M200 142 C220 124 270 112 362 110 L362 142 Z" fill="#4FA3E0" {...SW} />
         <path d="M250 128 q8 -5 16 0 t16 0" fill="none" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" />
-        <rect x="282" y="40" width="14" height="56" fill="#F8FAFC" stroke={INK} strokeWidth="2" />
-        <path d="M286 40 L286 32 L292 32 L292 40" fill="#F8FAFC" stroke={INK} strokeWidth="1.8" />
+        <rect x="282" y="40" width="14" height="56" fill="#D3D9E2" stroke={INK} strokeWidth="2" />
+        <path d="M286 40 L286 32 L292 32 L292 40" fill="#D3D9E2" stroke={INK} strokeWidth="1.8" />
         <path d="M289 24 L289 32 M285.5 27 L292.5 27" stroke={INK} strokeWidth="2" />
-        <rect x="150" y="70" width="100" height="36" fill="#C0582E" stroke={INK} strokeWidth="2.4" />
+        <rect x="150" y="70" width="100" height="36" fill="#A2492A" stroke={INK} strokeWidth="2.4" />
         <Bricks x={150} y={70} w={100} h={36} />
-        <Battlement x={150} y={64} w={100} n={7} fill="#C0582E" />
-        <rect x="250" y="58" width="22" height="48" fill="#B4502A" stroke={INK} strokeWidth="2.2" />
+        <Battlement x={150} y={64} w={100} n={7} fill="#A2492A" />
+        <rect x="250" y="58" width="22" height="48" fill="#934025" stroke={INK} strokeWidth="2.2" />
         <path d="M246 58 L261 40 L276 58 Z" fill="#9F1D20" {...SW} strokeWidth="2" />
-        <rect x="108" y="44" width="44" height="62" rx="4" fill="#C0582E" stroke={INK} strokeWidth="2.4" />
+        <rect x="108" y="44" width="44" height="62" rx="4" fill="#A2492A" stroke={INK} strokeWidth="2.4" />
         <Bricks x={108} y={44} w={44} h={62} />
         {[118, 130, 142].map((x) => <line key={x} x1={x} y1="46" x2={x} y2="104" stroke={INK} strokeWidth="1.1" opacity="0.35" />)}
         <path d="M100 46 L130 10 L160 46 Z" fill="#9F1D20" {...SW} />
         <path d="M124 70 L124 62 Q130 56 136 62 L136 70 Z" fill="#1F2544" />
         <TriFlag x={130} y={-2} w={16} pole={14} />
-        <path d="M-2 116 C60 110 120 114 200 120 L200 142 L-2 142 Z" fill="#5DBB4A" {...SW} />
+        <path d="M-2 116 C60 110 120 114 200 120 L200 142 L-2 142 Z" fill="#4E8642" {...SW} />
       </g>
     );
   } else if (kind === 'klaipeda') {
     body = (
       <g>
-        {[[250, 40], [280, 50]].map(([x, y]) => <path key={x} d={`M${x} 102 L${x} ${y} L${x + 34} ${y} M${x} ${y + 10} L${x + 22} ${y} M${x + 30} ${y} L${x + 30} ${y + 18}`} fill="none" stroke="#EAB308" strokeWidth="3" strokeLinecap="round" />)}
-        <path d="M-2 104 C20 80 60 74 96 86 C110 92 116 98 120 104 Z" fill="#F5D98B" {...SW} />
+        {[[250, 40], [280, 50]].map(([x, y]) => <path key={x} d={`M${x} 102 L${x} ${y} L${x + 34} ${y} M${x} ${y + 10} L${x + 22} ${y} M${x + 30} ${y} L${x + 30} ${y + 18}`} fill="none" stroke="#C2962A" strokeWidth="3" strokeLinecap="round" />)}
+        <path d="M-2 104 C20 80 60 74 96 86 C110 92 116 98 120 104 Z" fill="#C7AD79" {...SW} />
         {[30, 62, 84].map((x) => <path key={x} d={`M${x} 86 l-3 -8 M${x + 3} 86 l1 -9 M${x + 6} 86 l4 -7`} stroke="#4D7C0F" strokeWidth="1.8" strokeLinecap="round" />)}
         <path d="M44 86 L48 40 L60 40 L64 86 Z" fill="#FFFFFF" {...SW} />
         {[48, 64].map((y) => <path key={y} d={`M${46.5 - (y - 40) * 0.04} ${y} L${61.5 + (y - 40) * 0.04} ${y} L${62 + (y - 40) * 0.05} ${y + 8} L${46 - (y - 40) * 0.05} ${y + 8} Z`} fill="#DC2626" />)}
-        <rect x="45" y="30" width="18" height="10" fill="#FDE68A" stroke={INK} strokeWidth="2" />
+        <rect x="45" y="30" width="18" height="10" fill="#F2D58C" stroke={INK} strokeWidth="2" />
         <path d="M43 30 L54 20 L65 30 Z" fill="#DC2626" {...SW} strokeWidth="2" />
-        {water(102, '#3B82F6')}
+        {water(102, '#335C88')}
         <path d="M150 104 L300 104 L286 124 L166 124 Z" fill="#1F2544" {...SW} />
         <path d="M168 112 L284 112" stroke="#FFFFFF" strokeWidth="2" />
         {[186, 226, 266].map((x, i) => (
@@ -3082,8 +3144,8 @@ function SceneArt({ kind, uid, parties }) {
     body = (
       <g>
         {ground('#9BD37A', 'M-2 118 C60 112 120 116 180 116 C240 116 300 110 362 114 L362 142 L-2 142 Z')}
-        <path d="M28 124 C60 76 120 58 180 58 C240 58 300 76 332 124 Z" fill="#B7CF7A" {...SW} />
-        <path d="M172 124 L176 64 L184 64 L188 124 Z" fill="#E7D3A8" stroke={INK} strokeWidth="1.6" />
+        <path d="M28 124 C60 76 120 58 180 58 C240 58 300 76 332 124 Z" fill="#93A665" {...SW} />
+        <path d="M172 124 L176 64 L184 64 L188 124 Z" fill="#B9A57E" stroke={INK} strokeWidth="1.6" />
         {crosses.map(([x, y, s], i) => (
           <path key={i} d={`M${x.toFixed(1)} ${y.toFixed(1)} l0 ${(-s * 1.6).toFixed(1)} M${(x - s * 0.5).toFixed(1)} ${(y - s * 1.15).toFixed(1)} l${s.toFixed(1)} 0`} stroke={i % 5 === 0 ? '#5B3A1E' : INK} strokeWidth={Math.max(1.4, s / 5)} strokeLinecap="round" />
         ))}
@@ -3093,8 +3155,8 @@ function SceneArt({ kind, uid, parties }) {
   } else if (kind === 'lakes') {
     body = (
       <g>
-        <path d="M-2 86 C40 70 90 74 140 82 C190 90 240 72 290 74 C320 76 340 80 362 78 L362 104 L-2 104 Z" fill="#2F8F4E" {...SW} />
-        {[12, 34, 56, 78, 214, 236, 258, 280, 302, 324, 346].map((x, i) => <Pine key={x} x={x} y={92 - (i % 3) * 4} s={0.9 + (i % 2) * 0.2} c={i % 2 ? '#1F7A4D' : '#166A40'} />)}
+        <path d="M-2 86 C40 70 90 74 140 82 C190 90 240 72 290 74 C320 76 340 80 362 78 L362 104 L-2 104 Z" fill="#2B6A43" {...SW} />
+        {[12, 34, 56, 78, 214, 236, 258, 280, 302, 324, 346].map((x, i) => <Pine key={x} x={x} y={92 - (i % 3) * 4} s={0.9 + (i % 2) * 0.2} c={i % 2 ? '#245E40' : '#1C5136'} />)}
         <rect x="120" y="58" width="44" height="40" fill="#A16207" stroke={INK} strokeWidth="2.2" />
         {[128, 136, 144, 152].map((x) => <line key={x} x1={x} x2={x} y1="60" y2="96" stroke={INK} strokeWidth="1" opacity="0.35" />)}
         <path d="M114 60 L142 40 L170 60 Z" fill="#78350F" {...SW} strokeWidth="2" />
@@ -3110,14 +3172,14 @@ function SceneArt({ kind, uid, parties }) {
   } else if (kind === 'fields') {
     body = (
       <g>
-        <path d="M-2 92 C60 84 140 88 200 90 C260 92 320 84 362 86 L362 142 L-2 142 Z" fill="#FACC15" {...SW} />
-        <path d="M-2 108 C80 98 160 104 240 108 C290 110 330 104 362 104 L362 142 L-2 142 Z" fill="#84CC16" {...SW} />
-        <path d="M-2 126 C90 118 200 124 362 120 L362 142 L-2 142 Z" fill="#65A30D" {...SW} />
+        <path d="M-2 92 C60 84 140 88 200 90 C260 92 320 84 362 86 L362 142 L-2 142 Z" fill="#C99F3C" {...SW} />
+        <path d="M-2 108 C80 98 160 104 240 108 C290 110 330 104 362 104 L362 142 L-2 142 Z" fill="#6C962E" {...SW} />
+        <path d="M-2 126 C90 118 200 124 362 120 L362 142 L-2 142 Z" fill="#557D1F" {...SW} />
         {[30, 60, 90].map((x) => <path key={x} d={`M${x} 98 q20 -4 40 0`} fill="none" stroke="#A16207" strokeWidth="1.6" opacity="0.6" />)}
         <rect x="40" y="62" width="60" height="32" fill="#FFFFFF" stroke={INK} strokeWidth="2.2" />
         <path d="M34 64 L70 40 L106 64 Z" fill="#B91C1C" {...SW} />
         <rect x="64" y="74" width="12" height="20" fill="#92400E" stroke={INK} strokeWidth="1.8" />
-        <rect x="46" y="70" width="12" height="10" fill="#93C5FD" stroke={INK} strokeWidth="1.8" /><rect x="82" y="70" width="12" height="10" fill="#93C5FD" stroke={INK} strokeWidth="1.8" />
+        <rect x="46" y="70" width="12" height="10" fill="#8FB3DA" stroke={INK} strokeWidth="1.8" /><rect x="82" y="70" width="12" height="10" fill="#8FB3DA" stroke={INK} strokeWidth="1.8" />
         <line x1="250" y1="108" x2="250" y2="44" stroke="#78350F" strokeWidth="4" />
         <ellipse cx="250" cy="44" rx="18" ry="6" fill="#A16207" stroke={INK} strokeWidth="2" />
         <path d="M244 38 C242 28 250 24 256 28 L262 30 L256 32 C258 36 256 40 250 40 Z" fill="#FFFFFF" {...SW} strokeWidth="1.8" />
@@ -3126,7 +3188,7 @@ function SceneArt({ kind, uid, parties }) {
         <circle cx="257" cy="28.5" r="1" fill={INK} />
         {[[160, 104], [196, 108], [300, 112]].map(([x, y]) => (
           <g key={x}>
-            <circle cx={x} cy={y} r="11" fill="#EAB308" stroke={INK} strokeWidth="2.2" />
+            <circle cx={x} cy={y} r="11" fill="#C2962A" stroke={INK} strokeWidth="2.2" />
             <path d={`M${x} ${y} m-5 0 a5 5 0 1 1 5 5 a3 3 0 1 1 -3 -3`} fill="none" stroke="#A16207" strokeWidth="1.6" />
           </g>
         ))}
@@ -3143,19 +3205,19 @@ function SceneArt({ kind, uid, parties }) {
             <rect x={x + w / 2 - 5} y={y + 10} width="10" height="10" fill="#FFFFFF" stroke={INK} strokeWidth="1.6" />
           </g>
         ))}
-        <rect x="112" y="56" width="104" height="56" fill="#F8FAFC" stroke={INK} strokeWidth="2.4" />
-        <path d="M108 58 L164 34 L220 58 Z" fill="#F1F5F9" {...SW} />
+        <rect x="112" y="56" width="104" height="56" fill="#D3D9E2" stroke={INK} strokeWidth="2.4" />
+        <path d="M108 58 L164 34 L220 58 Z" fill="#C6CDD8" {...SW} />
         {[[112, 22], [196, 22]].map(([x, y]) => (
           <g key={x}>
-            <rect x={x} y={y + 12} width="20" height={100 - y} fill="#F8FAFC" stroke={INK} strokeWidth="2.2" />
+            <rect x={x} y={y + 12} width="20" height={100 - y} fill="#D3D9E2" stroke={INK} strokeWidth="2.2" />
             <path d={`M${x - 2} ${y + 12} L${x + 10} ${y - 12} L${x + 22} ${y + 12} Z`} fill="#334155" {...SW} strokeWidth="2" />
             <path d={`M${x + 10} ${y - 20} L${x + 10} ${y - 12} M${x + 6.5} ${y - 17} L${x + 13.5} ${y - 17}`} stroke={INK} strokeWidth="1.8" />
             <path d={`M${x + 6} ${y + 30} L${x + 6} ${y + 24} Q${x + 10} ${y + 19} ${x + 14} ${y + 24} L${x + 14} ${y + 30} Z`} fill="#1F2544" />
           </g>
         ))}
         <path d="M152 112 L152 86 Q164 74 176 86 L176 112 Z" fill="#92400E" stroke={INK} strokeWidth="2" />
-        <circle cx="164" cy="66" r="6" fill="#93C5FD" stroke={INK} strokeWidth="1.8" />
-        <path d="M-2 112 L362 112 L362 142 L-2 142 Z" fill="#D6D3D1" {...SW} />
+        <circle cx="164" cy="66" r="6" fill="#8FB3DA" stroke={INK} strokeWidth="1.8" />
+        <path d="M-2 112 L362 112 L362 142 L-2 142 Z" fill="#8D8885" {...SW} />
         {[20, 60, 100, 140, 180, 220, 260, 300, 340].map((x) => <path key={x} d={`M${x} 122 l12 0 M${x + 18} 132 l12 0`} stroke="#A8A29E" strokeWidth="2" strokeLinecap="round" />)}
       </g>
     );
@@ -3179,15 +3241,15 @@ function SceneArt({ kind, uid, parties }) {
     const win = night ? '#FDE68A' : '#93C5FD';
     body = (
       <g>
-        <rect x="52" y="70" width="98" height="44" fill="#F1F5F9" stroke={INK} strokeWidth="2.4" />
-        <rect x="230" y="70" width="98" height="44" fill="#F1F5F9" stroke={INK} strokeWidth="2.4" />
+        <rect x="52" y="70" width="98" height="44" fill="#C6CDD8" stroke={INK} strokeWidth="2.4" />
+        <rect x="230" y="70" width="98" height="44" fill="#C6CDD8" stroke={INK} strokeWidth="2.4" />
         {[80, 94].map((y) => (
           <g key={y}>
             <rect x="58" y={y} width="86" height="7" fill={win} stroke={INK} strokeWidth="1.4" />
             <rect x="236" y={y} width="86" height="7" fill={win} stroke={INK} strokeWidth="1.4" />
           </g>
         ))}
-        <rect x="150" y="28" width="80" height="86" fill="#F8FAFC" stroke={INK} strokeWidth="2.6" />
+        <rect x="150" y="28" width="80" height="86" fill="#D3D9E2" stroke={INK} strokeWidth="2.6" />
         {[158, 170, 182, 194, 206, 218].map((x) => <rect key={x} x={x} y="36" width="6" height="66" fill={win} stroke={INK} strokeWidth="1.2" />)}
         <rect x="146" y="22" width="88" height="8" fill="#CBD5E1" stroke={INK} strokeWidth="2.2" />
         <TriFlag x={190} y={-2} w={22} pole={24} />
@@ -3199,15 +3261,15 @@ function SceneArt({ kind, uid, parties }) {
   } else if (kind === 'palace') {
     body = (
       <g>
-        <rect x="40" y="58" width="280" height="56" fill="#FFF1BF" stroke={INK} strokeWidth="2.4" />
+        <rect x="40" y="58" width="280" height="56" fill="#D7C799" stroke={INK} strokeWidth="2.4" />
         <rect x="36" y="50" width="288" height="10" fill="#CBD5E1" stroke={INK} strokeWidth="2.2" />
-        {[54, 78, 102, 238, 262, 286].map((x) => [66, 88].map((y) => <rect key={`${x}${y}`} x={x} y={y} width="14" height="14" fill="#93C5FD" stroke={INK} strokeWidth="1.6" />))}
-        <path d="M136 50 L180 26 L224 50 Z" fill="#FFF7DB" {...SW} />
-        <rect x="136" y="50" width="88" height="64" fill="#FFF7DB" stroke={INK} strokeWidth="2.2" />
+        {[54, 78, 102, 238, 262, 286].map((x) => [66, 88].map((y) => <rect key={`${x}${y}`} x={x} y={y} width="14" height="14" fill="#8FB3DA" stroke={INK} strokeWidth="1.6" />))}
+        <path d="M136 50 L180 26 L224 50 Z" fill="#E2D6AE" {...SW} />
+        <rect x="136" y="50" width="88" height="64" fill="#E2D6AE" stroke={INK} strokeWidth="2.2" />
         {[144, 158, 172, 186, 200, 214].map((x) => <rect key={x} x={x - 3} y="56" width="8" height="58" fill="#FFFFFF" stroke={INK} strokeWidth="1.5" />)}
         <TriFlag x={180} y={4} w={18} pole={22} />
-        <path d="M-2 114 L362 114 L362 142 L-2 142 Z" fill="#D6D3D1" {...SW} />
-        {[20, 330].map((x) => <circle key={x} cx={x} cy="108" r="12" fill="#2F9E55" stroke={INK} strokeWidth="2" />)}
+        <path d="M-2 114 L362 114 L362 142 L-2 142 Z" fill="#8D8885" {...SW} />
+        {[20, 330].map((x) => <circle key={x} cx={x} cy="108" r="12" fill="#2E7448" stroke={INK} strokeWidth="2" />)}
       </g>
     );
   } else if (kind === 'studio') {
@@ -3216,10 +3278,10 @@ function SceneArt({ kind, uid, parties }) {
     body = (
       <g>
         {[60, 180, 300].map((x) => <path key={x} d={`M${x - 8} -2 L${x + 8} -2 L${x + 46} 120 L${x - 46} 120 Z`} fill="#FFFFFF" opacity="0.08" />)}
-        <rect x="120" y="14" width="120" height="44" rx="6" fill="#0F172A" stroke="#93C5FD" strokeWidth="2.4" />
+        <rect x="120" y="14" width="120" height="44" rx="6" fill="#0F172A" stroke="#8FB3DA" strokeWidth="2.4" />
         <text x="180" y="40" textAnchor="middle" fill="#FFFFFF" fontSize="18" fontWeight="900" style={F_DISPLAY}>LRT</text>
-        <text x="180" y="52" textAnchor="middle" fill="#93C5FD" fontSize="8" fontWeight="800" letterSpacing="2">{tt('DEBATE', 'DEBATAI')}</text>
-        <path d="M-2 112 L362 112 L362 142 L-2 142 Z" fill="#2E335E" stroke="#4B5288" strokeWidth="2" />
+        <text x="180" y="52" textAnchor="middle" fill="#8FB3DA" fontSize="8" fontWeight="800" letterSpacing="2">{tt('DEBATE', 'DEBATAI')}</text>
+        <path d="M-2 112 L362 112 L362 142 L-2 142 Z" fill="#1C2140" stroke="#4B5288" strokeWidth="2" />
         {ps.map((p, i) => {
           const x = 30 + ((300 / n) * (i + 0.5));
           return (
@@ -3236,17 +3298,19 @@ function SceneArt({ kind, uid, parties }) {
   return (
     <g>
       <defs>
-        <linearGradient id={`sk${uid}`} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor={sky[0]} /><stop offset="1" stopColor={sky[1]} /></linearGradient>
+        <linearGradient id={`sk${uid}`} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor={sky[0]} /><stop offset="0.6" stopColor={sky[1]} /><stop offset="1" stopColor={sky[2]} /></linearGradient>
+        <radialGradient id={`sn${uid}`} cx="50%" cy="50%" r="50%"><stop offset="0" stopColor="#FFE7B8" stopOpacity="0.9" /><stop offset="0.35" stopColor="#FFC98A" stopOpacity="0.45" /><stop offset="1" stopColor="#FFC98A" stopOpacity="0" /></radialGradient>
       </defs>
       <rect x="-2" y="-2" width="364" height="144" fill={`url(#sk${uid})`} />
       {night ? (
         <g>
-          {[[30, 18], [70, 34], [110, 12], [250, 22], [290, 40], [330, 14], [160, 30]].map(([x, y], i) => <circle key={i} cx={x} cy={y} r={i % 2 ? 1.4 : 2} fill="#FDE68A" />)}
-          {kind === 'night' && <path d="M312 22 a14 14 0 1 0 10 24 a11 11 0 1 1 -10 -24 Z" fill="#FDE68A" stroke={INK} strokeWidth="2" />}
+          {[[30, 18], [70, 34], [110, 12], [250, 22], [290, 40], [330, 14], [160, 30]].map(([x, y], i) => <circle key={i} cx={x} cy={y} r={i % 2 ? 1.4 : 2} fill="#F2D58C" />)}
+          {kind === 'night' && <path d="M312 22 a14 14 0 1 0 10 24 a11 11 0 1 1 -10 -24 Z" fill="#F2D58C" stroke={INK} strokeWidth="2" />}
         </g>
       ) : (
         <g>
-          <circle cx="318" cy="28" r="15" fill={SUN} stroke={INK} strokeWidth="2.4" />
+          <circle cx="318" cy="40" r="46" fill={`url(#sn${uid})`} />
+          <circle cx="318" cy="40" r="11" fill="#FFE9C2" />
           <SkyCloud x={24} y={18} s={1.1} />
           <SkyCloud x={196} y={10} s={0.85} />
         </g>
@@ -3255,15 +3319,17 @@ function SceneArt({ kind, uid, parties }) {
     </g>
   );
 }
-function Scene({ kind, h = 128, caption = true, className = '', parties, children }) {
+function Scene({ kind, h = 128, caption = true, className = '', parties, children, flush }) {
   const uid = useId().replace(/:/g, '');
   const cap = caption && SCENE_CAP[kind] ? L(SCENE_CAP[kind]) : null;
   return (
-    <div className={`relative overflow-hidden ${className}`} style={{ height: h, border: `3px solid ${INK}`, borderRadius: 22, background: '#BFE6FA' }}>
+    <div className={`cx-scene relative overflow-hidden ${className}`} style={{ height: h == null ? undefined : h, border: flush ? 'none' : `1px solid ${LINE2}`, borderRadius: flush ? 0 : 14, background: '#0B0F16', boxShadow: flush ? 'none' : SHADOW }}>
       <svg viewBox="0 0 360 140" preserveAspectRatio="xMidYMid slice" width="100%" height="100%" role="img" aria-label={cap || ''} style={{ display: 'block' }}>
         <SceneArt kind={kind} uid={uid} parties={parties} />
       </svg>
-      {cap && <span className="absolute left-2 bottom-2 cx-chip px-2 py-0.5 text-xs" style={{ background: 'rgba(255,255,255,0.92)' }}>{cap}</span>}
+      <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(40,60,110,.22), rgba(150,80,30,.14))', mixBlendMode: 'multiply' }} />
+      <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(ellipse at 50% 42%, rgba(0,0,0,0) 52%, rgba(0,0,0,.55) 100%), linear-gradient(0deg, rgba(8,10,15,.6), rgba(8,10,15,0) 42%)' }} />
+      {cap && <span className="absolute left-2 bottom-2 px-2 py-0.5 text-xs font-semibold rounded" style={{ background: 'rgba(7,9,13,.75)', color: '#E5E7EB', border: `1px solid ${LINE}` }}>{cap}</span>}
       {children}
     </div>
   );
@@ -3273,7 +3339,7 @@ function Coach({ title, children, actions, onSkip, className = '', essential }) 
   return (
     <div className={`cx-card cx-cream p-3 sbl-pop ${className}`} role="note">
       <div className="flex gap-3 items-start">
-        {ADVISOR ? <Advisor size={46} /> : <span className="grid place-items-center rounded-full shrink-0 bg-white" style={{ width: 40, height: 40, border: `2.5px solid ${INK}` }}><Info size={20} strokeWidth={2.6} /></span>}
+        {ADVISOR ? <Advisor size={46} /> : <span className="grid place-items-center rounded-full shrink-0 cx-panel2" style={{ width: 40, height: 40, border: `1px solid ${LINE}` }}><Info size={20} strokeWidth={2.6} /></span>}
         <div className="min-w-0 flex-1">
           {title && <div className="cx-title text-lg leading-tight">{title}</div>}
           <div className="text-sm font-semibold leading-snug mt-0.5">{children}</div>
@@ -3291,11 +3357,11 @@ function Sheet({ onClose, children, label, z = 'z-40', dark }) {
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
   return (
-    <div className={`fixed inset-0 ${z} flex flex-col justify-end`} role="dialog" aria-modal="true" aria-label={label}>
-      <div className="absolute inset-0 sbl-fade" style={{ background: 'rgba(31,37,68,0.55)' }} onClick={onClose || undefined} />
+    <div className={`fixed inset-0 ${z} flex flex-col justify-end lg:justify-center lg:items-center lg:p-8`} role="dialog" aria-modal="true" aria-label={label}>
+      <div className="absolute inset-0 sbl-fade" style={{ background: 'rgba(5,7,11,0.72)', backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)' }} onClick={onClose || undefined} />
       <div
-        className={`sbl-sheet sbl-scroll relative w-full max-w-lg mx-auto overflow-y-auto ${dark ? 'cx-night' : ''}`}
-        style={{ maxHeight: '92vh', background: dark ? '#23284A' : '#fff', borderTop: `3px solid ${INK}`, borderLeft: `3px solid ${INK}`, borderRight: `3px solid ${INK}`, borderRadius: '28px 28px 0 0', paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 22px)' }}
+        className="sbl-sheet sbl-scroll relative w-full max-w-lg lg:max-w-3xl mx-auto overflow-y-auto rounded-t-[22px] lg:rounded-[18px]"
+        style={{ maxHeight: '92vh', background: 'linear-gradient(180deg, #1D2430, #141922)', border: `1px solid ${LINE2}`, boxShadow: '0 30px 80px rgba(0,0,0,.6)', paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 22px)' }}
       >
         {children}
       </div>
@@ -3304,14 +3370,14 @@ function Sheet({ onClose, children, label, z = 'z-40', dark }) {
 }
 function SheetHead({ kicker, title, onClose, dark }) {
   return (
-    <div className="sticky top-0 z-10 pt-3 pb-3" style={{ ...GUTTER, background: dark ? '#23284A' : '#fff', borderBottom: `2px solid ${dark ? '#3A4070' : '#E3EDF5'}` }}>
-      <div className="mx-auto w-12 h-1.5 rounded-full mb-3" style={{ background: dark ? '#4B5288' : '#CBD5E1' }} />
+    <div className="sticky top-0 z-10 pt-2 pb-3 cx-bar" style={{ ...GUTTER, borderBottom: `1px solid ${LINE}` }}>
+      <div className="mx-auto w-10 h-1 rounded-full mb-2 lg:hidden" style={{ background: 'rgba(255,255,255,.25)' }} />
       <div className="flex items-center gap-3">
         <div className="min-w-0 flex-1">
-          {kicker && <div className="text-sm font-extrabold" style={{ color: dark ? '#C7CCEB' : MUTED }}>{kicker}</div>}
-          <h2 className="cx-title text-3xl leading-none">{title}</h2>
+          {kicker && <div className="cx-kicker text-xs">{kicker}</div>}
+          <h2 className="cx-title text-3xl leading-none mt-0.5">{title}</h2>
         </div>
-        {onClose && <button type="button" onClick={onClose} aria-label={tt('Close', 'Uždaryti')} className="cx-btn cx-white shrink-0" style={{ width: 46, height: 46, borderRadius: 999, color: INK }}><X size={22} /></button>}
+        {onClose && <button type="button" onClick={onClose} aria-label={tt('Close', 'Uždaryti')} className="cx-btn shrink-0" style={{ width: 42, height: 42, borderRadius: 999, background: 'rgba(255,255,255,.08)' }}><X size={20} /></button>}
       </div>
     </div>
   );
@@ -3325,7 +3391,7 @@ function InfoTip({ title, children }) {
   const [open, setOpen] = useState(false);
   return (
     <>
-      <button type="button" onClick={() => setOpen(true)} aria-label={tt(`What is ${title}?`, `Kas yra „${title}“?`)} className="inline-grid place-items-center rounded-full shrink-0 bg-white" style={{ width: 24, height: 24, border: `2px solid ${INK}` }}>
+      <button type="button" onClick={() => setOpen(true)} aria-label={tt(`What is ${title}?`, `Kas yra „${title}“?`)} className="inline-grid place-items-center rounded-full shrink-0 cx-panel2" style={{ width: 24, height: 24, border: `1px solid ${LINE}` }}>
         <HelpCircle size={14} strokeWidth={2.6} />
       </button>
       {open && (
@@ -3340,14 +3406,158 @@ function InfoTip({ title, children }) {
     </>
   );
 }
+function useWide() {
+  const q = '(min-width: 1024px)';
+  const [wide, setWide] = useState(() => { try { return window.matchMedia(q).matches; } catch (e) { return false; } });
+  useEffect(() => {
+    let m;
+    try { m = window.matchMedia(q); } catch (e) { return undefined; }
+    const on = () => setWide(m.matches);
+    if (m.addEventListener) m.addEventListener('change', on); else m.addListener(on);
+    return () => { if (m.removeEventListener) m.removeEventListener('change', on); else m.removeListener(on); };
+  }, []);
+  return wide;
+}
+// The campaign runs for the 12 weeks before election day, Sunday 8 October 2028.
+const weekStartDate = (w) => new Date(2028, 6, 17 + (w - 1) * 7);
+const MONTHS_LT = ['saus.', 'vas.', 'kov.', 'bal.', 'geg.', 'birž.', 'liep.', 'rugp.', 'rugs.', 'spal.', 'lapkr.', 'gruod.'];
+const MONTHS_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const fmtDay = (d) => (LANG === 'lt' ? `${MONTHS_LT[d.getMonth()]} ${d.getDate()} d.` : `${MONTHS_EN[d.getMonth()]} ${d.getDate()}`);
+function StatPill({ icon: Icon, children, label, iconStyle, big, bg }) {
+  return (
+    <span className={`cx-pill shrink-0 ${big ? 'px-3 h-8 text-lg' : 'px-2.5 h-7 text-base'}`} title={label} aria-label={label} style={bg ? { background: bg } : undefined}>
+      <span className="leading-none whitespace-nowrap">{children}</span>
+      <Icon size={big ? 17 : 15} strokeWidth={2.5} style={iconStyle} className="shrink-0" />
+    </span>
+  );
+}
+function HudPills({ g, seats, big }) {
+  return (
+    <>
+      <StatPill big={big} icon={Zap} iconStyle={{ fill: SUN, color: '#7A4E00' }} label={tt(`${g.ap} of ${g.apMax} energy left`, `Liko ${g.ap} iš ${g.apMax} energijos`)}>{g.ap}<span style={{ color: '#6B7280' }}>/{g.apMax}</span></StatPill>
+      <StatPill big={big} icon={Wallet} iconStyle={{ color: '#15803D' }} label={tt(`Money ${fmtEur(g.money)}`, `Pinigai ${fmtEur(g.money)}`)}>{fmtEurShort(g.money)}</StatPill>
+      <StatPill big={big} icon={Landmark} iconStyle={{ color: '#1D4ED8' }} bg={seats >= MAJORITY ? '#BBF7D0' : undefined} label={tt(`${seats} projected seats, 71 needed`, `Numatoma ${seats} mandatų, reikia 71`)}>{seats}<span style={{ color: '#6B7280' }}>/71</span></StatPill>
+      <StatPill big={big} icon={ShieldCheck} iconStyle={{ color: g.cred >= 60 ? '#15803D' : g.cred >= 40 ? AMBER : RED }} bg={g.cred < 40 ? '#FECACA' : undefined} label={tt(`Reputation ${Math.round(g.cred)} of 100`, `Reputacija ${Math.round(g.cred)} iš 100`)}>{Math.round(g.cred)}</StatPill>
+    </>
+  );
+}
+function WeekTimeline({ g, compact }) {
+  const W = WEEKS;
+  const months = [];
+  let lastM = -1;
+  for (let w = 1; w <= W; w++) { const d = weekStartDate(w); if (d.getMonth() !== lastM) { months.push({ w, m: d.getMonth() }); lastM = d.getMonth(); } }
+  const pct = (w) => ((w - 0.5) / W) * 100;
+  const marks = [];
+  for (let w = 1; w <= W; w++) {
+    if (w === W) marks.push({ w, Icon: Vote, c: '#E5484D', t: tt('Election day', 'Rinkimų diena') });
+    else if (DEBATE_WEEKS.includes(w)) marks.push({ w, Icon: Tv, c: '#3B82F6', t: tt(`LRT debate, week ${w}`, `LRT debatai, ${w} sav.`) });
+    else if (ENDORSE_WEEKS.includes(w)) marks.push({ w, Icon: Handshake, c: '#22A06B', t: tt(`Endorsements, week ${w}`, `Organizacijų parama, ${w} sav.`) });
+  }
+  const top = compact ? 22 : 26;
+  return (
+    <div className="relative select-none" style={{ height: compact ? 40 : 46 }} role="img" aria-label={tt(`Campaign calendar: week ${g.week} of ${W}`, `Kampanijos kalendorius: ${g.week} savaitė iš ${W}`)}>
+      <div className="absolute inset-x-0" style={{ top, height: 5, borderRadius: 99, background: 'rgba(255,255,255,.10)' }} />
+      <div className="absolute left-0" style={{ top, height: 5, borderRadius: 99, width: `${((g.week - 0.5) / W) * 100}%`, background: 'linear-gradient(90deg, rgba(245,165,36,.15), rgba(245,165,36,.85))' }} />
+      {Array.from({ length: W + 1 }).map((_, i) => <span key={i} className="absolute" style={{ left: `${(i / W) * 100}%`, top: top - 3, width: 1.5, height: 11, background: 'rgba(255,255,255,.22)' }} />)}
+      {marks.map((m) => (
+        <span key={m.w} className="absolute grid place-items-center rounded-full" title={m.t} style={{ left: `calc(${pct(m.w)}% - 9px)`, top: 0, width: 18, height: 18, background: m.w < g.week ? '#3A4252' : m.c, boxShadow: '0 0 0 2px #0B0E14' }}>
+          <m.Icon size={10} color="#fff" strokeWidth={2.6} />
+        </span>
+      ))}
+      <span className="absolute" style={{ left: `calc(${pct(g.week)}% - 7px)`, top: top - 11, width: 0, height: 0, borderLeft: '7px solid transparent', borderRight: '7px solid transparent', borderTop: `10px solid ${SUN}`, filter: 'drop-shadow(0 2px 3px rgba(0,0,0,.7))' }} />
+      {months.map((m) => <span key={m.w} className="absolute cx-title t-muted" style={{ left: `${((m.w - 1) / W) * 100}%`, top: top + 7, paddingLeft: 3, fontSize: 11, lineHeight: 1 }}>{(LANG === 'lt' ? MONTHS_LT : MONTHS_EN)[m.m]}</span>)}
+    </div>
+  );
+}
+function NewsTicker({ g }) {
+  const items = g.news.slice(0, 8).map((n) => newsView(g, n).title).filter(Boolean);
+  return (
+    <div className="flex items-stretch overflow-hidden" style={{ height: 28, background: 'linear-gradient(90deg, #4A1014, #1C0A0C)', borderBottom: `1px solid ${LINE}` }}>
+      <span className="shrink-0 flex items-center gap-1.5 px-2.5 cx-title text-sm" style={{ background: '#B91C1C', color: '#fff' }}>
+        <span className="grid place-items-center rounded-sm font-black not-italic" style={{ width: 22, height: 17, background: '#fff', color: '#B91C1C', fontSize: 11 }}>NŽ</span>
+        <span className="lg:hidden">{tt('NEWS', 'ŽINIOS')}</span><span className="hidden lg:inline">{tt('NATIONAL NEWS', 'NACIONALINĖS ŽINIOS')}</span>
+      </span>
+      <div className="cx-ticker-wrap flex-1 flex items-center" aria-label={tt('Latest headlines', 'Naujausios antraštės')}>
+        <div className="cx-ticker cx-title text-sm uppercase" style={{ letterSpacing: '.03em' }}>
+          {items.map((t, i) => <span key={i} className="inline-flex items-center gap-2"><span style={{ color: '#F87171' }}>◆</span>{t}</span>)}
+        </div>
+      </div>
+    </div>
+  );
+}
 function LangToggle({ lang, setLang, className = '' }) {
   return (
-    <div className={`inline-flex rounded-full bg-white p-0.5 shrink-0 ${className}`} style={{ border: `2.5px solid ${INK}` }} role="radiogroup" aria-label={tt('Language', 'Kalba')}>
+    <div className={`inline-flex rounded-full cx-panel2 p-0.5 shrink-0 ${className}`} style={{ border: `1px solid ${LINE}` }} role="radiogroup" aria-label={tt('Language', 'Kalba')}>
       {[['lt', 'LT'], ['en', 'EN']].map(([v, l]) => (
-        <button key={v} type="button" role="radio" aria-checked={lang === v} onClick={() => setLang(v)} className="rounded-full px-2.5 h-8 text-sm font-black" style={{ background: lang === v ? SUN : 'transparent' }}>{l}</button>
+        <button key={v} type="button" role="radio" aria-checked={lang === v} onClick={() => setLang(v)} className="rounded-full px-2.5 h-8 text-sm font-extrabold" style={{ background: lang === v ? SUN : 'transparent', color: lang === v ? '#1B1204' : TEXT }}>{l}</button>
       ))}
     </div>
   );
+}
+// Blurred landmark behind every screen, like a painted set seen out of focus.
+function Backdrop({ kind }) {
+  return (
+    <div aria-hidden="true" className="fixed inset-0 pointer-events-none overflow-hidden" style={{ zIndex: -1 }}>
+      <div className="absolute" style={{ inset: '-6%', filter: 'blur(16px) saturate(.85)', opacity: 0.6 }}>
+        <svg viewBox="0 0 360 140" preserveAspectRatio="xMidYMid slice" width="100%" height="100%"><SceneArt kind={kind} uid={`bd${kind}`} /></svg>
+      </div>
+      <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 50% 10%, rgba(13,17,24,.45), rgba(13,17,24,.93) 65%), linear-gradient(180deg, rgba(13,17,24,.55), rgba(13,17,24,.96))' }} />
+    </div>
+  );
+}
+function Gauge({ value, max = 10, low, high }) {
+  const t = clamp(value / max, 0, 1);
+  const cx = 100, cy = 100, R = 78;
+  const pt = (f, r = R) => [cx - r * Math.cos(Math.PI * f), cy - r * Math.sin(Math.PI * f)];
+  const seg = (a, b, c) => { const [x0, y0] = pt(a + 0.006); const [x1, y1] = pt(b - 0.006); return <path d={`M${x0} ${y0} A${R} ${R} 0 0 1 ${x1} ${y1}`} stroke={c} strokeWidth="24" fill="none" />; };
+  const [nx, ny] = pt(t, R - 10);
+  return (
+    <div className="flex flex-col items-center">
+      <svg viewBox="0 0 200 112" width="100%" style={{ maxWidth: 280, display: 'block' }} role="img" aria-label={`${nf(value)} / ${max}`}>
+        <path d={`M${pt(0)[0]} ${pt(0)[1]} A${R} ${R} 0 0 1 ${pt(1)[0]} ${pt(1)[1]}`} stroke="#0B0E14" strokeWidth="32" fill="none" />
+        {seg(0, 0.2, '#B91C1C')}{seg(0.2, 0.4, '#EF6B6B')}{seg(0.4, 0.6, '#D7DCE4')}{seg(0.6, 0.8, '#6EE7A0')}{seg(0.8, 1, '#16A34A')}
+        <line x1={cx} y1={cy} x2={nx} y2={ny} stroke="#fff" strokeWidth="7" strokeLinecap="round" style={{ transition: 'all .6s cubic-bezier(.3,1.4,.5,1)' }} />
+        <line x1={cx} y1={cy} x2={nx} y2={ny} stroke="#0B0E14" strokeWidth="3.5" strokeLinecap="round" style={{ transition: 'all .6s cubic-bezier(.3,1.4,.5,1)' }} />
+        <circle cx={cx} cy={cy} r="11" fill="#2A3242" stroke="#fff" strokeWidth="2.5" />
+      </svg>
+      <div className="flex justify-between w-full text-xs font-semibold t-muted -mt-1" style={{ maxWidth: 280 }}><span>{low}</span><span>{high}</span></div>
+    </div>
+  );
+}
+function ResultBanner({ ok, title, sub, icon: Icon }) {
+  const c = ok ? '#16A34A' : '#DC2626';
+  const I = Icon || (ok ? Check : X);
+  return (
+    <div className="flex items-center gap-3 sbl-pop">
+      <span className="relative shrink-0" style={{ width: 64, height: 72 }}>
+        <svg viewBox="0 0 64 72" width="64" height="72" style={{ filter: 'drop-shadow(0 4px 8px rgba(0,0,0,.5))' }}>
+          <path d="M32 2 L60 10 V33 C60 51 47 63 32 70 C17 63 4 51 4 33 V10 Z" fill="#C9A45C" />
+          <path d="M32 7 L55 13.5 V33 C55 48 44.5 58 32 64.5 C19.5 58 9 48 9 33 V13.5 Z" fill={c} />
+        </svg>
+        <span className="absolute inset-x-0 top-0 grid place-items-center" style={{ height: 64 }}><I size={30} color="#fff" strokeWidth={2.8} /></span>
+      </span>
+      <div className="min-w-0 flex-1 rounded-xl px-4 py-2.5" style={{ background: 'rgba(7,9,13,.82)', border: `1px solid ${LINE2}` }}>
+        <span className="inline-block rounded-lg px-3 py-0.5 cx-title text-2xl lg:text-3xl leading-tight" style={{ background: c, color: '#fff' }}>{title}</span>
+        {sub && <div className="cx-title text-lg mt-1 leading-tight" style={{ color: '#D5DBE5' }}>{sub}</div>}
+      </div>
+    </div>
+  );
+}
+function CandidateCard({ p, w = 104, active, onClick, mood }) {
+  const P = PARTIES[p];
+  const inner = (
+    <>
+      <Portrait who={p} size={w} frameless mood={mood || (active ? 'grin' : 'happy')} />
+      <div className="px-2 py-1.5" style={{ background: `linear-gradient(180deg, ${P.color}, ${mixHex(P.color, '#000000', 0.35)})` }}>
+        <span className="cx-title text-base leading-none block truncate text-white">{P.short}</span>
+        <span className="block text-[11px] font-semibold truncate" style={{ color: 'rgba(255,255,255,.82)' }}>{leaderSurname(p)}</span>
+      </div>
+    </>
+  );
+  const style = { width: w, background: '#0B0E14', border: `1px solid ${active ? SUN : LINE2}`, boxShadow: active ? `0 0 0 2px ${SUN}, ${SHADOW}` : SHADOW };
+  return onClick
+    ? <button type="button" onClick={onClick} aria-pressed={!!active} className="cx-tap shrink-0 rounded-xl overflow-hidden text-left" style={style}>{inner}</button>
+    : <div className="shrink-0 rounded-xl overflow-hidden" style={style}>{inner}</div>;
 }
 function Confetti() {
   const pieces = useMemo(() => Array.from({ length: 46 }).map((_, i) => ({
@@ -3378,11 +3588,11 @@ function Hemicycle({ seats, highlight, dim, label = '', showCount = true }) {
       {HEMI.map((s, i) => {
         const p = colors[i];
         const faded = p && dim && !dim.includes(p);
-        return <circle key={i} cx={s.x} cy={s.y} r={0.042} fill={p ? PARTIES[p].color : '#D6E4EF'} fillOpacity={faded ? 0.3 : 1} stroke={INK} strokeWidth={p === highlight && p ? 0.02 : 0.009} strokeOpacity={faded ? 0.3 : 1} />;
+        return <circle key={i} cx={s.x} cy={s.y} r={0.042} fill={p ? PARTIES[p].color : '#2A3242'} fillOpacity={faded ? 0.3 : 1} stroke={INK} strokeWidth={p === highlight && p ? 0.02 : 0.009} strokeOpacity={faded ? 0.3 : 1} />;
       })}
       {showCount && (
         <g>
-          <text x="0" y="-0.09" textAnchor="middle" fill={INK} fontSize="0.26" fontWeight="700" style={{ fontFamily: FONT_TITLE }}>{n}</text>
+          <text x="0" y="-0.09" textAnchor="middle" fill={TEXT} fontSize="0.26" fontWeight="700" fontStyle="italic" style={{ fontFamily: FONT_TITLE }}>{n}</text>
           <text x="0" y="-0.0" textAnchor="middle" fill={MUTED} fontSize="0.075" fontWeight="800" style={{ fontFamily: F_BODY }}>{label}</text>
         </g>
       )}
@@ -3400,7 +3610,7 @@ function PollBars({ shares, highlight, threshold, deltas, minShow = 0 }) {
         <div key={p} className="grid items-center gap-2" style={{ gridTemplateColumns: cols }}>
           <span className={`text-sm truncate inline-flex items-center gap-1.5 ${p === highlight ? 'font-black' : 'font-bold'}`}><PartyDot p={p} size={11} />{partyShort(p)}</span>
           <div className="cx-track relative" style={{ height: 16 }}>
-            <div className="h-full" style={{ width: `${(shares[p] / max) * 100}%`, background: PARTIES[p].color, borderRight: `2px solid ${INK}` }} />
+            <div className="h-full" style={{ width: `${(shares[p] / max) * 100}%`, background: PARTIES[p].color, borderRight: `1px solid ${LINE}` }} />
             {threshold && <div className="absolute top-0 bottom-0" style={{ left: `${(5 / max) * 100}%`, borderLeft: `2px dashed ${INK}` }} />}
           </div>
           <span className={`text-sm text-right cx-num ${p === highlight ? 'font-black' : ''}`}>{fmtPct(shares[p])}</span>
@@ -3478,7 +3688,7 @@ function TrendChart({ history, player }) {
           </g>
         );
       })}
-      {labels.map((l) => <text key={l.p} x={x(last.week) + 7} y={l.y + 3} fontSize="8.5" fontWeight={l.p === player ? 900 : 700} fill={INK}>{PARTIES[l.p].short} {nf(last.shares[l.p], 0)}</text>)}
+      {labels.map((l) => <text key={l.p} x={x(last.week) + 7} y={l.y + 3} fontSize="8.5" fontWeight={l.p === player ? 800 : 600} fill={TEXT}>{PARTIES[l.p].short} {nf(last.shares[l.p], 0)}</text>)}
     </svg>
   );
 }
@@ -3519,22 +3729,22 @@ function layerFill(layer, id, ctx) {
   if (ctx.live) {
     const f = ctx.live[id] || 0;
     const lead = regionLook(s).lead;
-    return f < 0.03 ? '#CBD5E1' : mixHex(PARTIES[lead].color, '#E2E8F0', clamp(1 - f, 0, 1) * 0.75);
+    return f < 0.03 ? '#2A3140' : mixHex(PARTIES[lead].color, '#2A3140', clamp(1 - f, 0, 1) * 0.8);
   }
   switch (layer) {
-    case 'you': return mixHex('#F8FAFC', PARTIES[me].color, 0.1 + 0.9 * clamp(s[me] / 36, 0, 1));
+    case 'you': return mixHex('#1E2532', PARTIES[me].color, 0.08 + 0.92 * clamp(s[me] / 36, 0, 1));
     case 'swing': {
       const d = s[me] - ((ctx.g.prevStart && ctx.g.prevStart[id]) ? ctx.g.prevStart[id][me] : s[me]);
       const t = clamp(Math.abs(d) / 2.5, 0, 1);
-      return Math.abs(d) < 0.1 ? '#F1F5F9' : d > 0 ? mixHex('#F1F5F9', '#16A34A', 0.2 + 0.8 * t) : mixHex('#F1F5F9', '#DC2626', 0.2 + 0.8 * t);
+      return Math.abs(d) < 0.1 ? '#262D3B' : d > 0 ? mixHex('#262D3B', '#16A34A', 0.25 + 0.75 * t) : mixHex('#262D3B', '#DC2626', 0.25 + 0.75 * t);
     }
     case 'battle': {
       const gap = Math.abs(raceInfo(ctx.g, REG[id], s).gap);
-      return gap < 2 ? '#FB923C' : gap < 5 ? '#FDE047' : '#E2E8F0';
+      return gap < 2 ? '#EA580C' : gap < 5 ? '#B7860B' : '#262D3B';
     }
-    case 'team': return mixHex('#F8FAFC', '#2563EB', clamp(ctx.g.gg[id][me] / 100, 0, 1));
-    case 'rivals': return mixHex('#FFFFFF', PARTIES[regionLook(s).lead].color, 0.28);
-    default: return PARTIES[regionLook(s).lead].color;
+    case 'team': return mixHex('#1E2532', '#3B82F6', clamp(ctx.g.gg[id][me] / 100, 0, 1));
+    case 'rivals': return mixHex('#1E2532', PARTIES[regionLook(s).lead].color, 0.4);
+    default: return mixHex(PARTIES[regionLook(s).lead].color, '#0E121A', 0.1);
   }
 }
 function layerValue(layer, id, ctx) {
@@ -3552,7 +3762,7 @@ function layerValue(layer, id, ctx) {
 const MOVE_ICON = { rally: Megaphone, digital: Smartphone, tv: Radio, door: DoorOpen, star: Star, attack: Swords, backfire: Swords };
 function CartoonMap({ shares, sel, onSelect, g, proj, layer = 'lead', live }) {
   const key = (id) => (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(id); } };
-  const txt = { fill: INK, stroke: '#fff', strokeWidth: 7, paintOrder: 'stroke', strokeLinejoin: 'round', style: { fontFamily: FONT_TITLE }, fontWeight: 700 };
+  const txt = { fill: '#fff', stroke: '#05070B', strokeWidth: 6, paintOrder: 'stroke', strokeLinejoin: 'round', style: { fontFamily: FONT_TITLE }, fontWeight: 700, fontStyle: 'italic' };
   const me = g ? g.player : null;
   const ctx = { shares, g, me, live };
   const lay = g || live ? layer : 'lead';
@@ -3595,22 +3805,26 @@ function CartoonMap({ shares, sel, onSelect, g, proj, layer = 'lead', live }) {
     <svg viewBox="-40 -26 870 660" className="cx-map w-full h-auto block select-none" role="group" aria-label={tt('Map of Lithuania’s electoral regions', 'Lietuvos rinkimų regionų žemėlapis')}>
       <defs>
         <pattern id="cx-stripes" width="16" height="16" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-          <rect x="0" y="0" width="6" height="16" fill="#fff" fillOpacity="0.5" />
+          <rect x="0" y="0" width="6" height="16" fill="#fff" fillOpacity="0.26" />
         </pattern>
+        <pattern id="cx-grid" width="44" height="44" patternUnits="userSpaceOnUse"><path d="M44 0 H0 V44" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="1.5" /></pattern>
+        <radialGradient id="cx-glow-land" cx="50%" cy="45%" r="60%"><stop offset="0" stopColor="rgba(120,170,255,0.18)" /><stop offset="1" stopColor="rgba(120,170,255,0)" /></radialGradient>
       </defs>
-      {WAVES.map(([x, y], i) => <path key={i} d={`M${x},${y} q7,-7 14,0 t14,0`} fill="none" stroke="#fff" strokeWidth="3.5" strokeLinecap="round" opacity="0.8" />)}
-      <text x="-20" y="520" fontSize="17" fontWeight="800" fill="#3E77A3" letterSpacing="2" transform="rotate(-90 -20 520)" textAnchor="middle">{tt('BALTIC SEA', 'BALTIJOS JŪRA')}</text>
-      <text x="660" y="20" fontSize="18" fontWeight="800" fill="#3E77A3" letterSpacing="3" textAnchor="middle">{tt('LATVIA', 'LATVIJA')}</text>
-      <text x="752" y="432" fontSize="18" fontWeight="800" fill="#3E77A3" letterSpacing="2" textAnchor="middle">{tt('BELARUS', 'BALTARUSIJA')}</text>
-      <text x="215" y="612" fontSize="18" fontWeight="800" fill="#3E77A3" letterSpacing="3" textAnchor="middle">{tt('POLAND', 'LENKIJA')}</text>
-      <text x="100" y="420" fontSize="18" fontWeight="800" fill="#3E77A3" letterSpacing="3" textAnchor="middle">{tt('RUSSIA', 'RUSIJA')}</text>
-      <g transform="translate(0,12)">{COUNTY_IDS.map((id) => <path key={`x-${id}`} d={COUNTY_SHAPES[id].d} fill={INK} stroke={INK} strokeWidth="13" strokeLinejoin="round" />)}</g>
-      {COUNTY_IDS.map((id) => <path key={`o-${id}`} d={COUNTY_SHAPES[id].d} fill="#fff" stroke={INK} strokeWidth="13" strokeLinejoin="round" />)}
+      <rect x="-40" y="-26" width="870" height="660" fill="url(#cx-grid)" />
+      <ellipse cx="400" cy="320" rx="430" ry="300" fill="url(#cx-glow-land)" />
+      {WAVES.map(([x, y], i) => <path key={i} d={`M${x},${y} q7,-7 14,0 t14,0`} fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" opacity="0.16" />)}
+      <text x="-20" y="520" fontSize="17" fontWeight="800" fill="#5B7699" letterSpacing="2" transform="rotate(-90 -20 520)" textAnchor="middle">{tt('BALTIC SEA', 'BALTIJOS JŪRA')}</text>
+      <text x="660" y="20" fontSize="18" fontWeight="800" fill="#5B7699" letterSpacing="3" textAnchor="middle">{tt('LATVIA', 'LATVIJA')}</text>
+      <text x="752" y="432" fontSize="18" fontWeight="800" fill="#5B7699" letterSpacing="2" textAnchor="middle">{tt('BELARUS', 'BALTARUSIJA')}</text>
+      <text x="215" y="612" fontSize="18" fontWeight="800" fill="#5B7699" letterSpacing="3" textAnchor="middle">{tt('POLAND', 'LENKIJA')}</text>
+      <text x="100" y="420" fontSize="18" fontWeight="800" fill="#5B7699" letterSpacing="3" textAnchor="middle">{tt('RUSSIA', 'RUSIJA')}</text>
+      <g transform="translate(0,10)" opacity="0.9">{COUNTY_IDS.map((id) => <path key={`x-${id}`} d={COUNTY_SHAPES[id].d} fill="#03050A" stroke="#03050A" strokeWidth="12" strokeLinejoin="round" />)}</g>
+      {COUNTY_IDS.map((id) => <path key={`o-${id}`} d={COUNTY_SHAPES[id].d} fill="#0B0F16" stroke="#C9D3E3" strokeWidth="5" strokeLinejoin="round" strokeOpacity="0.55" />)}
       {COUNTY_IDS.map((id) => {
         const look = regionLook(shares[id]);
         return (
           <g key={id} role="button" tabIndex={0} aria-label={aria(id, look)} onClick={() => onSelect(id)} onKeyDown={key(id)} style={{ cursor: 'pointer', outline: 'none' }}>
-            <path d={COUNTY_SHAPES[id].d} fill={layerFill(lay, id, ctx)} stroke="#fff" strokeWidth="4.5" strokeLinejoin="round" />
+            <path d={COUNTY_SHAPES[id].d} fill={layerFill(lay, id, ctx)} stroke="rgba(255,255,255,0.7)" strokeWidth="2.5" strokeLinejoin="round" />
             {lay === 'lead' && !live && look.tossup && <path d={COUNTY_SHAPES[id].d} fill="url(#cx-stripes)" pointerEvents="none" />}
           </g>
         );
@@ -3629,8 +3843,8 @@ function CartoonMap({ shares, sel, onSelect, g, proj, layer = 'lead', live }) {
         const val = layerValue(lay, id, ctx);
         return (
           <g key={id} role="button" tabIndex={0} aria-label={aria(id, look)} onClick={() => onSelect(id)} onKeyDown={key(id)} style={{ cursor: 'pointer', outline: 'none' }}>
-            <circle cx={x} cy={y + 7} r={t.r} fill={INK} />
-            <circle cx={x} cy={y} r={t.r} fill={layerFill(lay, id, ctx)} stroke={sel === id ? SUN : INK} strokeWidth={sel === id ? 8 : 5} />
+            <circle cx={x} cy={y + 6} r={t.r} fill="#03050A" opacity="0.9" />
+            <circle cx={x} cy={y} r={t.r} fill={layerFill(lay, id, ctx)} stroke={sel === id ? SUN : 'rgba(255,255,255,0.85)'} strokeWidth={sel === id ? 7 : 3} />
             {lay === 'lead' && !live && look.tossup && <circle cx={x} cy={y} r={t.r - 4} fill="url(#cx-stripes)" pointerEvents="none" />}
             {id === 'ABR' && <path d={`M${x - t.r + 8},${y} H${x + t.r - 8} M${x},${y - t.r + 8} V${y + t.r - 8}`} stroke="#fff" strokeOpacity="0.35" strokeWidth="3" pointerEvents="none" />}
             <text x={x} y={y + 10} textAnchor="middle" fontSize={val.length > 3 ? 22 : t.r > 36 ? 32 : 28} fontWeight="700" fill="#fff" stroke={INK} strokeWidth="6" paintOrder="stroke" strokeLinejoin="round" style={{ fontFamily: FONT_TITLE }} pointerEvents="none">{val}</text>
@@ -3644,8 +3858,8 @@ function CartoonMap({ shares, sel, onSelect, g, proj, layer = 'lead', live }) {
         const wide = val.length > 2;
         return (
           <g key={`l-${id}`} pointerEvents="none">
-            {wide ? <rect x={lx - 30} y={ly - 33} width="60" height="38" rx="19" fill="#fff" stroke={INK} strokeWidth="4" /> : <circle cx={lx} cy={ly - 14} r="22" fill="#fff" stroke={INK} strokeWidth="4" />}
-            <text x={lx} y={ly - 5} textAnchor="middle" fontSize={wide ? 23 : 26} fontWeight="700" fill={INK} style={{ fontFamily: FONT_TITLE }}>{val}</text>
+            {wide ? <rect x={lx - 30} y={ly - 33} width="60" height="38" rx="19" fill="#0B0F16" stroke="#fff" strokeWidth="2.5" /> : <circle cx={lx} cy={ly - 14} r="22" fill="#0B0F16" stroke="#fff" strokeWidth="2.5" />}
+            <text x={lx} y={ly - 5} textAnchor="middle" fontSize={wide ? 23 : 26} fontWeight="700" fontStyle="italic" fill="#fff" style={{ fontFamily: FONT_TITLE }}>{val}</text>
             <text x={lx} y={ly + 30} textAnchor="middle" fontSize="25" {...txt}>{rs(id)}</text>
           </g>
         );
@@ -3661,8 +3875,8 @@ function CartoonMap({ shares, sel, onSelect, g, proj, layer = 'lead', live }) {
           const [bx, by] = TOKENS[id] ? [x - TOKENS[id].r - 4, y + TOKENS[id].r - 4] : [x - 44, y - 30];
           return (
             <g key={`z-${id}`}>
-              <circle cx={bx} cy={by} r="15" fill="#FEF3C7" stroke={INK} strokeWidth="3" />
-              <text x={bx} y={by + 6} textAnchor="middle" fontSize="16" fontWeight="900" fill={INK} style={{ fontFamily: FONT_TITLE }}>zz</text>
+              <circle cx={bx} cy={by} r="15" fill="#2B2210" stroke="#FBBF24" strokeWidth="2.5" />
+              <text x={bx} y={by + 6} textAnchor="middle" fontSize="16" fontWeight="900" fill="#FBBF24" style={{ fontFamily: FONT_TITLE }}>zz</text>
             </g>
           );
         })}
@@ -3698,9 +3912,9 @@ function CartoonMap({ shares, sel, onSelect, g, proj, layer = 'lead', live }) {
           const [x, y] = anchorOf(id);
           return (
             <g key={`h-${id}`}>
-              <circle cx={x + 40} cy={y + 8} r="16" fill="#FECACA" stroke={INK} strokeWidth="3" />
-              <Swords x={x + 31} y={y - 1} width={18} height={18} strokeWidth={2.6} color="#B91C1C" />
-              {n > 1 && <text x={x + 58} y={y - 6} fontSize="16" fontWeight="900" fill="#B91C1C">×{n}</text>}
+              <circle cx={x + 40} cy={y + 8} r="16" fill="#3A1518" stroke="#F87171" strokeWidth="2.5" />
+              <Swords x={x + 31} y={y - 1} width={18} height={18} strokeWidth={2.6} color="#F87171" />
+              {n > 1 && <text x={x + 58} y={y - 6} fontSize="16" fontWeight="900" fill="#F87171">×{n}</text>}
             </g>
           );
         })}
@@ -3723,12 +3937,12 @@ function CartoonMap({ shares, sel, onSelect, g, proj, layer = 'lead', live }) {
 function MapLegend({ layer, g, shares }) {
   const me = g.player;
   const leaders = [...new Set(REGIONS.map((r) => regionLook(shares[r.id]).lead))];
-  const grad = (a, b) => <span className="inline-block rounded-full" style={{ width: 72, height: 12, background: `linear-gradient(90deg, ${a}, ${b})`, border: `2px solid ${INK}` }} />;
+  const grad = (a, b) => <span className="inline-block rounded-full" style={{ width: 72, height: 12, background: `linear-gradient(90deg, ${a}, ${b})`, border: `1px solid ${LINE}` }} />;
   let body;
-  if (layer === 'you') body = <span className="inline-flex items-center gap-2">0 {grad('#F8FAFC', PARTIES[me].color)} 36 %+ <span className="t-muted">{tt('your share of the vote', 'jūsų balsų dalis')}</span></span>;
-  else if (layer === 'swing') body = <span className="inline-flex items-center gap-2 flex-wrap">{grad('#DC2626', '#F1F5F9')}{grad('#F1F5F9', '#16A34A')}<span className="t-muted">{tt('your change since last week, pts', 'jūsų pokytis per savaitę, proc. p.')}</span></span>;
-  else if (layer === 'battle') body = <span className="inline-flex items-center gap-2 flex-wrap">{[['#FB923C', tt('within 2 pts', 'iki 2 p.')], ['#FDE047', tt('within 5 pts', 'iki 5 p.')], ['#E2E8F0', tt('not close', 'neartima')]].map(([c, l]) => <span key={l} className="inline-flex items-center gap-1"><span className="inline-block rounded" style={{ width: 14, height: 14, background: c, border: `2px solid ${INK}` }} />{l}</span>)}<span className="t-muted">{tt('number = your lead', 'skaičius – jūsų persvara')}</span></span>;
-  else if (layer === 'team') body = <span className="inline-flex items-center gap-2">0 {grad('#F8FAFC', '#2563EB')} 100 <span className="t-muted">{tt('your volunteers: they protect you from attacks', 'jūsų savanoriai: saugo nuo puolimų')}</span></span>;
+  if (layer === 'you') body = <span className="inline-flex items-center gap-2">0 {grad('#1E2532', PARTIES[me].color)} 36 %+ <span className="t-muted">{tt('your share of the vote', 'jūsų balsų dalis')}</span></span>;
+  else if (layer === 'swing') body = <span className="inline-flex items-center gap-2 flex-wrap">{grad('#DC2626', '#262D3B')}{grad('#262D3B', '#16A34A')}<span className="t-muted">{tt('your change since last week, pts', 'jūsų pokytis per savaitę, proc. p.')}</span></span>;
+  else if (layer === 'battle') body = <span className="inline-flex items-center gap-2 flex-wrap">{[['#EA580C', tt('within 2 pts', 'iki 2 p.')], ['#B7860B', tt('within 5 pts', 'iki 5 p.')], ['#262D3B', tt('not close', 'neartima')]].map(([c, l]) => <span key={l} className="inline-flex items-center gap-1"><span className="inline-block rounded" style={{ width: 14, height: 14, background: c, border: `1px solid ${LINE}` }} />{l}</span>)}<span className="t-muted">{tt('number = your lead', 'skaičius – jūsų persvara')}</span></span>;
+  else if (layer === 'team') body = <span className="inline-flex items-center gap-2">0 {grad('#1E2532', '#3B82F6')} 100 <span className="t-muted">{tt('your volunteers: they protect you from attacks', 'jūsų savanoriai: saugo nuo puolimų')}</span></span>;
   else if (layer === 'rivals') body = <span className="t-muted">{tt('Rival leaders where they campaigned most last week. Swords = attack ads on you.', 'Varžovų lyderiai ten, kur praėjusią savaitę daugiausiai agitavo. Kardai – puolimai prieš jus.')}</span>;
   else body = (
     <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
@@ -3742,8 +3956,8 @@ function MapLegend({ layer, g, shares }) {
       <span className="flex flex-wrap gap-x-3 gap-y-1 text-xs t-muted">
         <span className="inline-flex items-center gap-1"><Bus size={13} />{tt('your leader', 'jūsų lyderis')}</span>
         <span className="inline-flex items-center gap-1"><span className="grid place-items-center rounded-full text-white font-black" style={{ width: 14, height: 14, background: '#E5484D', fontSize: 10 }}>!</span>{tt('news', 'naujiena')}</span>
-        <span className="inline-flex items-center gap-1"><span className="grid place-items-center rounded-full font-black" style={{ width: 16, height: 14, background: '#FEF3C7', border: `1.5px solid ${INK}`, fontSize: 8, color: INK }}>zz</span>{tt('stronghold waiting for you', 'tvirtovė laukia vizito')}</span>
-        <span className="inline-flex items-center gap-1"><span className="inline-block rounded-full" style={{ width: 12, height: 12, background: SUN, border: `1.5px solid ${INK}` }} />{tt('your moves', 'jūsų veiksmai')}</span>
+        <span className="inline-flex items-center gap-1"><span className="grid place-items-center rounded-full font-black" style={{ width: 16, height: 14, background: '#2B2210', border: '1.5px solid #FBBF24', fontSize: 8, color: '#FBBF24' }}>zz</span>{tt('stronghold waiting for you', 'tvirtovė laukia vizito')}</span>
+        <span className="inline-flex items-center gap-1"><span className="inline-block rounded-full" style={{ width: 12, height: 12, background: SUN, border: `1px solid ${LINE}` }} />{tt('your moves', 'jūsų veiksmai')}</span>
       </span>
     </div>
   );
@@ -3754,14 +3968,14 @@ function MapLegend({ layer, g, shares }) {
    ============================================================ */
 function StatusPill({ status }) {
   const S = STATUS_LOOK[status];
-  return <span className="cx-chip px-2.5 py-0.5 text-xs whitespace-nowrap" style={{ background: S.bg }}>{L(S.label)}</span>;
+  return <span className="cx-chip px-2.5 py-0.5 text-xs whitespace-nowrap" style={{ background: S.bg, color: S.fg, borderColor: 'transparent' }}>{L(S.label)}</span>;
 }
 function RegionRow({ r, g, s, mySeats, onClick }) {
   const info = raceInfo(g, r, s);
   const acts = g.weekActs[r.id] || 0;
   return (
-    <button type="button" onClick={onClick} className="cx-tap cx-card w-full flex items-center gap-3 px-3 py-3 text-left" style={{ boxShadow: `0 4px 0 ${INK}` }}>
-      <div className="relative shrink-0 grid place-items-center rounded-full cx-num text-lg" style={{ width: 48, height: 48, background: PARTIES[info.lead].color, border: `3px solid ${INK}`, color: '#fff', textShadow: `0 0 3px ${INK}, 0 0 1px ${INK}` }}>
+    <button type="button" onClick={onClick} className="cx-tap w-full flex items-center gap-3 px-3 py-2.5 text-left rounded-xl" style={{ background: `linear-gradient(90deg, ${tint(PARTIES[info.lead].color, 0.42)}, ${tint(PARTIES[info.lead].color, 0.78)})`, border: `1px solid ${LINE}`, borderLeft: `4px solid ${PARTIES[info.lead].color}`, boxShadow: '0 6px 18px rgba(0,0,0,.28)' }}>
+      <div className="relative shrink-0 grid place-items-center rounded-full cx-num text-lg" style={{ width: 44, height: 44, background: 'rgba(0,0,0,.38)', border: '2px solid rgba(255,255,255,.8)', color: '#fff' }}>
         {r.seats}
       </div>
       <div className="min-w-0 flex-1">
@@ -3791,14 +4005,14 @@ function ActionTile({ type, g, r, rival, onAction }) {
   } else effect = ADVISOR ? tt(`Rūta’s guess: about +${nf((actionPreview(g, r.id, type) * 100) / (100 - und))}% for you`, `Rūtos spėjimas: apie +${nf((actionPreview(g, r.id, type) * 100) / (100 - und))} % jums`) : null;
   const Icon = A.icon;
   return (
-    <button type="button" disabled={disabled} onClick={() => onAction(r.id, type)} className="cx-btn cx-white flex-col items-start text-left p-3" style={{ minHeight: 132, justifyContent: 'flex-start', gap: 6 }}>
+    <button type="button" disabled={disabled} onClick={() => onAction(r.id, type)} className="cx-btn flex-col items-start text-left p-3" style={{ minHeight: 132, justifyContent: 'flex-start', gap: 6, background: 'linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.03))' }}>
       <div className="flex items-center gap-2 w-full">
-        <span className="grid place-items-center rounded-full shrink-0" style={{ width: 36, height: 36, background: A.color, border: `2.5px solid ${INK}` }}><Icon size={18} strokeWidth={2.5} /></span>
+        <span className="grid place-items-center rounded-full shrink-0" style={{ width: 36, height: 36, background: A.color, border: `1px solid ${LINE}` }}><Icon size={18} strokeWidth={2.5} /></span>
         <span className="cx-title text-base leading-tight">{L(A.label)}</span>
       </div>
       <span className="text-sm font-semibold t-muted leading-snug">{L(A.desc)}</span>
-      {type === 'rally' && <span className="text-xs font-extrabold" style={{ color: g.leaderAt === r.id ? GREEN : '#B45309' }}>{g.leaderAt === r.id ? tt('Leader here: +30%', 'Lyderis čia: +30 %') : tt('No leader: −15%', 'Be lyderio: −15 %')}</span>}
-      {effect && <span className="text-sm font-extrabold leading-snug" style={{ color: type === 'attack' ? '#B91C1C' : GREEN }}>{effect}</span>}
+      {type === 'rally' && <span className="text-xs font-extrabold" style={{ color: g.leaderAt === r.id ? GREEN : AMBER }}>{g.leaderAt === r.id ? tt('Leader here: +30%', 'Lyderis čia: +30 %') : tt('No leader: −15%', 'Be lyderio: −15 %')}</span>}
+      {effect && <span className="text-sm font-extrabold leading-snug" style={{ color: type === 'attack' ? RED : GREEN }}>{effect}</span>}
       <span className="mt-auto inline-flex items-center gap-1 text-sm font-extrabold"><Zap size={15} style={{ fill: SUN }} />1 · {fmtEur(cost)}</span>
     </button>
   );
@@ -3814,7 +4028,7 @@ function LeaderCard({ g, r, onTravel }) {
   const name = leaderSurname(g.player);
   const can = c && g.ap >= c.ap && g.money >= c.eur;
   return (
-    <div className="cx-card p-3 flex items-center gap-3" style={{ background: here ? '#DCFCE7' : '#fff', boxShadow: `0 4px 0 ${INK}` }}>
+    <div className="cx-card p-3 flex items-center gap-3" style={{ background: here ? GOOD_BG : PANEL2, boxShadow: SHADOW }}>
       <Portrait who={g.player} size={48} mood={here ? 'grin' : 'ok'} />
       <div className="min-w-0 flex-1">
         <div className="font-black leading-tight">{here ? tt(`${name} is here`, `${name} – čia`) : tt(`${name} is in ${rs(g.leaderAt)}`, `${name} dabar – ${rs(g.leaderAt)}`)}</div>
@@ -3835,13 +4049,14 @@ function RegionIntel({ g, r }) {
   const rivals = (g.rivalMoves || []).map((m) => ({ p: m.p, list: m.list.filter((x) => x.rid === r.id) })).filter((m) => m.list.length);
   const away = g.week - (g.lastVisit[r.id] || 0);
   const items = [];
-  if (pin) items.push(<div key="pin" className="flex gap-2 items-start"><span className="grid place-items-center rounded-full text-white font-black shrink-0" style={{ width: 22, height: 22, background: '#E5484D', border: `2px solid ${INK}` }}>!</span><span><span className="font-black">{tt('News here:', 'Naujiena čia:')}</span> {L(EVENT_MAP[pin.id].title)}</span></div>);
+  if (pin) items.push(<div key="pin" className="flex gap-2 items-start"><span className="grid place-items-center rounded-full text-white font-black shrink-0" style={{ width: 22, height: 22, background: '#E5484D', border: `1px solid ${LINE}` }}>!</span><span><span className="font-black">{tt('News here:', 'Naujiena čia:')}</span> {L(EVENT_MAP[pin.id].title)}</span></div>);
   rivals.forEach((m) => items.push(<div key={m.p} className="flex gap-2 items-center"><Portrait who={m.p} size={28} mood={m.list.some((x) => x.target === me) ? 'grr' : 'ok'} /><span><span className="font-black">{partyShort(m.p)}</span> {tt('last week:', 'praėjusią sav.:')} {m.list.map((x) => moveWord(x, me)).join(', ')}</span></div>));
-  if (away >= 3 && g.leaderAt !== r.id && r.id !== 'ABR' && r.seats >= 3 && raceInfo(g, r).status === 'safe') items.push(<div key="away" className="font-extrabold" style={{ color: '#B45309' }}>{tt(`A stronghold you haven’t visited for ${away} weeks. Ignore it for 4 and it starts to slip.`, `Tvirtovė, kurioje nebuvote jau ${away} sav. Apleista 4 sav., ji ima slysti.`)}</div>);
+  if (away >= 3 && g.leaderAt !== r.id && r.id !== 'ABR' && r.seats >= 3 && raceInfo(g, r).status === 'safe') items.push(<div key="away" className="font-extrabold" style={{ color: AMBER }}>{tt(`A stronghold you haven’t visited for ${away} weeks. Ignore it for 4 and it starts to slip.`, `Tvirtovė, kurioje nebuvote jau ${away} sav. Apleista 4 sav., ji ima slysti.`)}</div>);
   if (!items.length) return null;
   return <div className="cx-soft p-3 flex flex-col gap-2 text-sm font-semibold"><div className="font-black text-xs t-muted">{tt('LOCAL INTEL', 'VIETOS ŽINIOS')}</div>{items}</div>;
 }
-function RegionDrawer({ g, rid, proj, onClose, onAction, onTravel, tutStep, onSkipTips }) {
+function RegionDrawer({ g, rid, proj, onClose, onAction, onTravel, tutStep, onSkipTips, docked }) {
+  const Wrap = docked ? DockPanel : Sheet;
   const r = REG[rid];
   const p = g.player;
   const info = raceInfo(g, r);
@@ -3853,7 +4068,7 @@ function RegionDrawer({ g, rid, proj, onClose, onAction, onTravel, tutStep, onSk
   if (!top.includes(p)) top[2] = p;
   const maxS = Math.max(...top.map((q) => info.s[q]), 20);
   return (
-    <Sheet onClose={onClose} label={rl(r)}>
+    <Wrap onClose={onClose} label={rl(r)}>
       <SheetHead kicker={tt(`${r.seats} ${seatsWord(r.seats)} to win here`, `Čia galima laimėti: ${r.seats} ${seatsWord(r.seats)}`)} title={rl(r)} onClose={onClose} />
       <div className="flex flex-col gap-4 pt-4" style={GUTTER}>
         <Scene kind={REGION_SCENE[rid] || 'town'} h={112} />
@@ -3928,7 +4143,7 @@ function RegionDrawer({ g, rid, proj, onClose, onAction, onTravel, tutStep, onSk
           </div>
         )}
       </div>
-    </Sheet>
+    </Wrap>
   );
 }
 
@@ -3942,61 +4157,107 @@ function nextUp(g) {
   }
   return g.week >= WEEKS ? tt('Early voting is open: moves are 15% weaker', 'Vyksta išankstinis balsavimas: veiksmai 15 % silpnesni') : tt('Next: election day', 'Toliau: rinkimų diena');
 }
-function WeekStrip({ g }) {
-  return (
-    <div className="grid gap-1 mt-2" style={{ gridTemplateColumns: `repeat(${WEEKS}, 1fr)` }} aria-label={tt('Campaign calendar', 'Kampanijos kalendorius')}>
-      {Array.from({ length: WEEKS }).map((_, i) => {
-        const w = i + 1;
-        const Icon = w === WEEKS ? Vote : DEBATE_WEEKS.includes(w) ? Tv : ENDORSE_WEEKS.includes(w) ? Handshake : null;
-        const past = w < g.week, now = w === g.week;
-        return (
-          <span key={w} className="grid place-items-center rounded-lg cx-num" title={`${w}`} style={{ height: 20, fontSize: 10, background: now ? SUN : past ? '#CBD5E1' : '#fff', border: `2px solid ${INK}`, color: past ? '#64748B' : INK }}>
-            {Icon ? <Icon size={12} strokeWidth={2.6} /> : w}
-          </span>
-        );
-      })}
-    </div>
-  );
-}
 function Header({ g, proj, onHelp, lang, setLang }) {
   const P = PARTIES[g.player];
   const seats = proj.seats[g.player];
   return (
-    <header className="sticky z-30" style={{ top: 'env(safe-area-inset-top, 0px)', background: '#fff', borderBottom: `3px solid ${INK}` }}>
-      <div className="max-w-lg mx-auto pt-2.5 pb-2.5" style={GUTTER}>
+    <header className="sticky z-30" style={{ top: 'env(safe-area-inset-top, 0px)', background: 'linear-gradient(180deg, rgba(7,9,13,.97), rgba(12,15,22,.94))', borderBottom: `1px solid ${LINE}`, backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
+      <div className="max-w-lg mx-auto pt-2.5" style={GUTTER}>
         <div className="flex items-center gap-2.5">
-          <Portrait who={g.player} size={46} badge />
+          <Portrait who={g.player} size={50} square badge />
           <div className="min-w-0 flex-1">
-            <div className="cx-title text-xl leading-none whitespace-nowrap">{tt(`Week ${g.week}`, `${g.week} savaitė`)} <span className="t-muted">{tt('of 12', 'iš 12')}</span></div>
-            <div className="text-xs font-extrabold t-muted mt-1 truncate">{nextUp(g)}</div>
+            <div className="flex items-center gap-1.5 min-w-0">
+              <span className="cx-title text-lg leading-none truncate">{P.leader}</span>
+              <span className="shrink-0 rounded px-1.5 text-xs font-extrabold" style={{ background: P.color, color: '#fff', lineHeight: '18px' }}>{P.short}</span>
+            </div>
+            <div className="text-xs font-semibold t-muted mt-1 truncate">{fmtDay(weekStartDate(g.week))} · {nextUp(g)}</div>
           </div>
           <LangToggle lang={lang} setLang={setLang} />
-          <button type="button" onClick={onHelp} aria-label={tt('How to play', 'Kaip žaisti')} className="cx-btn cx-white shrink-0" style={{ width: 40, height: 40, borderRadius: 999, boxShadow: `0 3px 0 ${INK}` }}><HelpCircle size={20} /></button>
+          <button type="button" onClick={onHelp} aria-label={tt('How to play', 'Kaip žaisti')} className="cx-btn shrink-0" style={{ width: 38, height: 38, borderRadius: 999, background: 'rgba(255,255,255,.07)' }}><HelpCircle size={19} /></button>
         </div>
-        <WeekStrip g={g} />
-        <div className="grid gap-1.5 mt-2" style={{ gridTemplateColumns: '0.95fr 1.15fr 0.95fr 1.05fr' }}>
-          {[
-            [Zap, { fill: SUN }, <>{g.ap}<span className="t-muted text-sm">/{g.apMax}</span></>, tt('Energy', 'Energija'), '#fff', tt(`${g.ap} of ${g.apMax} energy left`, `Liko ${g.ap} iš ${g.apMax} energijos`)],
-            [Wallet, { color: GREEN }, fmtEurShort(g.money), tt('Money', 'Pinigai'), '#fff', tt(`Money ${fmtEur(g.money)}`, `Pinigai ${fmtEur(g.money)}`)],
-            [Landmark, { color: '#2563EB' }, <>{seats}<span className="t-muted text-sm">/71</span></>, tt('Seats', 'Mandatai'), seats >= MAJORITY ? '#DCFCE7' : '#fff', tt(`${seats} projected seats of 71 needed`, `Numatoma ${seats} mandatų iš reikiamų 71`)],
-            [ShieldCheck, { color: g.cred >= 60 ? GREEN : g.cred >= 40 ? AMBER : RED }, Math.round(g.cred), tt('Trust', 'Reputacija'), g.cred < 40 ? '#FEE2E2' : '#fff', tt(`Reputation ${Math.round(g.cred)} of 100`, `Reputacija ${Math.round(g.cred)} iš 100`)],
-          ].map(([Icon, st, val, label, bg, aria]) => (
-            <div key={label} className="rounded-2xl px-2 py-1 min-w-0" style={{ border: `2.5px solid ${INK}`, background: bg }} aria-label={aria}>
-              <div className={`cx-num ${typeof val === 'string' && val.length > 7 ? 'text-[15px]' : 'text-lg'} leading-tight whitespace-nowrap overflow-hidden`} style={{ textOverflow: 'clip', minHeight: 25 }}>{val}</div>
-              <div className="flex items-center gap-1 font-extrabold t-muted whitespace-nowrap" style={{ fontSize: 10.5, lineHeight: 1.2 }}><Icon size={12} strokeWidth={2.6} style={st} className="shrink-0" />{label}</div>
-            </div>
-          ))}
+        <div className="flex items-center gap-1.5 mt-2">
+          <HudPills g={g} seats={seats} />
+        </div>
+        <div className="mt-1"><WeekTimeline g={g} compact /></div>
+      </div>
+    </header>
+  );
+}
+function DesktopHud({ g, proj, onHelp, lang, setLang, onEnd, glowEnd }) {
+  const P = PARTIES[g.player];
+  const seats = proj.seats[g.player];
+  const last = g.week >= WEEKS;
+  return (
+    <header className="sticky top-0 z-30" style={{ background: 'linear-gradient(180deg, rgba(7,9,13,.97), rgba(12,15,22,.92))', borderBottom: `1px solid ${LINE}`, backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
+      <div className="flex items-center gap-6 px-5 py-3">
+        <div className="flex items-center gap-3 rounded-xl px-3 py-2 shrink-0" style={{ background: `linear-gradient(135deg, ${tint(P.color, 0.35)}, ${tint(P.color, 0.7)})`, border: `1px solid ${LINE2}`, boxShadow: SHADOW }}>
+          <Portrait who={g.player} size={64} square badge />
+          <div className="min-w-0">
+            <div className="cx-title text-xl leading-none whitespace-nowrap">{P.leader} <span className="t-muted">({P.short})</span></div>
+            <div className="flex items-center gap-1.5 mt-2"><HudPills g={g} seats={seats} /></div>
+          </div>
+        </div>
+        <div className="flex-1 min-w-0 max-w-3xl">
+          <div className="flex items-baseline justify-between gap-3">
+            <span className="cx-title text-2xl leading-none">{tt(`Week ${g.week}`, `${g.week} savaitė`)} <span className="t-muted text-lg">{tt('of 12', 'iš 12')}</span></span>
+            <span className="text-sm font-semibold t-muted truncate">{fmtDay(weekStartDate(g.week))} · {nextUp(g)}</span>
+          </div>
+          <div className="mt-1"><WeekTimeline g={g} /></div>
+        </div>
+        <div className="flex items-center gap-2 ml-auto">
+          <LangToggle lang={lang} setLang={setLang} />
+          <button type="button" onClick={onHelp} aria-label={tt('How to play', 'Kaip žaisti')} className="cx-btn shrink-0" style={{ width: 42, height: 42, borderRadius: 999, background: 'rgba(255,255,255,.07)' }}><HelpCircle size={20} /></button>
+          <Btn className={`h-14 px-6 text-xl ${glowEnd ? 'cx-glow' : ''}`} onClick={onEnd}>{last ? <Vote size={22} /> : <Play size={20} style={{ fill: '#1B1204' }} />}{last ? tt('Vote!', 'Balsuoti!') : tt('Next week', 'Kita savaitė')}</Btn>
         </div>
       </div>
     </header>
   );
 }
+function NavRail({ tab, setTab }) {
+  const items = [['map', MapIcon, tt('Map', 'Žemėlapis')], ['polls', BarChart3, tt('Polls', 'Apklausos')], ['hq', Building2, tt('HQ', 'Štabas')], ['news', Newspaper, tt('News', 'Naujienos')]];
+  return (
+    <nav className="sticky flex flex-col gap-2" style={{ top: 118 }} aria-label={tt('Sections', 'Skiltys')}>
+      {items.map(([id, Icon, label]) => (
+        <button key={id} type="button" onClick={() => setTab(id)} aria-current={tab === id ? 'page' : undefined} className="cx-btn flex-col gap-1 text-[11px] font-bold" style={{ height: 72, background: tab === id ? '#F3F4F6' : 'rgba(255,255,255,.05)', color: tab === id ? '#0B0E14' : TEXT }}>
+          <Icon size={24} strokeWidth={tab === id ? 2.6 : 2.1} />{label}
+        </button>
+      ))}
+    </nav>
+  );
+}
+function SidePanel({ g, shares, onSelect }) {
+  return (
+    <div className="flex flex-col gap-4 sbl-scroll overflow-y-auto pr-1" style={{ position: 'sticky', top: 118, maxHeight: 'calc(100vh - 170px)' }}>
+      <TourCard g={g} onSelect={onSelect} />
+      <Warnings g={g} />
+      <RaceBriefing g={g} shares={shares} onOpen={onSelect} />
+      <section className="cx-card p-4">
+        <CardTitle>{tt('Latest news', 'Naujausios žinios')}</CardTitle>
+        <div className="flex flex-col">
+          {g.news.slice(0, 6).map((n) => {
+            const v = newsView(g, n);
+            const Icon = v.icon;
+            return (
+              <div key={n.id} className="flex gap-2.5 py-2" style={{ borderTop: `1px solid ${LINE}` }}>
+                {v.p ? <Portrait who={v.p} size={30} /> : <span className="grid place-items-center rounded-full shrink-0" style={{ width: 30, height: 30, background: 'rgba(255,255,255,.07)' }}><Icon size={15} /></span>}
+                <div className="min-w-0"><div className="font-bold text-sm leading-snug">{v.title}</div><div className="text-xs t-muted leading-snug mt-0.5">{v.text}</div></div>
+              </div>
+            );
+          })}
+        </div>
+      </section>
+    </div>
+  );
+}
+function DockPanel({ children, label }) {
+  return <section className="cx-card sbl-scroll overflow-y-auto sbl-fade" aria-label={label} style={{ position: 'sticky', top: 118, maxHeight: 'calc(100vh - 170px)', paddingBottom: 18, padding: 0 }}>{children}</section>;
+}
 function Ticker({ g }) {
   const items = g.news.slice(0, 6).map((n) => newsView(g, n).title);
   if (!items.length) return null;
   return (
-    <div className="cx-card flex items-stretch overflow-hidden" style={{ padding: 0, boxShadow: `0 4px 0 ${INK}` }}>
-      <span className="shrink-0 grid place-items-center px-3 text-xs font-black text-white" style={{ background: '#E5484D', borderRight: `3px solid ${INK}` }}>{tt('NEWS', 'ŽINIOS')}</span>
+    <div className="cx-card flex items-stretch overflow-hidden" style={{ padding: 0, boxShadow: SHADOW }}>
+      <span className="shrink-0 grid place-items-center px-3 text-xs font-black text-white" style={{ background: '#E5484D', borderRight: `1px solid ${LINE}` }}>{tt('NEWS', 'ŽINIOS')}</span>
       <div className="cx-ticker-wrap flex-1 py-2" aria-label={tt('Latest headlines', 'Naujausios antraštės')}>
         <div className="cx-ticker text-sm font-extrabold">
           {items.map((t, i) => <span key={i} className="inline-flex items-center gap-2"><span style={{ color: '#E5484D' }}>●</span>{t}</span>)}
@@ -4007,19 +4268,20 @@ function Ticker({ g }) {
 }
 function BottomNav({ tab, setTab, onEnd, g, glowEnd }) {
   const item = (id, Icon, label) => (
-    <button key={id} type="button" onClick={() => setTab(id)} aria-current={tab === id ? 'page' : undefined} className="flex flex-col items-center justify-center gap-0.5 h-16 rounded-2xl font-extrabold text-xs transition" style={{ color: tab === id ? INK : '#64748B', background: tab === id ? '#FFF1C2' : 'transparent' }}>
-      <Icon size={24} strokeWidth={tab === id ? 2.8 : 2.2} />{label}
+    <button key={id} type="button" onClick={() => setTab(id)} aria-current={tab === id ? 'page' : undefined} className="flex flex-col items-center justify-center gap-0.5 h-14 rounded-xl font-bold transition" style={{ fontSize: 11, color: tab === id ? '#0B0E14' : '#AAB3C2', background: tab === id ? '#F3F4F6' : 'transparent' }}>
+      <Icon size={22} strokeWidth={tab === id ? 2.6 : 2.1} />{label}
     </button>
   );
   const last = g.week >= WEEKS;
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-30" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)', background: '#fff', borderTop: `3px solid ${INK}` }}>
-      <div className="max-w-lg mx-auto grid grid-cols-5 items-center gap-1 py-1" style={GUTTER}>
+    <nav className="fixed bottom-0 inset-x-0 z-30" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)', background: 'rgba(8,10,15,.97)', borderTop: `1px solid ${LINE}`, backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
+      <NewsTicker g={g} />
+      <div className="max-w-lg mx-auto grid grid-cols-5 items-center gap-1 py-1.5" style={GUTTER}>
         {item('map', MapIcon, tt('Map', 'Žemėlapis'))}
         {item('polls', BarChart3, tt('Polls', 'Apklausos'))}
         <div className="flex justify-center">
-          <button type="button" onClick={onEnd} className={`cx-btn cx-sun -mt-8 flex-col gap-0.5 ${glowEnd ? 'cx-glow' : ''}`} style={{ width: 88, height: 74, borderRadius: 24, fontSize: 13, lineHeight: 1.05 }}>
-            {last ? <Vote size={26} strokeWidth={2.6} /> : <Play size={26} strokeWidth={2.6} style={{ fill: INK }} />}
+          <button type="button" onClick={onEnd} className={`cx-btn cx-cta cx-sun -mt-8 flex-col gap-0.5 ${glowEnd ? 'cx-glow' : ''}`} style={{ width: 86, height: 70, borderRadius: 18, fontSize: 15, lineHeight: 1.05 }}>
+            {last ? <Vote size={25} strokeWidth={2.6} /> : <Play size={24} strokeWidth={2.6} style={{ fill: '#1B1204' }} />}
             <span>{last ? tt('Vote!', 'Balsuoti!') : tt('Next week', 'Kita savaitė')}</span>
           </button>
         </div>
@@ -4070,7 +4332,7 @@ function Warnings({ g }) {
   if (!out.length) return null;
   return (
     <div className="flex flex-col gap-1.5">
-      {out.map((t) => <div key={t} className="rounded-2xl px-3 py-2 text-sm font-bold flex gap-2 items-start" style={{ background: '#FEE2E2', border: `2.5px solid ${INK}` }}><AlertTriangle size={17} className="shrink-0 mt-0.5" style={{ color: RED }} />{t}</div>)}
+      {out.map((t) => <div key={t} className="rounded-2xl px-3 py-2 text-sm font-bold flex gap-2 items-start" style={{ background: BAD_BG, border: `1px solid ${LINE}` }}><AlertTriangle size={17} className="shrink-0 mt-0.5" style={{ color: RED }} />{t}</div>)}
     </div>
   );
 }
@@ -4082,7 +4344,7 @@ function RaceBriefing({ g, shares, onOpen }) {
   return (
     <Card className="p-3">
       <div className="flex items-center gap-3">
-        <span className="grid place-items-center rounded-full shrink-0" style={{ width: 42, height: 42, background: '#FDE68A', border: `2.5px solid ${INK}` }}><Target size={21} strokeWidth={2.5} /></span>
+        <span className="grid place-items-center rounded-full shrink-0" style={{ width: 42, height: 42, background: WARN_BG, border: `1px solid ${LINE}` }}><Target size={21} strokeWidth={2.5} /></span>
         <div className="min-w-0 flex-1">
           <div className="cx-title text-lg leading-tight">{tt(`Week ${g.week}: your call`, `${g.week} savaitė: sprendžiate jūs`)}</div>
           <div className="text-sm font-semibold t-muted">{tt(`${g.ap} energy left. These are the closest races right now.`, `Liko ${g.ap} energijos. Štai šiuo metu lygiausios kovos.`)}</div>
@@ -4091,7 +4353,7 @@ function RaceBriefing({ g, shares, onOpen }) {
       {races.length ? (
         <div className="flex flex-wrap gap-2 mt-3">
           {races.map(({ r, info }) => (
-            <button key={r.id} type="button" onClick={() => onOpen(r.id)} className="cx-chip cx-tap px-3 py-1.5 text-sm" style={{ background: info.gap >= 0 ? '#DCFCE7' : '#FEF3C7' }}>
+            <button key={r.id} type="button" onClick={() => onOpen(r.id)} className="cx-chip cx-tap px-3 py-1.5 text-sm" style={{ background: info.gap >= 0 ? GOOD_BG : WARN_BG }}>
               <PartyDot p={info.lead} size={11} />{rs(r)}
               <span className="cx-num" style={{ color: info.gap >= 0 ? GREEN : AMBER }}>{fmtSigned(info.gap)}</span>
               <span className="t-muted text-xs">· {r.seats}</span>
@@ -4106,7 +4368,7 @@ function RaceBriefing({ g, shares, onOpen }) {
 function TourCard({ g, onSelect }) {
   const route = (g.route || []).filter((x, i, arr) => i === 0 || arr[i - 1] !== x);
   return (
-    <button type="button" onClick={() => onSelect(g.leaderAt)} className="cx-tap cx-card w-full p-3 flex items-center gap-3 text-left" style={{ boxShadow: `0 4px 0 ${INK}` }}>
+    <button type="button" onClick={() => onSelect(g.leaderAt)} className="cx-tap cx-card w-full p-3 flex items-center gap-3 text-left" style={{ boxShadow: SHADOW }}>
       <Portrait who={g.player} size={46} badge />
       <div className="min-w-0 flex-1">
         <div className="font-black leading-tight">{tt(`${leaderSurname(g.player)} is in ${rs(g.leaderAt)}`, `${leaderSurname(g.player)} dabar – ${rs(g.leaderAt)}`)}</div>
@@ -4118,7 +4380,7 @@ function TourCard({ g, onSelect }) {
   );
 }
 const LAYER_KEY = 'seimas-bfl-layer';
-function MapTab({ g, shares, proj, sel, onSelect, skipTips }) {
+function MapTab({ g, shares, proj, sel, onSelect, skipTips, wide }) {
   const rows = REGIONS.slice().sort((a, b) => b.seats - a.seats);
   const p = g.player;
   const [layer, setLayer] = useState(() => { try { return window.localStorage.getItem(LAYER_KEY) || 'lead'; } catch (e) { return 'lead'; } });
@@ -4140,28 +4402,27 @@ function MapTab({ g, shares, proj, sel, onSelect, skipTips }) {
           {tt('Tap the big yellow Next week button at the bottom. Your rivals will react to what you did, and a new poll comes out.', 'Spauskite didelį geltoną mygtuką „Kita savaitė“ apačioje. Varžovai sureaguos į jūsų veiksmus, o mes gausime naują apklausą.')}
         </Coach>
       )}
-      <div className="cx-card overflow-hidden" style={{ padding: 0, background: '#BFE6FA', boxShadow: `0 5px 0 ${INK}` }}>
-        <div className="flex items-center gap-2 px-3 pt-3">
-          <Layers size={18} strokeWidth={2.6} />
-          <span className="cx-title text-lg leading-none">{tt('Campaign map', 'Kampanijos žemėlapis')}</span>
-          <span className="ml-auto text-xs font-extrabold t-muted">{tt('tap a region', 'spauskite regioną')}</span>
+      <div className="cx-card overflow-hidden" style={{ padding: 0, background: `radial-gradient(ellipse at 50% 40%, #13233A, ${MAP_SEA} 70%)` }}>
+        <div className="flex items-center gap-2 px-3 py-2.5 cx-bar">
+          <Layers size={18} strokeWidth={2.4} color={SUN} />
+          <span className="cx-title text-xl leading-none">{tt('Campaign map', 'Kampanijos žemėlapis')}</span>
+          <span className="ml-auto text-xs font-semibold t-muted">{tt('tap a region', 'spauskite regioną')}</span>
         </div>
         <div className="cx-layers flex gap-1.5 overflow-x-auto px-3 pt-2 pb-1" role="tablist" aria-label={tt('Map layers', 'Žemėlapio sluoksniai')}>
           {MAP_LAYERS.map((Ly) => {
             const Icon = Ly.icon;
             const on = layer === Ly.id;
-            return <button key={Ly.id} type="button" role="tab" aria-selected={on} onClick={() => pickLayer(Ly.id)} className="cx-chip shrink-0 px-2.5 py-1 text-xs" style={{ background: on ? SUN : '#fff', minHeight: 32 }}><Icon size={13} strokeWidth={2.6} />{L(Ly.label)}</button>;
+            return <button key={Ly.id} type="button" role="tab" aria-selected={on} onClick={() => pickLayer(Ly.id)} className="cx-chip shrink-0 px-3 py-1 text-xs" style={{ background: on ? '#F3F4F6' : 'rgba(255,255,255,.06)', color: on ? '#0B0E14' : TEXT, borderColor: on ? '#F3F4F6' : LINE2, minHeight: 32 }}><Icon size={13} strokeWidth={2.6} />{L(Ly.label)}</button>;
           })}
         </div>
         <div style={{ padding: 6 }}><CartoonMap shares={shares} sel={sel} onSelect={onSelect} g={g} proj={proj} layer={layer} /></div>
-        <div className="bg-white" style={{ borderTop: `3px solid ${INK}` }}><MapLegend layer={layer} g={g} shares={shares} /></div>
+        <div style={{ borderTop: `1px solid ${LINE}`, background: 'rgba(7,9,13,.55)' }}><MapLegend layer={layer} g={g} shares={shares} /></div>
       </div>
-      <TourCard g={g} onSelect={onSelect} />
-      {(g.tut === 0 || g.tut >= 5) && <Warnings g={g} />}
-      {(g.tut === 0 || g.tut >= 5) && <RaceBriefing g={g} shares={shares} onOpen={onSelect} />}
-      <Ticker g={g} />
-      <div className="flex flex-col gap-2.5">
-        <h3 className="cx-title text-xl">{tt('All regions', 'Visi regionai')}</h3>
+      {!wide && <TourCard g={g} onSelect={onSelect} />}
+      {!wide && (g.tut === 0 || g.tut >= 5) && <Warnings g={g} />}
+      {!wide && (g.tut === 0 || g.tut >= 5) && <RaceBriefing g={g} shares={shares} onOpen={onSelect} />}
+      <div className="flex flex-col gap-2.5 lg:grid lg:grid-cols-2 lg:gap-3">
+        <h3 className="cx-title text-2xl lg:col-span-2">{tt('All regions', 'Visi regionai')}</h3>
         {rows.map((r) => <RegionRow key={r.id} r={r} g={g} s={shares[r.id]} mySeats={proj.smd.filter((e) => e.rid === r.id && e.winner === p).length} onClick={() => onSelect(r.id)} />)}
       </div>
     </div>
@@ -4180,8 +4441,8 @@ function PollsTab({ g, nat, proj }) {
   const mine = proj.seats[p];
   const need = MAJORITY - mine;
   return (
-    <div className="flex flex-col gap-4 pt-4">
-      <h2 className="cx-title text-3xl">{tt('Polls', 'Apklausos')}</h2>
+    <div className="flex flex-col gap-4 pt-4 lg:grid lg:grid-cols-2 lg:items-start">
+      <h2 className="cx-title text-4xl lg:col-span-2">{tt('Polls', 'Apklausos')}</h2>
       <Card className="p-4">
         <CardTitle sub={tt('Each dot is one of the Seimas’ 141 seats. The dashed line marks 71.', 'Kiekvienas taškas – viena iš 141 Seimo vietos. Brūkšninė linija – 71.')} info={<InfoTip title={tt('Seats', 'Mandatai')}>{tt('The Seimas has 141 seats. 70 are shared by the national vote among parties over 5%. 71 go to local winners, one per district. To govern you need 71, alone or with partners.', 'Seime – 141 vieta. 70 paskirstoma pagal balsus visoje šalyje partijoms, surinkusioms daugiau nei 5 %. 71 tenka apygardų nugalėtojams. Valdyti reikia 71 – vieniems arba su partneriais.')}</InfoTip>}>{tt('If the vote were today', 'Jei rinkimai vyktų šiandien')}</CardTitle>
         <Hemicycle seats={proj.seats} highlight={p} label={`${partyShort(p)}`} />
@@ -4243,7 +4504,7 @@ function MoveRow({ a, g, est, onClick, dark }) {
   const n = g.natActs[a.id] || 0;
   return (
     <button type="button" onClick={onClick} disabled={disabled} className="cx-btn cx-white w-full justify-start gap-3 px-3 py-3 text-left">
-      <span className="grid place-items-center rounded-full shrink-0" style={{ width: 40, height: 40, background: dark ? '#C7D2FE' : '#FFF1C2', border: `2.5px solid ${INK}` }}><Icon size={19} strokeWidth={2.5} /></span>
+      <span className="grid place-items-center rounded-full shrink-0" style={{ width: 40, height: 40, background: dark ? '#C7D2FE' : ACC_BG, border: `1px solid ${LINE}` }}><Icon size={19} strokeWidth={2.5} /></span>
       <span className="min-w-0 flex-1">
         <span className="block font-black leading-tight">{L(a.label)}{n > 0 && <span className="ml-2 text-xs t-muted">{tt(`${n}× this week`, `${n}× šią sav.`)}</span>}</span>
         <span className="block text-sm font-semibold t-muted leading-snug">{L(a.desc)}</span>
@@ -4284,7 +4545,7 @@ function PromisesCard({ g }) {
       </div>
       <div className="mt-3 text-sm font-extrabold">{tt('Endorsements', 'Organizacijų parama')}</div>
       <div className="flex flex-wrap gap-1.5 mt-1.5">
-        {(g.endorsements || []).map((e) => { const o = ORGS.find((x) => x.id === e.org); return <span key={e.org} className="cx-chip px-2 py-0.5 text-xs" style={{ background: e.p === g.player ? '#BBF7D0' : '#fff' }}><PartyDot p={e.p} size={10} />{L(o.name)}</span>; })}
+        {(g.endorsements || []).map((e) => { const o = ORGS.find((x) => x.id === e.org); return <span key={e.org} className="cx-chip px-2 py-0.5 text-xs" style={{ background: e.p === g.player ? GOOD_BG : PANEL2 }}><PartyDot p={e.p} size={10} />{L(o.name)}</span>; })}
         {upcoming.map((o) => <span key={o.id} className="cx-chip px-2 py-0.5 text-xs t-muted"><Clock size={11} />{L(o.name)} · {tt(`wk ${o.week}`, `${o.week} sav.`)}</span>)}
       </div>
     </Card>
@@ -4314,21 +4575,21 @@ function HQTab({ g, act, openSheet }) {
   const vrkPct = g.stats.spent / VRK_LIMIT;
   const statCard = 'cx-card p-3';
   return (
-    <div className="flex flex-col gap-4 pt-4">
-      <h2 className="cx-title text-3xl">{tt('Campaign HQ', 'Rinkimų štabas')}</h2>
+    <div className="flex flex-col gap-4 pt-4 lg:grid lg:grid-cols-2 lg:items-start">
+      <h2 className="cx-title text-4xl lg:col-span-2">{tt('Campaign HQ', 'Rinkimų štabas')}</h2>
       <PromisesCard g={g} />
       <div className="grid grid-cols-3 gap-2">
-        <div className={statCard} style={{ boxShadow: `0 4px 0 ${INK}` }}>
+        <div className={statCard} style={{ boxShadow: SHADOW }}>
           <div className="flex items-center justify-between"><Handshake size={20} /><InfoTip title={tt('Favours', 'Ryšiai')}>{tt('Favours are political connections. Earn them in debates and over coffee with rivals. After the vote, spend them to win coalition partners.', 'Ryšiai – tai politinės pažintys. Juos užsitarnaujate debatuose ir per kavą su varžovais. Po rinkimų jie padeda prisivilioti koalicijos partnerius.')}</InfoTip></div>
           <div className="cx-num text-2xl leading-none mt-1">{g.pc}</div>
           <div className="text-xs font-extrabold t-muted">{tt('Favours', 'Ryšiai')}</div>
         </div>
-        <div className={statCard} style={{ boxShadow: `0 4px 0 ${INK}` }}>
+        <div className={statCard} style={{ boxShadow: SHADOW }}>
           <div className="flex items-center justify-between"><Flame size={20} style={{ color: '#EA580C' }} /><InfoTip title={tt('Buzz', 'Pagreitis')}>{tt('Buzz is how much people are talking about you. Positive buzz lifts your support everywhere; it fades a little every week.', 'Pagreitis rodo, kiek apie jus kalbama. Teigiamas pagreitis kelia palaikymą visur, bet kas savaitę šiek tiek blėsta.')}</InfoTip></div>
           <div className="cx-num text-2xl leading-none mt-1" style={{ color: mom >= 0.05 ? GREEN : mom <= -0.05 ? RED : INK }}>{fmtSigned(mom)}</div>
           <div className="text-xs font-extrabold t-muted">{tt('Buzz', 'Pagreitis')}</div>
         </div>
-        <div className={statCard} style={{ boxShadow: `0 4px 0 ${INK}` }}>
+        <div className={statCard} style={{ boxShadow: SHADOW }}>
           <div className="flex items-center justify-between"><ShieldAlert size={20} style={{ color: g.scandal > 20 ? RED : INK }} /><InfoTip title={tt('Scandal risk', 'Skandalo rizika')}>{tt('The higher it is, the more likely journalists dig up a scandal at the start of a week. Shady deals and gambling raise it; it slowly falls on its own.', 'Kuo ji didesnė, tuo labiau tikėtina, kad savaitės pradžioje žurnalistai iškels skandalą. Abejotini sandoriai ir lošimai ją didina, savaime ji lėtai mažėja.')}</InfoTip></div>
           <div className="cx-num text-2xl leading-none mt-1">{Math.round(g.scandal)}{LANG === 'lt' ? ' %' : '%'}</div>
           <div className="text-xs font-extrabold t-muted">{tt('Scandal risk', 'Skandalo rizika')}</div>
@@ -4346,22 +4607,22 @@ function HQTab({ g, act, openSheet }) {
           {NATIONAL_ACTIONS.filter((a) => a.group === 'fund').map((a) => <MoveRow key={a.id} a={a} g={g} est={`+${fmtEur(fundEst[a.id])}`} onClick={() => act((gg) => doNational(gg, a.id))} />)}
         </div>
       </Card>
-      <section className="cx-card p-4" style={{ background: '#2A2F55', color: '#fff' }}>
+      <section className="cx-card p-4" style={{ background: 'linear-gradient(180deg, rgba(229,72,77,.16), rgba(22,27,37,.97))', borderColor: 'rgba(229,72,77,.35)' }}>
         <div className="flex items-start justify-between gap-3 mb-1">
           <div>
             <h3 className="cx-title text-xl leading-tight inline-flex items-center gap-2"><Dices size={22} />{tt('Risky money', 'Rizikingi pinigai')}</h3>
             <p className="text-sm font-semibold mt-0.5" style={{ color: '#C7CCEB' }}>{tt('Gamble campaign cash. The house usually wins, and journalists are watching.', 'Rizikuokite kampanijos pinigais. Dažniausiai laimi kazino, o žurnalistai stebi.')}</p>
           </div>
-          <span className="cx-chip px-2 py-0.5 text-xs shrink-0" style={{ background: '#FECACA', color: INK }}>{tt('Very risky', 'Labai rizikinga')}</span>
+          <span className="cx-chip px-2 py-0.5 text-xs shrink-0" style={{ background: BAD_BG, color: INK }}>{tt('Very risky', 'Labai rizikinga')}</span>
         </div>
         <div className="flex flex-col gap-3 mt-3">
-          <button type="button" onClick={() => openSheet('casino')} disabled={!g.natActs.casino && g.ap < 1} className="cx-btn w-full justify-start gap-3 px-3 py-3 text-left" style={{ background: '#FDE68A' }}>
-            <span className="grid place-items-center rounded-full shrink-0" style={{ width: 40, height: 40, background: '#E5484D', border: `2.5px solid ${INK}`, color: '#fff' }}><Dices size={20} /></span>
+          <button type="button" onClick={() => openSheet('casino')} disabled={!g.natActs.casino && g.ap < 1} className="cx-btn w-full justify-start gap-3 px-3 py-3 text-left" style={{ background: WARN_BG }}>
+            <span className="grid place-items-center rounded-full shrink-0" style={{ width: 40, height: 40, background: '#E5484D', border: `1px solid ${LINE}`, color: '#fff' }}><Dices size={20} /></span>
             <span className="min-w-0 flex-1"><span className="block font-black">{tt('Casino night', 'Vakaras kazino')}</span><span className="block text-sm font-semibold" style={{ color: '#5B4A12' }}>{tt('Roulette in Vilnius Old Town. Up to 5 spins.', 'Ruletė Vilniaus senamiestyje. Iki 5 sukimų.')}</span></span>
             <span className="text-sm font-black shrink-0 inline-flex items-center gap-1">{g.natActs.casino ? tt('Open', 'Atidaryta') : <><Zap size={14} style={{ fill: INK }} />1</>}</span>
           </button>
-          <button type="button" onClick={() => openSheet('bet')} disabled={g.ap < 1} className="cx-btn w-full justify-start gap-3 px-3 py-3 text-left" style={{ background: '#BBF7D0' }}>
-            <span className="grid place-items-center rounded-full shrink-0" style={{ width: 40, height: 40, background: FLAG.g, border: `2.5px solid ${INK}`, color: '#fff' }}><Ticket size={20} /></span>
+          <button type="button" onClick={() => openSheet('bet')} disabled={g.ap < 1} className="cx-btn w-full justify-start gap-3 px-3 py-3 text-left" style={{ background: GOOD_BG }}>
+            <span className="grid place-items-center rounded-full shrink-0" style={{ width: 40, height: 40, background: FLAG.g, border: `1px solid ${LINE}`, color: '#fff' }}><Ticket size={20} /></span>
             <span className="min-w-0 flex-1"><span className="block font-black">{tt('Bet on Žalgiris', 'Lažybos dėl „Žalgirio“')}</span><span className="block text-sm font-semibold" style={{ color: '#14532D' }}>{tt('Put money on tonight’s EuroLeague game.', 'Statykite už šio vakaro Eurolygos rungtynes.')}</span></span>
             <span className="text-sm font-black shrink-0 inline-flex items-center gap-1"><Zap size={14} style={{ fill: INK }} />1</span>
           </button>
@@ -4394,7 +4655,7 @@ function HQTab({ g, act, openSheet }) {
                     const isDraft = draft[ax.id] === v;
                     const isNow = g.stance[ax.id] === v;
                     return (
-                      <button key={i} type="button" role="radio" aria-checked={isDraft} aria-label={L(st)} onClick={() => setDraft({ ...draft, [ax.id]: v })} className="h-11 rounded-xl grid place-items-center cx-tap" style={{ background: isDraft ? SUN : isNow ? '#FFF1C2' : '#fff', border: `2.5px solid ${INK}` }}>
+                      <button key={i} type="button" role="radio" aria-checked={isDraft} aria-label={L(st)} onClick={() => setDraft({ ...draft, [ax.id]: v })} className="h-11 rounded-xl grid place-items-center cx-tap" style={{ background: isDraft ? SUN : isNow ? ACC_BG : PANEL2, border: `1px solid ${LINE}` }}>
                         {orig[ax.id] === v && <Home size={14} strokeWidth={2.6} />}
                       </button>
                     );
@@ -4414,14 +4675,14 @@ function HQTab({ g, act, openSheet }) {
           <p className="text-xs font-bold t-muted">{tt('Coloured dots show where other parties stand. The closer you are, the happier they’ll be to team up.', 'Spalvoti taškai rodo kitų partijų pozicijas. Kuo arčiau esate, tuo noriau jos jungsis į koaliciją.')}</p>
         </div>
         {preview ? (
-          <div className="mt-3 cx-cream rounded-2xl p-3 flex flex-col gap-2" style={{ border: `2.5px solid ${INK}` }}>
+          <div className="mt-3 cx-cream rounded-2xl p-3 flex flex-col gap-2" style={{ border: `1px solid ${LINE}` }}>
             <div className="font-black">{tt('If you announce this:', 'Jei tai paskelbsite:')}</div>
             <div className="flex justify-between text-sm font-bold gap-2"><span>{tt('Your national poll', 'Jūsų reitingas')}</span><span className="cx-num">{fmtPct(preview.now)} → {fmtPct(preview.next)} <Delta v={preview.next - preview.now} /></span></div>
             <div className="flex justify-between text-sm font-bold gap-2"><span>{tt('Seats if the vote were today', 'Mandatai, jei rinkimai būtų šiandien')}</span><span className="cx-num">{preview.seatsNow} → {preview.seatsNext} <Delta v={preview.seatsNext - preview.seatsNow} d={0} /></span></div>
             <div className="flex justify-between text-sm font-bold gap-2"><span>{tt('Your core fans’ enthusiasm', 'Ištikimų rėmėjų entuziazmas')}</span><span className="cx-num" style={{ color: base < 0.95 ? RED : GREEN }}>{Math.round(base * 100)}{LANG === 'lt' ? ' %' : '%'}</span></div>
             <div className="flex flex-wrap gap-1.5">
-              {preview.regs.slice(0, 3).filter((x) => x.d > 0.05).map((x) => <span key={x.r.id} className="cx-chip px-2 py-0.5 text-xs" style={{ background: '#BBF7D0' }}>{rs(x.r)} {fmtSigned(x.d)}</span>)}
-              {preview.regs.slice(-3).filter((x) => x.d < -0.05).map((x) => <span key={x.r.id} className="cx-chip px-2 py-0.5 text-xs" style={{ background: '#FECACA' }}>{rs(x.r)} {fmtSigned(x.d)}</span>)}
+              {preview.regs.slice(0, 3).filter((x) => x.d > 0.05).map((x) => <span key={x.r.id} className="cx-chip px-2 py-0.5 text-xs" style={{ background: GOOD_BG }}>{rs(x.r)} {fmtSigned(x.d)}</span>)}
+              {preview.regs.slice(-3).filter((x) => x.d < -0.05).map((x) => <span key={x.r.id} className="cx-chip px-2 py-0.5 text-xs" style={{ background: BAD_BG }}>{rs(x.r)} {fmtSigned(x.d)}</span>)}
             </div>
             {preview.comp.length > 0 && <div className="flex flex-wrap gap-1.5">{preview.comp.slice(0, 4).map((x) => <PartyChip key={x.q} p={x.q}> {x.next > x.now ? tt('likes this', 'pritaria') : tt('dislikes this', 'nepritaria')}</PartyChip>)}</div>}
             {(cost.mom > 0 || cost.pc > 0) && <p className="text-sm font-bold" style={{ color: AMBER }}>{cost.uturns.length ? tt('That’s a U-turn! ', 'Tai staigus posūkis! ') : tt('Big jumps look fishy. ', 'Dideli šuoliai atrodo įtartinai. ')}{tt('Costs some buzz', 'Kainuos pagreičio')}{cost.pc ? tt(` and ${cost.pc} favour${cost.pc > 1 ? 's' : ''}`, ` ir ${cost.pc} ${plur(cost.pc, '', '', 'ryšį', 'ryšius', 'ryšių')}`) : ''}.</p>}
@@ -4471,7 +4732,7 @@ function StakePicker({ stake, setStake, money, stakes = [25, 50, 100, 200] }) {
   return (
     <div className="grid grid-cols-4 gap-2" role="radiogroup" aria-label={tt('Stake', 'Statymas')}>
       {stakes.map((s) => (
-        <button key={s} type="button" role="radio" aria-checked={stake === s} disabled={money < s} onClick={() => setStake(s)} className="cx-btn h-12 text-base" style={{ background: stake === s ? SUN : '#fff', color: INK, boxShadow: `0 3px 0 ${INK}` }}>{LANG === 'lt' ? `${s}k €` : `€${s}k`}</button>
+        <button key={s} type="button" role="radio" aria-checked={stake === s} disabled={money < s} onClick={() => setStake(s)} className="cx-btn h-12 text-base" style={{ background: stake === s ? SUN : PANEL2, color: INK, boxShadow: SHADOW }}>{LANG === 'lt' ? `${s}k €` : `€${s}k`}</button>
       ))}
     </div>
   );
@@ -4507,9 +4768,9 @@ function CasinoSheet({ g, act, onClose }) {
       <div style={GUTTER} className="pt-4 flex flex-col gap-4">
         <div className="flex items-center gap-3">
           <Portrait who="croupier" size={56} mood={spinning ? 'wow' : 'happy'} />
-          <div className="rounded-2xl px-3 py-2 font-extrabold text-sm" style={{ background: '#2E335E', border: '2.5px solid #4B5288' }}>{tt('“Faites vos jeux! Place your bets, please.”', '„Faites vos jeux! Statykite, prašom.“')}</div>
+          <div className="rounded-2xl px-3 py-2 font-extrabold text-sm" style={{ background: PANEL3, border: '2.5px solid #4B5288' }}>{tt('“Faites vos jeux! Place your bets, please.”', '„Faites vos jeux! Statykite, prašom.“')}</div>
         </div>
-        <div className="rounded-2xl p-3 text-sm font-bold flex gap-2" style={{ background: '#3A1F2B', border: `2.5px solid #E5484D` }}>
+        <div className="rounded-2xl p-3 text-sm font-bold flex gap-2" style={{ background: BAD_BG, border: `2.5px solid #E5484D` }}>
           <AlertTriangle size={18} className="shrink-0" style={{ color: '#FCA5A5' }} />
           <span>{tt('This is party money. Every spin has a 12% chance of a photographer, and winnings make VRK suspicious. On average the casino wins.', 'Tai partijos pinigai. Kiekvieno sukimo metu 12 % tikimybė, kad jus nufotografuos, o laimėjimai sukelia VRK įtarimų. Vidutiniškai laimi kazino.')}</span>
         </div>
@@ -4570,11 +4831,11 @@ function BetSheet({ g, act, onClose }) {
       <div style={GUTTER} className="pt-4 flex flex-col gap-4">
         <div className="flex items-center gap-3">
           <Portrait who="bookie" size={56} mood={res ? (res.win ? 'sad' : 'grin') : 'happy'} />
-          <div className="rounded-2xl px-3 py-2 font-extrabold text-sm" style={{ background: '#2E335E', border: '2.5px solid #4B5288' }}>{tt('“Žalgiris at home? Safe as houses, friend.”', '„Žalgiris namuose? Tikri pinigai, drauguži.“')}</div>
+          <div className="rounded-2xl px-3 py-2 font-extrabold text-sm" style={{ background: PANEL3, border: '2.5px solid #4B5288' }}>{tt('“Žalgiris at home? Safe as houses, friend.”', '„Žalgiris namuose? Tikri pinigai, drauguži.“')}</div>
         </div>
         {!res ? (
           <>
-            <div className="rounded-2xl p-3 text-sm font-bold flex gap-2" style={{ background: '#3A1F2B', border: '2.5px solid #E5484D' }}>
+            <div className="rounded-2xl p-3 text-sm font-bold flex gap-2" style={{ background: BAD_BG, border: '2.5px solid #E5484D' }}>
               <AlertTriangle size={18} className="shrink-0" style={{ color: '#FCA5A5' }} />
               <span>{tt('Betting party money is a terrible idea. 12% chance the slip leaks.', 'Statyti partijos pinigus – bloga mintis. 12 % tikimybė, kad kvitas nutekės.')}</span>
             </div>
@@ -4584,7 +4845,7 @@ function BetSheet({ g, act, onClose }) {
             </div>
             <div className="grid grid-cols-1 gap-2" role="radiogroup" aria-label={tt('Your bet', 'Jūsų statymas')}>
               {[['win', tt('Žalgiris wins', '„Žalgiris“ laimės'), '×1.85'], ['big', tt('Žalgiris wins by 12+ points', '„Žalgiris“ laimės 12+ taškų'), '×4.5']].map(([v, l, o]) => (
-                <button key={v} type="button" role="radio" aria-checked={pick === v} onClick={() => setPick(v)} className="cx-btn h-14 justify-between px-4" style={{ background: pick === v ? SUN : '#fff', color: INK }}>
+                <button key={v} type="button" role="radio" aria-checked={pick === v} onClick={() => setPick(v)} className="cx-btn h-14 justify-between px-4" style={{ background: pick === v ? SUN : PANEL2, color: INK }}>
                   <span>{l}</span><span className="cx-num">{LANG === 'lt' ? o.replace('.', ',') : o}</span>
                 </button>
               ))}
@@ -4624,14 +4885,14 @@ function KomproSheet({ g, act, onClose }) {
           <div className="cx-soft px-3 py-2 font-extrabold text-sm">{tt('“Everyone has a skeleton somewhere. Who are we looking at?”', '„Kiekvienas turi griaučių spintoje. Ką tikriname?“')}</div>
         </div>
         <div className="grid grid-cols-3 gap-2 text-center">
-          {[['45%', tt('Dirt found', 'Rasta'), '#BBF7D0'], ['35%', tt('Nothing', 'Nieko'), '#E3EDF5'], ['20%', tt('You get caught', 'Įkliūsite'), '#FECACA']].map(([v, l, c]) => (
-            <div key={l} className="rounded-2xl p-2" style={{ background: c, border: `2.5px solid ${INK}` }}><div className="cx-num text-xl">{LANG === 'lt' ? v.replace('%', ' %') : v}</div><div className="text-xs font-extrabold">{l}</div></div>
+          {[['45%', tt('Dirt found', 'Rasta'), GOOD_BG], ['35%', tt('Nothing', 'Nieko'), LINE], ['20%', tt('You get caught', 'Įkliūsite'), BAD_BG]].map(([v, l, c]) => (
+            <div key={l} className="rounded-2xl p-2" style={{ background: c, border: `1px solid ${LINE}` }}><div className="cx-num text-xl">{LANG === 'lt' ? v.replace('%', ' %') : v}</div><div className="text-xs font-extrabold">{l}</div></div>
           ))}
         </div>
         <div className="text-sm font-extrabold t-muted">{tt('Pick a target', 'Pasirinkite taikinį')}</div>
         <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label={tt('Target party', 'Partija')}>
           {rivals.map((q) => (
-            <button key={q} type="button" role="radio" aria-checked={target === q} onClick={() => setTarget(q)} className="cx-btn justify-start gap-2 px-2 py-2 min-w-0" style={{ background: target === q ? '#FFF1C2' : '#fff', boxShadow: `0 3px 0 ${INK}` }}>
+            <button key={q} type="button" role="radio" aria-checked={target === q} onClick={() => setTarget(q)} className="cx-btn justify-start gap-2 px-2 py-2 min-w-0" style={{ background: target === q ? ACC_BG : PANEL2, boxShadow: SHADOW }}>
               <Portrait who={q} size={38} mood={target === q ? 'wow' : 'ok'} />
               <span className="text-left min-w-0"><span className="block font-black text-sm truncate">{partyShort(q)}</span><span className="block text-xs font-bold t-muted truncate">{leaderSurname(q)}</span></span>
             </button>
@@ -4650,7 +4911,7 @@ function NewsTab({ g }) {
   let lastWeek = null;
   return (
     <div className="flex flex-col gap-3 pt-4">
-      <h2 className="cx-title text-3xl">{tt('News', 'Naujienos')}</h2>
+      <h2 className="cx-title text-4xl">{tt('News', 'Naujienos')}</h2>
       {g.news.map((n) => {
         const v = newsView(g, n);
         const Icon = v.icon;
@@ -4659,8 +4920,8 @@ function NewsTab({ g }) {
         return (
           <React.Fragment key={n.id}>
             {header}
-            <article className="cx-card flex gap-3 p-3" style={{ boxShadow: `0 4px 0 ${INK}` }}>
-              <span className="grid place-items-center rounded-full shrink-0" style={{ width: 40, height: 40, background: v.p ? PARTIES[v.p].color : '#FFF1C2', border: `2.5px solid ${INK}`, color: v.p ? '#fff' : INK }}><Icon size={19} strokeWidth={2.5} /></span>
+            <article className="cx-card flex gap-3 p-3" style={{ boxShadow: SHADOW }}>
+              <span className="grid place-items-center rounded-full shrink-0" style={{ width: 40, height: 40, background: v.p ? PARTIES[v.p].color : ACC_BG, border: `1px solid ${LINE}`, color: v.p ? '#fff' : INK }}><Icon size={19} strokeWidth={2.5} /></span>
               <div className="min-w-0">
                 <div className="font-black leading-tight">{v.title}</div>
                 <div className="text-sm font-semibold t-muted leading-snug mt-0.5">{v.text}</div>
@@ -4681,7 +4942,7 @@ function WelcomeModal({ g, nat, proj, onStart, onSkip }) {
   const p = g.player;
   const steps = [
     [MapIcon, '#7DD3FC', tt('Campaign for 12 weeks', '12 savaičių kampanija'), tt('Each week you get 6 energy. Spend it on rallies and ads in the regions.', 'Kas savaitę gaunate 6 energijos. Išleiskite ją mitingams ir reklamai regionuose.')],
-    [Vote, '#FDE68A', tt('Win seats on election night', 'Laimėkite mandatus rinkimų naktį'), tt('70 seats come from the national vote, 71 from local winners.', '70 vietų paskirstoma pagal balsus visoje šalyje, 71 tenka apygardų nugalėtojams.')],
+    [Vote, WARN_BG, tt('Win seats on election night', 'Laimėkite mandatus rinkimų naktį'), tt('70 seats come from the national vote, 71 from local winners.', '70 vietų paskirstoma pagal balsus visoje šalyje, 71 tenka apygardų nugalėtojams.')],
     [Handshake, '#86EFAC', tt('Team up to reach 71', 'Surinkite 71 su partneriais'), tt('Most winners need partners. Make friends with the right parties.', 'Daugumai nugalėtojų reikia partnerių. Susidraugaukite su tinkamomis partijomis.')],
   ];
   return (
@@ -4701,12 +4962,12 @@ function WelcomeModal({ g, nat, proj, onStart, onSkip }) {
         <div className="flex flex-col gap-2">
           {steps.map(([Icon, bgc, t, d], i) => (
             <div key={t} className="cx-soft p-3 flex gap-3 items-start">
-              <span className="grid place-items-center rounded-full shrink-0" style={{ width: 40, height: 40, background: bgc, border: `2.5px solid ${INK}` }}><Icon size={19} strokeWidth={2.5} /></span>
+              <span className="grid place-items-center rounded-full shrink-0" style={{ width: 40, height: 40, background: bgc, border: `1px solid ${LINE}` }}><Icon size={19} strokeWidth={2.5} /></span>
               <div><div className="font-black">{i + 1}. {t}</div><div className="text-sm font-semibold t-muted">{d}</div></div>
             </div>
           ))}
         </div>
-        <div className="cx-card cx-cream p-3" style={{ boxShadow: `0 4px 0 ${INK}` }}>
+        <div className="cx-card cx-cream p-3" style={{ boxShadow: SHADOW }}>
           <div className="font-black">{tt('Your party’s superpower', 'Jūsų partijos supergalia')}</div>
           <div className="text-sm font-semibold mt-0.5">{L(P.perk)}</div>
         </div>
@@ -4729,8 +4990,15 @@ function ReportModal({ g, item, onClose }) {
   return (
     <Sheet label={tt(`Week ${item.week} recap`, `${item.week} savaitės apžvalga`)}>
       <div style={GUTTER} className="pt-6 flex flex-col gap-4">
-        <div className="cx-title text-3xl leading-none">{tt(`Week ${item.week} is over!`, `${item.week} savaitė baigėsi!`)}</div>
-        <div className="cx-card p-4 flex items-center gap-4" style={{ background: d >= 0 ? '#DCFCE7' : '#FEE2E2' }}>
+        <div className="rounded-xl overflow-hidden" style={{ border: `1px solid ${LINE2}` }}>
+          <div className="flex items-center gap-2 px-3 py-2" style={{ background: '#B91C1C' }}>
+            <span className="grid place-items-center rounded-sm font-black" style={{ width: 24, height: 19, background: '#fff', color: '#B91C1C', fontSize: 12 }}>NŽ</span>
+            <span className="cx-title text-lg text-white leading-none">{tt('NATIONAL NEWS', 'NACIONALINĖS ŽINIOS')}</span>
+            <span className="ml-auto text-xs font-semibold" style={{ color: 'rgba(255,255,255,.85)' }}>{fmtDay(weekStartDate(item.week))}</span>
+          </div>
+          <div className="cx-bar px-3 py-3"><div className="cx-title text-3xl leading-none">{tt(`Week ${item.week} is over!`, `${item.week} savaitė baigėsi!`)}</div></div>
+        </div>
+        <div className="cx-card p-4 flex items-center gap-4" style={{ background: d >= 0 ? GOOD_BG : BAD_BG }}>
           <Portrait who={p} size={58} mood={d >= 0.3 ? 'grin' : d >= 0 ? 'happy' : d > -0.5 ? 'ok' : 'sad'} />
           <div>
             <div className="text-sm font-extrabold t-muted">{tt(`New poll for ${partyShort(p)}`, `Nauja ${partyShort(p)} apklausa`)}</div>
@@ -4747,7 +5015,7 @@ function ReportModal({ g, item, onClose }) {
             : <div className="flex gap-2 items-start"><Shield size={16} className="shrink-0 mt-0.5" />{tt('No rival attacked you this week.', 'Šią savaitę jūsų niekas nepuolė.')}</div>}
           <div className="flex gap-2 items-start"><Wallet size={16} className="shrink-0 mt-0.5" style={{ color: GREEN }} />{tt(`Supporters donated ${fmtEur(g.lastIncome)}.`, `Rėmėjai paaukojo ${fmtEur(g.lastIncome)}.`)}</div>
         </div>
-        <div className="cx-card cx-cream p-3 flex items-center gap-3" style={{ boxShadow: `0 4px 0 ${INK}` }}>
+        <div className="cx-card cx-cream p-3 flex items-center gap-3" style={{ boxShadow: SHADOW }}>
           {upcoming.includes('debate') ? <Tv size={26} /> : upcoming.includes('event') ? <Newspaper size={26} /> : <Sparkles size={26} />}
           <div className="font-black">{upcoming.includes('debate') ? tt('Coming up: a live LRT debate!', 'Netrukus – tiesioginiai LRT debatai!') : upcoming.includes('event') ? tt('Coming up: breaking news!', 'Netrukus – skubi naujiena!') : tt('A quiet start to the week.', 'Rami savaitės pradžia.')}</div>
         </div>
@@ -4759,14 +5027,14 @@ function ReportModal({ g, item, onClose }) {
 }
 function ConsList({ items, title }) {
   if (!items || !items.length) return null;
-  const look = { bad: [AlertTriangle, '#FEE2E2', RED], warn: [Clock, '#FEF3C7', '#B45309'], good: [Check, '#DCFCE7', GREEN] };
+  const look = { bad: [AlertTriangle, BAD_BG, RED], warn: [Clock, WARN_BG, AMBER], good: [Check, GOOD_BG, GREEN] };
   return (
     <div className="flex flex-col gap-1.5">
       {title && <div className="font-black">{title}</div>}
       {items.map((c, i) => {
         const [Icon, bg, fg] = look[c.tone] || look.warn;
         return (
-          <div key={i} className="rounded-2xl px-3 py-2 text-sm font-bold flex gap-2 items-start sbl-fade" style={{ background: bg, border: `2.5px solid ${INK}` }}>
+          <div key={i} className="rounded-2xl px-3 py-2 text-sm font-bold flex gap-2 items-start sbl-fade" style={{ background: bg, border: `1px solid ${LINE}` }}>
             <Icon size={17} className="shrink-0 mt-0.5" style={{ color: fg }} strokeWidth={2.6} />
             <span>{L(c.text)}</span>
           </div>
@@ -4792,22 +5060,24 @@ function EventModal({ g, item, onChoose, onClose }) {
   const Icon = ev.icon;
   return (
     <Sheet label={tt('Breaking news', 'Skubi naujiena')}>
-      <div style={GUTTER} className="pt-6 flex flex-col gap-4">
-        <Scene kind={ev.scene || 'town'} h={112} caption={false}>
-          <div className="absolute left-2 top-2 flex items-center gap-1.5">
-            <span className={`cx-chip px-3 py-1 text-sm text-white ${done ? '' : 'sbl-blink'}`} style={{ background: '#E5484D' }}>{ev.scandal ? tt('SCANDAL!', 'SKANDALAS!') : tt('BREAKING NEWS', 'SKUBI NAUJIENA')}</span>
-            <span className="cx-chip px-2.5 py-1 text-xs" style={{ background: 'rgba(255,255,255,0.92)' }}><Icon size={14} strokeWidth={2.6} />{L(ev.cat)}</span>
-          </div>
-          <div className="absolute right-2 bottom-2"><Portrait who="anchor" size={58} mood={ev.scandal ? 'wow' : 'ok'} /></div>
-        </Scene>
-        <h2 className="cx-title text-2xl leading-tight">{L(ev.title)}</h2>
-        <p className="font-semibold leading-relaxed">{L(ev.body)}</p>
+      <Scene kind={ev.scene || 'town'} h={null} caption={false} flush className="h-[230px] lg:h-[310px]">
+        <div className="absolute left-3 top-3 flex items-center gap-1.5">
+          <span className={`cx-chip px-3 py-1 text-xs text-white ${done ? '' : 'sbl-blink'}`} style={{ background: '#DC2626', borderColor: 'transparent' }}>{ev.scandal ? tt('SCANDAL!', 'SKANDALAS!') : tt('BREAKING NEWS', 'SKUBI NAUJIENA')}</span>
+          <span className="cx-chip px-2.5 py-1 text-xs" style={{ background: 'rgba(7,9,13,.78)' }}><Icon size={13} strokeWidth={2.6} />{L(ev.cat)}</span>
+        </div>
+        <div className="absolute right-3 top-3"><Portrait who="anchor" size={62} square mood={ev.scandal ? 'wow' : 'ok'} /></div>
+        <div className="absolute left-0 bottom-0 cx-bar px-4 py-3 lg:px-6" style={{ maxWidth: '94%', borderTopRightRadius: 10 }}>
+          <h2 className="cx-title text-2xl lg:text-3xl leading-tight">{L(ev.title)}</h2>
+        </div>
+      </Scene>
+      <div style={GUTTER} className="pt-4 flex flex-col gap-4 lg:px-8">
+        <p className="font-medium leading-relaxed text-[15px] lg:text-base" style={{ color: '#D5DBE5' }}>{L(ev.body)}</p>
         {!done ? (
           <div className="flex flex-col gap-3">
-            <div className="cx-title text-lg">{tt('What do you say?', 'Ką atsakysite?')}</div>
+            <div className="cx-kicker text-sm">{tt('What do you say?', 'Ką atsakysite?')}</div>
             {ev.choices.map((ch, i) => (
-              <button key={i} type="button" onClick={() => onChoose(i)} className="cx-btn cx-white w-full items-center text-left p-3" style={{ gap: 10, minHeight: 60 }}>
-                <span className="cx-num grid place-items-center rounded-full shrink-0" style={{ width: 30, height: 30, background: '#FFF1C2', border: `2.5px solid ${INK}` }}>{String.fromCharCode(65 + i)}</span>
+              <button key={i} type="button" onClick={() => onChoose(i)} className="cx-btn cx-quote w-full items-center text-left px-4 py-3" style={{ gap: 12, minHeight: 58, justifyContent: 'flex-start' }}>
+                <span className="cx-num grid place-items-center rounded-full shrink-0" style={{ width: 28, height: 28, background: '#11141B', color: '#fff' }}>{String.fromCharCode(65 + i)}</span>
                 <span className="font-black text-base flex-1">{L(ch.label)}</span>
               </button>
             ))}
@@ -4832,26 +5102,27 @@ function EncounterModal({ g, item, onChoose, onClose }) {
   const mood = done ? (done.after.share - done.before.share >= 0.01 || (done.after.cred || 0) > (done.before.cred || 0) ? 'happy' : 'grr') : 'ok';
   return (
     <Sheet label={tt('A voter stops you', 'Jus sustabdo rinkėjas')}>
-      <div style={GUTTER} className="pt-6 flex flex-col gap-4">
-        <Scene kind={REGION_SCENE[item.rid] || 'town'} h={124} caption={false}>
-          <span className="absolute left-2 top-2 cx-chip px-2.5 py-1 text-xs" style={{ background: 'rgba(255,255,255,0.92)' }}><MessageCircle size={13} />{rl(item.rid)}{G ? ` · ${L(G.name)}` : ''}</span>
-          <div className="absolute left-3 bottom-2"><Portrait who={enc.who} size={66} mood={mood} title={G ? L(G.name) : ''} /></div>
-          <div className="absolute right-3 bottom-2"><Portrait who={g.player} size={56} badge mood={done ? 'happy' : 'ok'} /></div>
-        </Scene>
-        <div className="text-sm font-extrabold t-muted">{tt('A voter stops you after your event:', 'Po jūsų renginio jus sustabdo rinkėjas:')}</div>
-        <div className="cx-card p-3" style={{ background: '#FFF6D8' }}><p className="cx-title text-xl leading-snug">{q1}{L(enc.q)}{q2}</p></div>
+      <Scene kind={REGION_SCENE[item.rid] || 'town'} h={null} caption={false} flush className="h-[230px] lg:h-[300px]">
+        <span className="absolute left-3 top-3 cx-chip px-2.5 py-1 text-xs" style={{ background: 'rgba(7,9,13,.78)' }}><MessageCircle size={13} />{rl(item.rid)}{G ? ` · ${L(G.name)}` : ''}</span>
+        <div className="absolute right-4 bottom-4"><Portrait who={enc.who} size={110} square mood={mood} title={G ? L(G.name) : ''} /></div>
+        <div className="absolute left-0 bottom-0 cx-bar px-4 py-3" style={{ maxWidth: '64%', borderTopRightRadius: 10 }}>
+          <div className="cx-kicker text-xs">{tt('A voter stops you', 'Jus sustabdo rinkėjas')}</div>
+          <p className="cx-title text-xl lg:text-2xl leading-snug mt-0.5">{q1}{L(enc.q)}{q2}</p>
+        </div>
+      </Scene>
+      <div style={GUTTER} className="pt-4 flex flex-col gap-4 lg:px-8">
         {!done ? (
           <div className="flex flex-col gap-3">
             {enc.answers.map((a, i) => (
-              <button key={i} type="button" onClick={() => onChoose(i)} className="cx-btn cx-white w-full items-center text-left p-3" style={{ gap: 10, minHeight: 58 }}>
-                <span className="cx-num grid place-items-center rounded-full shrink-0" style={{ width: 30, height: 30, background: '#FFF1C2', border: `2.5px solid ${INK}` }}>{String.fromCharCode(65 + i)}</span>
+              <button key={i} type="button" onClick={() => onChoose(i)} className="cx-btn cx-quote w-full items-center text-left px-4 py-3" style={{ gap: 12, minHeight: 58, justifyContent: 'flex-start' }}>
+                <span className="cx-num grid place-items-center rounded-full shrink-0" style={{ width: 28, height: 28, background: '#11141B', color: '#fff' }}>{String.fromCharCode(65 + i)}</span>
                 <span className="font-black text-base flex-1">{L(a.t)}</span>
               </button>
             ))}
           </div>
         ) : (
           <div className="flex flex-col gap-3 sbl-fade">
-            <div className="cx-soft p-3 font-bold">{tt('You said:', 'Jūs atsakėte:')} <span className="font-black">{L(enc.answers[done.ci].t)}</span><div className="mt-1 font-black" style={{ color: '#7C3AED' }}>{L(done.note)}</div></div>
+            <div className="cx-soft p-3 font-bold">{tt('You said:', 'Jūs atsakėte:')} <span className="font-black">{L(enc.answers[done.ci].t)}</span><div className="mt-1 font-black" style={{ color: '#C4B5FD' }}>{L(done.note)}</div></div>
             <OutcomeGrid before={done.before} after={done.after} />
             <ConsList items={done.cons} />
             <Btn className="h-14 text-lg" onClick={onClose}>{tt('Back to the campaign', 'Atgal į kampaniją')} <ArrowRight size={20} /></Btn>
@@ -4896,8 +5167,8 @@ function DebateModal({ g, item, onFinish, onClose }) {
     <Sheet label={tt('LRT debate', 'LRT debatai')}>
       <div style={GUTTER} className="pt-6 flex flex-col gap-4">
         <div className="flex items-center gap-2">
-          <span className="cx-chip px-3 py-1 text-sm text-white" style={{ background: INK }}>LRT</span>
-          <span className="cx-chip px-3 py-1 text-sm" style={{ background: '#FECACA' }}><span className="w-2.5 h-2.5 rounded-full sbl-blink" style={{ background: RED }} />{tt('LIVE', 'TIESIOGIAI')}</span>
+          <span className="cx-chip px-3 py-1 text-sm text-white" style={{ background: '#07090D' }}>LRT</span>
+          <span className="cx-chip px-3 py-1 text-sm" style={{ background: BAD_BG }}><span className="w-2.5 h-2.5 rounded-full sbl-blink" style={{ background: RED }} />{tt('LIVE', 'TIESIOGIAI')}</span>
           <span className="text-sm font-extrabold t-muted ml-auto">{tt(`Debate ${item.id + 1} of 3`, `${item.id + 1} iš 3 debatų`)}</span>
         </div>
         <h2 className="cx-title text-3xl leading-none">{L(D.title)}</h2>
@@ -4909,7 +5180,7 @@ function DebateModal({ g, item, onFinish, onClose }) {
                 return (
                   <span key={q} className="flex flex-col items-center" style={{ width: 62 }}>
                     <Portrait who={q} size={i === 0 ? 46 : 40} mood={mood} ring={i === 0 ? SUN : undefined} />
-                    <span className="text-[10px] font-black leading-tight mt-0.5 px-1 rounded-full bg-white truncate max-w-full" style={{ border: `1.5px solid ${INK}` }}>{i === 0 ? tt('You', 'Jūs') : leaderSurname(q)}</span>
+                    <span className="text-[10px] font-black leading-tight mt-0.5 px-1 rounded-full cx-panel2 truncate max-w-full" style={{ border: `1px solid ${LINE}` }}>{i === 0 ? tt('You', 'Jūs') : leaderSurname(q)}</span>
                   </span>
                 );
               })}
@@ -4919,33 +5190,30 @@ function DebateModal({ g, item, onFinish, onClose }) {
         {!res ? (
           <>
             <div className="flex gap-1.5" aria-label={tt(`Question ${qi + 1} of ${steps.length}`, `${qi + 1} klausimas iš ${steps.length}`)}>
-              {steps.map((x, i) => <span key={i} className="flex-1 rounded-full" style={{ height: 10, border: `2px solid ${INK}`, background: i < qi || (i === qi && reveal) ? (x.clash != null ? '#F87171' : SUN) : i === qi ? '#FFF1C2' : '#fff' }} />)}
+              {steps.map((x, i) => <span key={i} className="flex-1 rounded-full" style={{ height: 10, border: `1px solid ${LINE}`, background: i < qi || (i === qi && reveal) ? (x.clash != null ? '#F87171' : SUN) : i === qi ? ACC_BG : PANEL2 }} />)}
             </div>
             <div className={`flex gap-2.5 items-start ${st.clash != null && !reveal ? 'cx-shake' : ''}`}>
               <Portrait who={st.clash != null ? attacker : 'host'} size={52} mood={st.clash != null ? 'grr' : 'ok'} ring={st.clash != null ? RED : undefined} />
-              <div className="cx-card p-3 flex-1 min-w-0 relative" style={{ background: st.clash != null ? '#FEE2E2' : '#DDF0FB' }}>
+              <div className="cx-card p-3 flex-1 min-w-0 relative" style={{ background: st.clash != null ? BAD_BG : 'rgba(96,165,250,0.14)' }}>
                 <div className="text-xs font-extrabold mb-0.5" style={{ color: st.clash != null ? RED : MUTED }}>{st.clash != null ? tt('ATTACK! A rival goes after you:', 'KIRTIS! Varžovas puola jus:') : tt('The LRT host asks:', 'LRT laidos vedėjas klausia:')}</div>
                 <p className="cx-title text-lg leading-snug">{qText}</p>
               </div>
             </div>
-            <div>
-              <div className="flex justify-between text-xs font-extrabold t-muted mb-1"><span>{tt('Audience hates it', 'Žiūrovams nepatinka')}</span><span>{tt('Audience loves it', 'Žiūrovai sužavėti')}</span></div>
-              <Bar value={meter} max={10} color={meter >= 6 ? '#22C55E' : meter >= 5 ? SUN : '#F87171'} mark={5} h={18} />
-            </div>
+            <Gauge value={meter} max={10} low={tt('Audience hates it', 'Žiūrovams nepatinka')} high={tt('Audience loves it', 'Žiūrovai sužavėti')} />
             {item.id === 0 && qi === 0 && !reveal && g.tut !== 99 && <Coach title={tt('How debates work', 'Kaip vyksta debatai')}>{tt('Answers that fit your party’s style and your promises go down best. Contradicting your own promises costs you.', 'Geriausiai vertinami atsakymai, atitinkantys jūsų partijos stilių ir pažadus. Prieštaraujant savo pažadams – prarasite.')}</Coach>}
             <div className="flex flex-col gap-3">
               {Q.answers.map((a, i) => {
                 const chosen = reveal && reveal.ai === i;
                 return (
-                  <button key={i} type="button" disabled={!!reveal && !chosen} onClick={() => choose(i)} className={`cx-btn ${chosen ? 'cx-sun' : 'cx-white'} w-full items-center text-left p-3`} style={{ gap: 10, minHeight: 60 }}>
-                    <span className="cx-num grid place-items-center rounded-full shrink-0" style={{ width: 30, height: 30, background: '#fff', border: `2.5px solid ${INK}` }}>{String.fromCharCode(65 + i)}</span>
+                  <button key={i} type="button" disabled={!!reveal && !chosen} onClick={() => choose(i)} className={`cx-btn cx-quote ${chosen ? 'cx-sun' : ''} w-full items-center text-left px-4 py-3`} style={{ gap: 10, minHeight: 60 }}>
+                    <span className="cx-num grid place-items-center rounded-full shrink-0" style={{ width: 28, height: 28, background: '#11141B', color: '#fff' }}>{String.fromCharCode(65 + i)}</span>
                     <span className="font-black text-base leading-snug flex-1">{L(a.t)}</span>
                   </button>
                 );
               })}
             </div>
             {reveal && (
-              <div className="cx-card p-3 flex items-center gap-3 sbl-pop" style={{ boxShadow: `0 4px 0 ${INK}` }}>
+              <div className="cx-card p-3 flex items-center gap-3 sbl-pop" style={{ boxShadow: SHADOW }}>
                 <div className="cx-num text-4xl leading-none">{nf(reveal.score)}</div>
                 <div className="flex-1 min-w-0">
                   <div className="font-black" style={{ color: reactionLabel(reveal.score)[1] }}>{reactionLabel(reveal.score)[0]}</div>
@@ -4957,7 +5225,7 @@ function DebateModal({ g, item, onFinish, onClose }) {
           </>
         ) : (
           <div className="flex flex-col gap-3 sbl-fade">
-            <div className="cx-card p-4" style={{ boxShadow: `0 4px 0 ${INK}` }}>
+            <div className="cx-card p-4" style={{ boxShadow: SHADOW }}>
               <div className="cx-title text-lg mb-2">{tt('Viewers’ vote: who won?', 'Žiūrovų balsavimas: kas laimėjo?')}</div>
               <div className="flex flex-col gap-2">
                 {res.poll.map((x, i) => (
@@ -5004,7 +5272,7 @@ function HelpSheet({ onClose }) {
       <div style={GUTTER} className="pt-4 flex flex-col gap-3">
         {items.map(([Icon, t, d]) => (
           <div key={t} className="cx-soft p-3 flex gap-3 items-start">
-            <span className="grid place-items-center rounded-full shrink-0" style={{ width: 38, height: 38, background: '#FFF1C2', border: `2.5px solid ${INK}` }}><Icon size={18} strokeWidth={2.5} /></span>
+            <span className="grid place-items-center rounded-full shrink-0" style={{ width: 38, height: 38, background: ACC_BG, border: `1px solid ${LINE}` }}><Icon size={18} strokeWidth={2.5} /></span>
             <div><div className="font-black">{t}</div><div className="text-sm font-semibold leading-relaxed">{d}</div></div>
           </div>
         ))}
@@ -5018,7 +5286,7 @@ function ConfirmEnd({ g, onCancel, onConfirm }) {
     <Sheet onClose={onCancel} label={tt('End week', 'Baigti savaitę')}>
       <div style={GUTTER} className="pt-6 flex flex-col gap-4">
         <div className="flex items-center gap-3">
-          {ADVISOR ? <Advisor size={56} /> : <span className="grid place-items-center rounded-full shrink-0" style={{ width: 52, height: 52, background: '#FFF1C2', border: `3px solid ${INK}` }}><Zap size={26} style={{ fill: SUN }} /></span>}
+          {ADVISOR ? <Advisor size={56} /> : <span className="grid place-items-center rounded-full shrink-0" style={{ width: 52, height: 52, background: ACC_BG, border: `1px solid ${LINE}` }}><Zap size={26} style={{ fill: SUN }} /></span>}
           <div className="cx-title text-2xl leading-tight">{tt(`Wait, you still have ${g.ap} energy!`, `Palaukite – dar liko ${g.ap} energijos!`)}</div>
         </div>
         <p className="font-semibold">{tt('Energy doesn’t carry over to next week.', 'Energija į kitą savaitę nepersikelia.')}{g.week >= WEEKS ? tt(' This is the last week. After this, the country votes!', ' Tai paskutinė savaitė – po jos šalis balsuoja!') : ''}</p>
@@ -5034,32 +5302,66 @@ function ConfirmEnd({ g, onCancel, onConfirm }) {
    ============================================================ */
 function TitleScreen({ saved, onNew, onContinue, lang, setLang }) {
   return (
-    <div className="max-w-lg mx-auto min-h-screen flex flex-col" style={{ ...GUTTER, paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 24px)' }}>
-      <div className="pt-5 flex justify-end"><LangToggle lang={lang} setLang={setLang} /></div>
-      <div className="pt-3 text-center">
-        <Tricolor className="w-16 mx-auto mb-4" h={6} />
-        <h1 className="cx-logo leading-none" style={{ fontSize: 'clamp(64px, 21vw, 104px)' }}>SEIMAS</h1>
-        <div className="inline-block mt-4 cx-chip px-4 py-1.5 cx-title text-lg">{tt('Battle for Lithuania · 2028', 'Kova dėl Lietuvos · 2028')}</div>
-        <p className="mt-4 font-semibold leading-relaxed text-base">{tt('Lead a real Lithuanian party through a 12-week campaign, win LRT debates and runoffs, then build a coalition of 71 out of 141 seats.', 'Veskite tikrą Lietuvos partiją per 12 savaičių kampaniją, laimėkite LRT debatus ir antruosius turus, o tada suburkite 71 iš 141 Seimo narių koaliciją.')}</p>
+    <div className="relative min-h-screen overflow-hidden">
+      <div className="absolute inset-0" aria-hidden="true">
+        <div className="absolute inset-x-0 bottom-0 h-[58vh] lg:h-auto lg:inset-y-0 lg:left-[30%]" style={{ filter: 'blur(1.5px) saturate(.9)', opacity: 0.75 }}>
+          <svg viewBox="0 0 360 140" preserveAspectRatio="xMidYMax slice" width="100%" height="100%" style={{ display: 'block' }}><SceneArt kind="night" uid="title" /></svg>
+        </div>
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(90deg, rgba(8,10,15,.96) 0%, rgba(8,10,15,.7) 45%, rgba(8,10,15,.3) 100%), linear-gradient(0deg, rgba(8,10,15,.97) 0%, rgba(8,10,15,.2) 50%, rgba(8,10,15,.85) 100%)' }} />
       </div>
-      <Scene kind="vilnius" h={150} className="mt-5" />
-      <div className="cx-card p-3 mt-3" style={{ boxShadow: `0 4px 0 ${INK}` }}>
-        <div className="flex justify-center"><FaceRow ids={PARTY_IDS} size={40} overlap={0.34} /></div>
-        <div className="text-center text-sm font-extrabold mt-2">{tt('12 parties · 12 real leaders · 1 Seimas', '12 partijų · 12 tikrų lyderių · 1 Seimas')}</div>
-      </div>
-      <div className="grid grid-cols-3 gap-2 mt-4">
-        {[[MapIcon, tt('12 weeks', '12 savaičių'), tt('of campaigning', 'kampanijos')], [Tv, tt('3 debates', '3 debatai'), tt('live on LRT', 'tiesiogiai LRT')], [Handshake, '71', tt('seats to govern', 'mandatas valdžiai')]].map(([Icon, a, b]) => (
-          <div key={a} className="cx-card p-3 text-center" style={{ boxShadow: `0 4px 0 ${INK}` }}>
-            <Icon size={22} className="mx-auto" strokeWidth={2.5} />
-            <div className="cx-title text-base mt-1 leading-tight">{a}</div>
-            <div className="text-xs font-bold t-muted">{b}</div>
+      <div className="relative max-w-6xl mx-auto min-h-screen flex flex-col" style={{ ...GUTTER, paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 24px)' }}>
+        <div className="pt-5 flex items-center justify-between gap-3">
+          <span className="cx-kicker text-sm">{tt('Seimas election · October 2028', '2028 m. spalio Seimo rinkimai')}</span>
+          <LangToggle lang={lang} setLang={setLang} />
+        </div>
+        <div className="mt-[9vh] lg:mt-[13vh] max-w-xl">
+          <Tricolor className="w-20 mb-5" h={5} />
+          <h1 className="cx-logo leading-[0.82]" style={{ fontSize: 'clamp(72px, 22vw, 176px)', paddingRight: '0.08em' }}>SEIMAS</h1>
+          <div className="cx-title text-3xl lg:text-4xl mt-2" style={{ color: SUN }}>{tt('Battle for Lithuania', 'Kova dėl Lietuvos')}</div>
+          <p className="mt-4 text-base lg:text-lg font-medium leading-relaxed" style={{ color: '#C9D1DE' }}>{tt('Lead a real Lithuanian party through a 12-week campaign, win LRT debates and runoffs, then build a coalition of 71 out of 141 seats.', 'Veskite tikrą Lietuvos partiją per 12 savaičių kampaniją, laimėkite LRT debatus ir antruosius turus, o tada suburkite 71 iš 141 Seimo narių koaliciją.')}</p>
+          <div className="flex flex-col sm:flex-row gap-3 mt-7">
+            <Btn className="h-16 px-10 text-2xl" onClick={onNew}><Play size={24} style={{ fill: '#1B1204' }} />{tt('Play', 'Žaisti')}</Btn>
+            {saved && <Btn kind="white" className="h-16 px-6 text-lg" onClick={onContinue}>{tt('Continue', 'Tęsti')} · {PARTIES[saved.player].short}, {saved.phase === 'campaign' ? tt(`week ${saved.week}`, `${saved.week} sav.`) : tt('after the vote', 'po rinkimų')}</Btn>}
           </div>
-        ))}
+          <div className="flex gap-6 mt-8">
+            {[['12', tt('weeks', 'savaičių')], ['3', tt('LRT debates', 'LRT debatai')], ['141', tt('seats', 'vietų Seime')], ['71', tt('to govern', 'valdžiai')]].map(([n, l]) => (
+              <div key={l}><div className="cx-num text-4xl leading-none italic">{n}</div><div className="text-[11px] t-muted font-bold uppercase tracking-wider mt-1">{l}</div></div>
+            ))}
+          </div>
+        </div>
+        <div className="mt-auto pt-10">
+          <div className="cx-kicker text-xs mb-2">{tt('12 parties · 12 real leaders', '12 partijų · 12 tikrų lyderių')}</div>
+          <div className="flex gap-2.5 overflow-x-auto cx-layers pb-2">{PARTY_IDS.map((p) => <CandidateCard key={p} p={p} w={92} />)}</div>
+          <p className="text-xs t-muted mt-3 max-w-3xl leading-relaxed">{tt('A fictional simulation. Real parties and leaders appear for context; all events, quotes and results are invented. Emblems are not official logos and portraits are drawings, not photos.', 'Išgalvota simuliacija. Tikros partijos ir lyderiai naudojami kontekstui; visi įvykiai, citatos ir rezultatai išgalvoti. Ženkliukai – ne oficialūs logotipai, portretai – piešti, ne nuotraukos.')}</p>
+        </div>
       </div>
-      <div className="mt-auto pt-6 flex flex-col gap-3">
-        <Btn className="h-16 text-xl" onClick={onNew}><Play size={22} style={{ fill: INK }} />{tt('Play', 'Žaisti')}</Btn>
-        {saved && <Btn kind="white" className="h-14 text-base" onClick={onContinue}>{tt('Continue', 'Tęsti')} · {PARTIES[saved.player].short}, {saved.phase === 'campaign' ? tt(`week ${saved.week}`, `${saved.week} sav.`) : tt('after the vote', 'po rinkimų')}</Btn>}
-        <p className="text-xs font-bold t-muted text-center leading-relaxed">{tt('A fictional simulation. Real parties and leaders appear for context; all events, quotes and results are invented. Emblems are not official logos.', 'Išgalvota simuliacija. Tikros partijos ir lyderiai naudojami kontekstui; visi įvykiai, citatos ir rezultatai išgalvoti. Ženkliukai – ne oficialūs logotipai.')}</p>
+    </div>
+  );
+}
+function PartyStats({ p, startNat }) {
+  const P = PARTIES[p];
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      <StatPill icon={BarChart3} iconStyle={{ color: '#1D4ED8' }} label={tt('Starting poll', 'Pradinis reitingas')}>{fmtPct(startNat[p])}</StatPill>
+      <StatPill icon={Wallet} iconStyle={{ color: '#15803D' }} label={tt('Campaign funds', 'Kampanijos lėšos')}>{fmtEurShort(P.funds)}</StatPill>
+      <StatPill icon={Star} iconStyle={{ fill: SUN, color: '#7A4E00' }} label={L(DIFF_LABEL[P.difficulty])}>{L(DIFF_LABEL[P.difficulty])}</StatPill>
+    </div>
+  );
+}
+function RutaSwitch({ helper, setHelper }) {
+  return (
+    <div className="cx-card p-3">
+      <div className="flex items-center gap-3">
+        <span style={{ opacity: helper ? 1 : 0.35, filter: helper ? 'none' : 'grayscale(1)' }}><Advisor size={48} /></span>
+        <div className="min-w-0 flex-1">
+          <div className="cx-title text-lg leading-tight">{tt('Rūta, campaign manager', 'Rūta, štabo vadovė')}</div>
+          <div className="text-xs font-medium t-muted">{helper ? tt('Walks you through week 1 and explains the rules. Never picks moves for you.', 'Pirmą savaitę paaiškina taisykles. Niekada nesirenka už jus.') : tt('Off: no tutorial, no tips, no forecasts. Just you.', 'Išjungta: jokio mokymo, patarimų ar prognozių. Tik jūs.')}</div>
+        </div>
+      </div>
+      <div className="grid grid-cols-2 gap-2 mt-3" role="radiogroup" aria-label={tt('Campaign manager', 'Štabo vadovė')}>
+        {[[true, tt('With Rūta', 'Su Rūta')], [false, tt('Play solo', 'Žaisti vienam')]].map(([v, l]) => (
+          <button key={l} type="button" role="radio" aria-checked={helper === v} onClick={() => setHelper(v)} className={`cx-btn cx-cta ${helper === v ? 'cx-sun' : 'cx-white'} h-11 text-base`}>{helper === v && <Check size={16} />}{l}</button>
+        ))}
       </div>
     </div>
   );
@@ -5067,78 +5369,110 @@ function TitleScreen({ saved, onNew, onContinue, lang, setLang }) {
 function PartySelect({ onPick, onBack }) {
   const [sel, setSel] = useState(null);
   const [helper, setHelper] = useState(true);
+  const wide = useWide();
   const startNat = useMemo(() => nationalShares(newGame('LSDP')), []);
-  const diffColor = { easy: '#BBF7D0', medium: '#FDE68A', hard: '#FECACA' };
-  return (
-    <div className="max-w-lg mx-auto min-h-screen" style={{ ...GUTTER, paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 120px)' }}>
-      <div className="pt-6 flex items-center gap-3">
-        <button type="button" onClick={onBack} aria-label={tt('Back', 'Atgal')} className="cx-btn cx-white shrink-0" style={{ width: 46, height: 46, borderRadius: 999 }}><ArrowRight size={20} className="rotate-180" /></button>
-        <div>
-          <h2 className="cx-title text-3xl leading-none">{tt('Pick your party', 'Pasirinkite partiją')}</h2>
-          <p className="text-sm font-bold t-muted mt-1">{tt('New to the game? Start with an Easy one.', 'Pirmą kartą? Pradėkite nuo lengvos.')}</p>
-        </div>
+  const groups = [[tt('In the Seimas now', 'Dabar Seime'), tt('Parties with seats today.', 'Partijos, šiandien turinčios vietų.'), PARTY_IDS.slice(0, 8)], [tt('Outsiders', 'Autsaideriai'), tt('Under 5% today. Can you get them over the line?', 'Šiandien žemiau 5 %. Ar pavyks peržengti barjerą?'), PARTY_IDS.slice(8)]];
+  const startBtn = <Btn className="h-14 w-full text-xl" disabled={!sel} onClick={() => onPick(sel, helper)}>{sel ? <>{tt(`Play as ${PARTIES[sel].short}`, `Žaisti už ${PARTIES[sel].short}`)} <ArrowRight size={20} /></> : tt('Tap a party to choose it', 'Paspauskite partiją')}</Btn>;
+  const head = (
+    <div className="pt-6 flex items-center gap-3">
+      <button type="button" onClick={onBack} aria-label={tt('Back', 'Atgal')} className="cx-btn shrink-0" style={{ width: 44, height: 44, borderRadius: 999, background: 'rgba(255,255,255,.07)' }}><ArrowRight size={20} className="rotate-180" /></button>
+      <div>
+        <div className="cx-kicker text-xs">{tt('New campaign', 'Nauja kampanija')}</div>
+        <h2 className="cx-title text-3xl lg:text-4xl leading-none">{tt('Choose your candidate', 'Pasirinkite kandidatą')}</h2>
       </div>
-      <div className="flex flex-col gap-3 mt-5">
-        {PARTY_IDS.map((p) => {
-          const P = PARTIES[p];
-          const on = sel === p;
-          const head = p === 'LSDP' ? [tt('In the Seimas now', 'Dabar Seime'), tt('Parties with seats today.', 'Partijos, šiandien turinčios vietų.')]
-            : p === 'DP' ? [tt('Outsiders', 'Autsaideriai'), tt('Under 5% today. Can you get them over the line?', 'Šiandien žemiau 5 %. Ar pavyks peržengti barjerą?')] : null;
-          return (
-            <React.Fragment key={p}>
-            {head && (
-              <div className={p === 'LSDP' ? '' : 'mt-3'}>
-                <div className="cx-title text-lg leading-none">{head[0]}</div>
-                <div className="text-xs font-bold t-muted mt-0.5">{head[1]}</div>
+    </div>
+  );
+  if (wide) {
+    const P = sel ? PARTIES[sel] : null;
+    return (
+      <div className="max-w-7xl mx-auto min-h-screen px-6 pb-10">
+        {head}
+        <div className="grid gap-6 mt-6" style={{ gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1.05fr)' }}>
+          <section className="cx-card overflow-hidden self-start sticky top-6" style={{ padding: 0 }}>
+            {P ? (
+              <>
+                <Scene kind="seimas" h={320} caption={false} flush>
+                  <div className="absolute left-6 bottom-0"><Portrait who={sel} size={250} frameless mood="grin" /></div>
+                  <div className="absolute right-5 top-5"><PartyEmblem p={sel} size={70} /></div>
+                </Scene>
+                <div className="flex items-center gap-3 px-5 py-3" style={{ background: `linear-gradient(90deg, ${P.color}, ${mixHex(P.color, '#000000', 0.45)})` }}>
+                  <Handshake size={26} color="#fff" />
+                  <div className="cx-title text-3xl leading-none text-white">{P.leader} <span style={{ color: 'rgba(255,255,255,.75)' }}>({P.short})</span></div>
+                </div>
+                <div className="p-5 flex flex-col gap-3">
+                  <PartyStats p={sel} startNat={startNat} />
+                  <div className="flex flex-wrap gap-1.5"><span className="cx-chip px-3 py-1 text-sm">{L(P.ideology)}</span><span className="cx-chip px-3 py-1 text-sm">{L(P.strongholds)}</span></div>
+                  <p className="font-medium leading-relaxed" style={{ color: '#D5DBE5' }}>{L(P.blurb)}</p>
+                  <div className="cx-soft p-3 text-sm"><span className="cx-kicker text-xs block mb-0.5">{tt('Superpower', 'Supergalia')}</span>{L(P.perk)}</div>
+                </div>
+              </>
+            ) : (
+              <div className="p-8 flex flex-col items-center text-center gap-4" style={{ minHeight: 520, justifyContent: 'center' }}>
+                <FaceRow ids={PARTY_IDS.slice(0, 6)} size={64} overlap={0.25} />
+                <div className="cx-title text-3xl">{tt('Who will you lead?', 'Kam vadovausite?')}</div>
+                <p className="t-muted max-w-sm">{tt('Pick a party on the right. Easy parties start strong; outsiders begin under the 5% line.', 'Pasirinkite partiją dešinėje. Lengvos partijos pradeda stipriai, autsaideriai – žemiau 5 % barjero.')}</p>
               </div>
             )}
-            <button type="button" onClick={() => setSel(p)} aria-pressed={on} className={`cx-btn ${on ? 'cx-cream' : 'cx-white'} w-full flex-col items-stretch text-left p-3`} style={{ gap: 8, borderWidth: on ? 4 : 3 }}>
-              <div className="flex items-center gap-3">
-                <Portrait who={p} size={60} badge mood={on ? 'grin' : 'happy'} />
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-baseline justify-between gap-2">
-                    <span className="cx-title text-xl leading-tight">{P.short}</span>
-                    <span className="cx-num text-sm shrink-0">{fmtPct(startNat[p])}</span>
-                  </div>
-                  <div className="text-xs font-extrabold t-muted">{tt('Leader', 'Lyderis')}: {P.leader}</div>
-                  <div className="text-sm font-semibold t-muted leading-snug mt-0.5">{L(P.blurb)}</div>
-                </div>
+          </section>
+          <div className="flex flex-col gap-5">
+            {groups.map(([t, sub, ids]) => (
+              <div key={t}>
+                <div className="cx-title text-2xl leading-none">{t}</div>
+                <div className="text-sm t-muted font-medium mt-1 mb-3">{sub}</div>
+                <div className="grid grid-cols-4 gap-3">{ids.map((p) => <CandidateCard key={p} p={p} w={'100%'} active={sel === p} onClick={() => setSel(p)} />)}</div>
               </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="cx-chip px-2.5 py-0.5 text-xs" style={{ background: diffColor[P.difficulty] }}>{Array.from({ length: 3 }).map((_, i) => <Star key={i} size={12} style={{ fill: i < P.stars ? INK : 'transparent' }} />)}{L(DIFF_LABEL[P.difficulty])}</span>
-                <span className="cx-chip px-2.5 py-0.5 text-xs">{L(P.ideology)}</span>
-                <span className="cx-chip px-2.5 py-0.5 text-xs">{fmtEur(P.funds)}</span>
-              </div>
-              {on && (
-                <div className="cx-soft p-3 text-sm font-semibold sbl-fade">
-                  <div><span className="font-black">{tt('Superpower:', 'Supergalia:')} </span>{L(P.perk)}</div>
-                  <div className="mt-1"><span className="font-black">{tt('Home turf:', 'Tvirtovės:')} </span>{L(P.strongholds)}</div>
-                </div>
-              )}
-            </button>
-            </React.Fragment>
-          );
-        })}
-      </div>
-      <p className="text-xs font-bold t-muted mt-4">{tt('Starting polls roughly follow late-2026 averages. Portraits are cartoon drawings, not photos.', 'Pradiniai reitingai apytiksliai atitinka 2026 m. pabaigos vidurkius. Portretai – piešti, ne nuotraukos.')}</p>
-      <div className="cx-card p-3 mt-4" style={{ boxShadow: `0 4px 0 ${INK}` }}>
-        <div className="flex items-center gap-3">
-          <span style={{ opacity: helper ? 1 : 0.35, filter: helper ? 'none' : 'grayscale(1)' }}><Advisor size={52} /></span>
-          <div className="min-w-0 flex-1">
-            <div className="cx-title text-lg leading-tight">{tt('Rūta, campaign manager', 'Rūta, štabo vadovė')}</div>
-            <div className="text-xs font-bold t-muted">{helper ? tt('Walks you through week 1 and explains the rules. Never picks moves for you.', 'Pirmą savaitę paaiškina taisykles. Niekada nesirenka už jus.') : tt('Off: no tutorial, no tips, no forecasts. Just you.', 'Išjungta: jokio mokymo, patarimų ar prognozių. Tik jūs.')}</div>
+            ))}
+            <RutaSwitch helper={helper} setHelper={setHelper} />
+            {startBtn}
+            <p className="text-xs t-muted">{tt('Starting polls roughly follow late-2026 averages. Portraits are drawings, not photos.', 'Pradiniai reitingai apytiksliai atitinka 2026 m. pabaigos vidurkius. Portretai – piešti, ne nuotraukos.')}</p>
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-2 mt-3" role="radiogroup" aria-label={tt('Campaign manager', 'Štabo vadovė')}>
-          {[[true, tt('With Rūta', 'Su Rūta')], [false, tt('Play solo', 'Žaisti vienam')]].map(([v, l]) => (
-            <button key={l} type="button" role="radio" aria-checked={helper === v} onClick={() => setHelper(v)} className={`cx-btn ${helper === v ? 'cx-sun' : 'cx-white'} h-11 text-sm`} style={{ boxShadow: `0 3px 0 ${INK}` }}>{helper === v && <Check size={16} />}{l}</button>
-          ))}
-        </div>
       </div>
-      <div className="fixed bottom-0 inset-x-0 z-20" style={{ background: '#fff', borderTop: `3px solid ${INK}`, paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 14px)' }}>
-        <div className="max-w-lg mx-auto pt-3" style={GUTTER}>
-          <Btn className="h-14 w-full text-lg" disabled={!sel} onClick={() => onPick(sel, helper)}>{sel ? <>{tt(`Play as ${PARTIES[sel].short}`, `Žaisti už ${PARTIES[sel].short}`)} <ArrowRight size={20} /></> : tt('Tap a party to choose it', 'Paspauskite partiją')}</Btn>
-        </div>
+    );
+  }
+  return (
+    <div className="max-w-lg mx-auto min-h-screen" style={{ ...GUTTER, paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 110px)' }}>
+      {head}
+      <div className="flex flex-col gap-2.5 mt-5">
+        {groups.map(([t, sub, ids]) => (
+          <React.Fragment key={t}>
+            <div className="mt-2">
+              <div className="cx-title text-xl leading-none">{t}</div>
+              <div className="text-xs font-medium t-muted mt-1">{sub}</div>
+            </div>
+            {ids.map((p) => {
+              const P = PARTIES[p];
+              const on = sel === p;
+              return (
+                <button key={p} type="button" onClick={() => setSel(p)} aria-pressed={on} className="cx-tap w-full flex flex-col items-stretch text-left rounded-xl overflow-hidden" style={{ background: `linear-gradient(90deg, ${tint(P.color, 0.4)}, ${tint(P.color, 0.8)})`, border: `1px solid ${on ? SUN : LINE}`, borderLeft: `4px solid ${P.color}`, boxShadow: on ? `0 0 0 2px ${SUN}, ${SHADOW}` : '0 6px 18px rgba(0,0,0,.28)' }}>
+                  <div className="flex items-center gap-3 p-2.5">
+                    <Portrait who={p} size={64} square badge mood={on ? 'grin' : 'happy'} />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-baseline justify-between gap-2">
+                        <span className="cx-title text-2xl leading-none whitespace-nowrap">{P.short}</span>
+                        <span className="text-xs font-semibold t-muted truncate hidden min-[400px]:inline">{L(P.ideology)}</span>
+                      </div>
+                      <div className="text-sm font-semibold mt-0.5 truncate" style={{ color: '#D5DBE5' }}>{P.leader}</div>
+                      <div className="mt-1.5"><PartyStats p={p} startNat={startNat} /></div>
+                    </div>
+                  </div>
+                  {on && (
+                    <div className="px-3 pb-3 text-sm sbl-fade flex flex-col gap-1.5" style={{ color: '#D5DBE5' }}>
+                      <div>{L(P.blurb)}</div>
+                      <div><span className="cx-kicker text-xs">{tt('Superpower', 'Supergalia')} </span>{L(P.perk)}</div>
+                      <div><span className="cx-kicker text-xs">{tt('Home turf', 'Tvirtovės')} </span>{L(P.strongholds)}</div>
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </React.Fragment>
+        ))}
+      </div>
+      <p className="text-xs t-muted mt-4">{tt('Starting polls roughly follow late-2026 averages. Portraits are drawings, not photos.', 'Pradiniai reitingai apytiksliai atitinka 2026 m. pabaigos vidurkius. Portretai – piešti, ne nuotraukos.')}</p>
+      <div className="mt-4"><RutaSwitch helper={helper} setHelper={setHelper} /></div>
+      <div className="fixed bottom-0 inset-x-0 z-20" style={{ background: 'rgba(8,10,15,.96)', borderTop: `1px solid ${LINE}`, paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 14px)', backdropFilter: 'blur(8px)' }}>
+        <div className="max-w-lg mx-auto pt-3" style={GUTTER}>{startBtn}</div>
       </div>
     </div>
   );
@@ -5153,13 +5487,13 @@ function RunoffRow({ e, me }) {
   const { a, b, sa, sb } = e.runoff;
   const mine = a === me || b === me;
   return (
-    <li className="rounded-2xl px-3 py-2 sbl-fade" style={{ border: `2.5px solid ${INK}`, background: mine ? '#FFF6D8' : '#fff' }}>
+    <li className="rounded-2xl px-3 py-2 sbl-fade" style={{ border: `1px solid ${LINE}`, background: mine ? ACC_BG : PANEL2 }}>
       <div className="flex items-center justify-between gap-2">
         <span className="font-black truncate">{e.name}</span>
         <span className="text-sm font-extrabold inline-flex items-center gap-1 shrink-0"><PartyDot p={e.winner} size={11} />{tt(`${partyShort(e.winner)} wins`, `laimi ${partyShort(e.winner)}`)}</span>
       </div>
-      <div className="flex mt-1.5 overflow-hidden rounded-full" style={{ height: 12, border: `2px solid ${INK}` }}>
-        <div style={{ width: `${sa}%`, background: PARTIES[a].color, borderRight: `2px solid ${INK}` }} />
+      <div className="flex mt-1.5 overflow-hidden rounded-full" style={{ height: 12, border: `1px solid ${LINE}` }}>
+        <div style={{ width: `${sa}%`, background: PARTIES[a].color, borderRight: `1px solid ${LINE}` }} />
         <div style={{ width: `${sb}%`, background: PARTIES[b].color }} />
       </div>
       <div className="flex justify-between text-xs font-extrabold t-muted mt-1"><span>{partyShort(a)} {fmtPct(sa)}</span><span>{partyShort(b)} {fmtPct(sb)}</span></div>
@@ -5229,7 +5563,7 @@ function ElectionNight({ g, onFinish }) {
   const recent = runoffs.slice(Math.max(0, shown - 5), shown).reverse();
   const myRunoffs = runoffs.filter((e) => e.runoff.a === me || e.runoff.b === me);
   return (
-    <div className="max-w-lg mx-auto min-h-screen" style={{ ...GUTTER, paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 32px)' }}>
+    <div className="max-w-lg lg:max-w-4xl mx-auto min-h-screen" style={{ ...GUTTER, paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 32px)' }}>
       <div className="pt-6 flex items-center justify-between gap-3">
         <div>
           <div className="text-sm font-extrabold t-muted">{tt('Seimas election 2028', '2028 m. Seimo rinkimai')}</div>
@@ -5244,7 +5578,7 @@ function ElectionNight({ g, onFinish }) {
         <div className="absolute right-2 bottom-2"><Portrait who={me} size={50} badge mood={stage === 'final' ? (E.seats[me] >= 40 ? 'grin' : E.seats[me] >= 15 ? 'happy' : 'sad') : 'wow'} /></div>
       </Scene>
       {stage !== 'intro' && (
-        <Card className="mt-4 overflow-hidden" style={{ background: '#BFE6FA', padding: 6 }}>
+        <Card className="mt-4 overflow-hidden" style={{ background: MAP_SEA, padding: 6 }}>
           <CartoonMap shares={liveMap} sel={null} onSelect={() => {}} live={live.fr} />
           <div className="px-2 pb-1 text-xs font-extrabold t-muted">{tt(`Counted: ${fmtPct(live.counted * 100, 0)} · grey = not counted yet`, `Suskaičiuota: ${fmtPct(live.counted * 100, 0)} · pilka – dar neskaičiuota`)}</div>
         </Card>
@@ -5252,7 +5586,7 @@ function ElectionNight({ g, onFinish }) {
       {stage === 'intro' && (
         <Card className="mt-4 p-4 cx-cream sbl-pop">
           <div className="flex items-center gap-3">
-            <span className="grid place-items-center rounded-2xl shrink-0" style={{ width: 56, height: 56, background: '#fff', border: `3px solid ${INK}` }}><WIcon size={30} strokeWidth={2.4} /></span>
+            <span className="grid place-items-center rounded-2xl shrink-0" style={{ width: 56, height: 56, background: PANEL2, border: `1px solid ${LINE}` }}><WIcon size={30} strokeWidth={2.4} /></span>
             <div>
               <div className="cx-title text-2xl leading-tight">{tt('Election day:', 'Rinkimų diena:')} {L(W.name).toLowerCase()}</div>
               <div className="font-semibold">{L(W.note)}</div>
@@ -5298,7 +5632,7 @@ function ElectionNight({ g, onFinish }) {
           {showAll && (
             <ul className="flex flex-col gap-2">
               {E.smd.map((e) => (e.round === 2 ? <RunoffRow key={e.cid} e={e} me={me} /> : (
-                <li key={e.cid} className="rounded-2xl px-3 py-2 flex items-center gap-2 bg-white" style={{ border: `2.5px solid ${INK}` }}>
+                <li key={e.cid} className="rounded-2xl px-3 py-2 flex items-center gap-2 cx-panel2" style={{ border: `1px solid ${LINE}` }}>
                   <PartyDot p={e.winner} size={12} /><span className="font-black flex-1 min-w-0 truncate">{e.name}</span>
                   <span className="text-xs font-extrabold t-muted">{tt(`${partyShort(e.winner)} won outright`, `${partyShort(e.winner)} laimėjo I ture`)}</span>
                 </li>
@@ -5355,7 +5689,7 @@ function CoalitionTalks({ g, act }) {
   const goOpp = () => act((gg) => { const Lp = ranked.find((p) => p !== me); const ai = aiCoalition(gg, Lp, null); gg.result = { kind: 'opposition', leader: Lp, members: ai.members, seats: ai.total, ok: ai.ok }; gg.phase = 'result'; return null; });
   const harmony = stab >= 65 ? [tt('Happy team', 'Darni komanda'), GREEN] : stab >= 45 ? [tt('Some grumbling', 'Šiek tiek bambėjimo'), AMBER] : [tt('Lots of fighting', 'Daug barnių'), RED];
   return (
-    <div className="max-w-lg mx-auto min-h-screen" style={{ ...GUTTER, paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 190px)' }}>
+    <div className="max-w-lg lg:max-w-5xl mx-auto min-h-screen" style={{ ...GUTTER, paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 190px)' }}>
       <div className="pt-6">
         <h2 className="cx-title text-4xl leading-none">{tt('Build your coalition', 'Burkite koaliciją')}</h2>
         <p className="font-semibold t-muted mt-1">{tt('Invite parties until your team has 71 seats. Everyone you invite has to be happy to join.', 'Kvieskite partijas, kol komanda turės 71 mandatą. Visi pakviestieji turi norėti prisijungti.')}</p>
@@ -5367,10 +5701,10 @@ function CoalitionTalks({ g, act }) {
             <div className="text-sm font-extrabold t-muted">{tt('Your team', 'Jūsų komanda')}</div>
             <div className="cx-num text-4xl leading-none">{total}<span className="text-lg t-muted"> / 71</span></div>
           </div>
-          <span className="cx-chip px-3 py-1 text-sm" style={{ background: total >= MAJORITY ? '#BBF7D0' : '#FDE68A' }}>{total >= MAJORITY ? tt('Majority!', 'Dauguma!') : tt(`${MAJORITY - total} more`, `Trūksta ${MAJORITY - total}`)}</span>
+          <span className="cx-chip px-3 py-1 text-sm" style={{ background: total >= MAJORITY ? GOOD_BG : WARN_BG }}>{total >= MAJORITY ? tt('Majority!', 'Dauguma!') : tt(`${MAJORITY - total} more`, `Trūksta ${MAJORITY - total}`)}</span>
         </div>
-        <div className="relative flex mt-3 overflow-hidden rounded-full" style={{ height: 22, border: `3px solid ${INK}`, background: '#E3EDF5' }}>
-          {members.map((p) => <div key={p} style={{ width: `${(S[p] / 141) * 100}%`, background: PARTIES[p].color, borderRight: `2px solid ${INK}` }} />)}
+        <div className="relative flex mt-3 overflow-hidden rounded-full" style={{ height: 22, border: `1px solid ${LINE}`, background: LINE }}>
+          {members.map((p) => <div key={p} style={{ width: `${(S[p] / 141) * 100}%`, background: PARTIES[p].color, borderRight: `1px solid ${LINE}` }} />)}
           <div className="absolute top-0 bottom-0" style={{ left: `${(MAJORITY / 141) * 100}%`, width: 3, background: INK }} />
         </div>
         {C.partners.length > 0 && (
@@ -5379,14 +5713,14 @@ function CoalitionTalks({ g, act }) {
             <div className="mt-3">
               <div className="text-xs font-extrabold t-muted mb-1.5">{tt('Who runs which ministry (14)', 'Kas vadovaus ministerijoms (14)')}</div>
               <div className="flex flex-wrap gap-1.5">
-                {members.filter((p) => p !== 'KITI').flatMap((p) => cab.alloc[p].map((m) => <span key={m} className="text-xs font-bold rounded-full px-2 py-0.5 inline-flex items-center gap-1 bg-white" style={{ border: `2px solid ${INK}` }}><PartyDot p={p} size={9} />{L(MINISTRIES[m])}</span>))}
+                {members.filter((p) => p !== 'KITI').flatMap((p) => cab.alloc[p].map((m) => <span key={m} className="text-xs font-bold rounded-full px-2 py-0.5 inline-flex items-center gap-1 cx-panel2" style={{ border: `1px solid ${LINE}` }}><PartyDot p={p} size={9} />{L(MINISTRIES[m])}</span>))}
               </div>
             </div>
           </>
         )}
       </Card>
-      <div className="mt-4 flex flex-col gap-3">
-        <h3 className="cx-title text-xl">{tt('Parties in the new Seimas', 'Naujojo Seimo partijos')}</h3>
+      <div className="mt-4 flex flex-col gap-3 lg:grid lg:grid-cols-2">
+        <h3 className="cx-title text-2xl lg:col-span-2">{tt('Parties in the new Seimas', 'Naujojo Seimo partijos')}</h3>
         {sorted.map((p) => {
           const P = PARTIES[p];
           const inC = C.partners.includes(p);
@@ -5394,7 +5728,7 @@ function CoalitionTalks({ g, act }) {
           const mood = w >= 65 ? tt('Keen to join', 'Mielai prisijungs') : w >= 50 ? tt('Willing', 'Sutinka') : w >= 35 ? tt('Not sure', 'Abejoja') : tt('Says no', 'Atsisako');
           const clashes = C.partners.filter((q) => q !== p && compat(g, p, q) < 25);
           return (
-            <div key={p} className="cx-card p-3" style={{ background: inC ? '#FFF6D8' : '#fff', boxShadow: `0 4px 0 ${INK}` }}>
+            <div key={p} className="rounded-xl p-3" style={{ background: `linear-gradient(90deg, ${tint(P.color, 0.45)}, ${tint(P.color, 0.82)})`, border: `1px solid ${inC ? SUN : LINE}`, borderLeft: `4px solid ${P.color}`, boxShadow: inC ? `0 0 0 2px ${SUN}, ${SHADOW}` : SHADOW }}>
               <div className="flex items-center gap-3">
                 <Portrait who={p} size={56} badge mood={w >= 65 ? 'grin' : w >= 50 ? 'happy' : w >= 35 ? 'ok' : 'grr'} />
                 <div className="min-w-0 flex-1">
@@ -5418,7 +5752,7 @@ function CoalitionTalks({ g, act }) {
           );
         })}
       </div>
-      <div className="fixed bottom-0 inset-x-0 z-20" style={{ background: '#fff', borderTop: `3px solid ${INK}`, paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)' }}>
+      <div className="fixed bottom-0 inset-x-0 z-20" style={{ background: PANEL2, borderTop: `1px solid ${LINE}`, paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 12px)' }}>
         <div className="max-w-lg mx-auto pt-3 flex flex-col gap-2" style={GUTTER}>
           <div className="flex items-center justify-between text-sm font-extrabold gap-2">
             <span className="inline-flex items-center gap-1 shrink-0"><Handshake size={15} />{g.pc} {tt('favours', 'ryšiai')}</span>
@@ -5450,7 +5784,7 @@ function VoteScreen({ g, onDone }) {
   const ayes = Math.round(V.ayes * t), noes = Math.round(V.noes * t), abst = Math.round(V.abst * t);
   const done = t >= 1;
   return (
-    <div className="max-w-lg mx-auto min-h-screen" style={{ ...GUTTER, paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 32px)' }}>
+    <div className="max-w-lg lg:max-w-4xl mx-auto min-h-screen" style={{ ...GUTTER, paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 32px)' }}>
       <div className="pt-6">
         <div className="text-sm font-extrabold t-muted">{tt('Seimas plenary hall', 'Seimo plenarinių posėdžių salė')}</div>
         <h2 className="cx-title text-4xl leading-none">{tt('The confidence vote', 'Balsavimas dėl Premjero')}</h2>
@@ -5461,8 +5795,8 @@ function VoteScreen({ g, onDone }) {
       </div>
       <Card className="mt-4 p-4">
         <div className="grid grid-cols-3 gap-2 text-center">
-          {[[tt('For', 'Už'), ayes, '#4ADE80'], [tt('Against', 'Prieš'), noes, '#F87171'], [tt('Abstain', 'Susilaikė'), abst, '#E3EDF5']].map(([l, v, c]) => (
-            <div key={l} className="rounded-2xl p-3" style={{ background: c, border: `3px solid ${INK}` }}>
+          {[[tt('For', 'Už'), ayes, '#4ADE80'], [tt('Against', 'Prieš'), noes, '#F87171'], [tt('Abstain', 'Susilaikė'), abst, LINE]].map(([l, v, c]) => (
+            <div key={l} className="rounded-2xl p-3" style={{ background: c, border: `1px solid ${LINE}`, color: c === LINE ? TEXT : '#0B0E14' }}>
               <div className="cx-num text-4xl leading-none">{v}</div>
               <div className="text-sm font-black mt-1">{l}</div>
             </div>
@@ -5472,8 +5806,8 @@ function VoteScreen({ g, onDone }) {
         <div className="text-xs font-extrabold t-muted mt-1">{tt('More votes for than against are needed.', 'Reikia daugiau balsų „už“ nei „prieš“.')}</div>
       </Card>
       {done && (
-        <Card className="mt-4 p-4 sbl-pop" style={{ background: V.passed ? '#DCFCE7' : '#FEE2E2' }}>
-          <div className="cx-title text-3xl leading-tight">{V.passed ? tt('Approved! You are Prime Minister.', 'Pritarta! Jūs – Ministras Pirmininkas.') : tt('Rejected! Rebels sank your nomination.', 'Atmesta! Maištininkai paskandino jūsų kandidatūrą.')}</div>
+        <Card className="mt-4 p-4 sbl-pop" style={{ background: V.passed ? GOOD_BG : BAD_BG }}>
+          <ResultBanner ok={V.passed} title={V.passed ? tt('Approved!', 'Pritarta!') : tt('Rejected!', 'Atmesta!')} sub={V.passed ? tt('You are Prime Minister.', 'Jūs – Ministras Pirmininkas.') : tt('Rebels sank your nomination.', 'Maištininkai paskandino jūsų kandidatūrą.')} />
           <p className="font-semibold mt-1">{V.passed ? tt(`${V.ayes} MPs backed you. Time to form the government.`, `Jus palaikė ${V.ayes} Seimo nariai. Laikas formuoti Vyriausybę.`) : tt('Too many coalition MPs broke ranks. A shaky coalition is a risky coalition.', 'Per daug koalicijos narių balsavo kitaip. Nestabili koalicija – rizikinga koalicija.')}</p>
           <Btn className="h-14 w-full text-lg mt-3" onClick={onDone}>{tt('See the final result', 'Galutinis rezultatas')} <ArrowRight size={20} /></Btn>
         </Card>
@@ -5509,15 +5843,15 @@ function ResultScreen({ g, onRestart }) {
   const [grade, title, blurb] = gradeOf(g);
   const gov = R.kind === 'majority' ? [me] : R.kind === 'pm' ? [me, ...R.partners] : R.kind === 'failed' ? [] : R.members || [];
   const deb = g.stats.debates;
-  const medal = { S: '#FDB913', A: '#FDB913', B: '#CBD5E1', C: '#E8A46B', D: '#BFDBFE', E: '#FECACA', F: '#FECACA' }[grade];
+  const medal = { S: '#FDB913', A: '#FDB913', B: '#CBD5E1', C: '#E8A46B', D: '#BFDBFE', E: BAD_BG, F: BAD_BG }[grade];
   return (
-    <div className="max-w-lg mx-auto min-h-screen" style={{ ...GUTTER, paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 32px)' }}>
+    <div className="max-w-lg lg:max-w-4xl mx-auto min-h-screen" style={{ ...GUTTER, paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 32px)' }}>
       {['S', 'A', 'B'].includes(grade) && <Confetti />}
       <div className="pt-6 flex flex-col items-center text-center">
         <Scene kind={['S', 'A', 'B', 'C'].includes(grade) ? 'palace' : 'seimas'} h={150} className="w-full" caption={false}>
           <div className="absolute inset-x-0 bottom-2 flex justify-center"><Portrait who={me} size={92} badge mood={['S', 'A', 'B'].includes(grade) ? 'grin' : grade === 'C' || grade === 'D' ? 'ok' : 'sad'} /></div>
           <div className="absolute right-2 top-2 sbl-pop">
-            <div className="grid place-items-center rounded-full" style={{ width: 70, height: 70, background: medal, border: `4px solid ${INK}`, boxShadow: `0 4px 0 ${INK}` }}><span className="cx-title" style={{ fontSize: 38, lineHeight: 1 }}>{grade}</span></div>
+            <div className="grid place-items-center rounded-full" style={{ width: 70, height: 70, background: medal, border: '3px solid rgba(255,255,255,.85)', boxShadow: SHADOW, color: '#14100A' }}><span className="cx-title" style={{ fontSize: 38, lineHeight: 1 }}>{grade}</span></div>
             {['S', 'A', 'B'].includes(grade) && <Medal size={26} className="absolute -bottom-2 -right-2" style={{ fill: '#fff' }} strokeWidth={2.4} />}
           </div>
         </Scene>
@@ -5543,7 +5877,7 @@ function ResultScreen({ g, onRestart }) {
           [tt('Seats won', 'Mandatai'), `${E.seats[me]}`],
           [tt('Debates won', 'Laimėti debatai'), tt(`${deb.filter((d) => d.won).length} of ${deb.length}`, `${deb.filter((d) => d.won).length} iš ${deb.length}`)],
           [tt('Gambling', 'Lošimai'), g.stats.gambles ? `${g.stats.gambleNet >= 0 ? '+' : '−'}${fmtEur(Math.abs(g.stats.gambleNet))}` : tt('Stayed clean', 'Nelošta')],
-        ].map(([l, v]) => <div key={l} className="cx-card p-3" style={{ boxShadow: `0 4px 0 ${INK}` }}><div className="text-xs font-extrabold t-muted">{l}</div><div className="cx-num text-2xl">{v}</div></div>)}
+        ].map(([l, v]) => <div key={l} className="cx-card p-3" style={{ boxShadow: SHADOW }}><div className="text-xs font-extrabold t-muted">{l}</div><div className="cx-num text-2xl">{v}</div></div>)}
       </div>
       <Card className="mt-4 p-4"><CardTitle>{tt('Final Seimas', 'Naujasis Seimas')}</CardTitle><SeatTable seats={E.seats} pr={E.pr} smd={E.smdSeats} highlight={me} /></Card>
       <Btn className="h-16 text-xl w-full mt-5" onClick={onRestart}><RotateCcw size={22} />{tt('Play again', 'Žaisti dar kartą')}</Btn>
@@ -5554,12 +5888,12 @@ function ResultScreen({ g, onRestart }) {
 /* ============================================================
    Toast, queue & root
    ============================================================ */
-function Toast({ t }) {
+function Toast({ t, wideToast }) {
   const bad = t.ok === false || t.tone === 'bad';
-  const bg = bad ? '#E5484D' : t.tone === 'warn' ? '#FDE68A' : '#fff';
+  const edge = bad ? RED : t.tone === 'warn' ? AMBER : GREEN;
   return (
-    <div className="fixed inset-x-0 z-50 pointer-events-none flex justify-center" style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 104px)', ...GUTTER }} role="status" aria-live="polite">
-      <div key={t.id} className="sbl-toast max-w-md w-full rounded-2xl px-4 py-3 font-extrabold" style={{ background: bg, color: bad ? '#fff' : INK, border: `3px solid ${INK}`, boxShadow: `0 5px 0 ${INK}` }}>{t.msg}</div>
+    <div className="fixed inset-x-0 z-50 pointer-events-none flex justify-center" style={{ bottom: wideToast ? 52 : 'calc(env(safe-area-inset-bottom, 0px) + 140px)', ...GUTTER }} role="status" aria-live="polite">
+      <div key={t.id} className="sbl-toast max-w-md w-full rounded-xl px-4 py-3 font-bold" style={{ background: 'rgba(12,15,21,.94)', color: TEXT, border: `1px solid ${LINE2}`, borderLeft: `4px solid ${edge}`, boxShadow: '0 14px 34px rgba(0,0,0,.5)', backdropFilter: 'blur(6px)' }}>{t.msg}</div>
     </div>
   );
 }
@@ -5588,6 +5922,7 @@ export default function SeimasGame({ hotData } = {}) {
   const [toast, setToast] = useState(null);
   const [confirmEnd, setConfirmEnd] = useState(false);
   const [help, setHelp] = useState(false);
+  const wide = useWide();
   const gameRef = useRef(game);
   gameRef.current = game;
   ADVISOR = !game || game.advisor !== false;
@@ -5651,17 +5986,39 @@ export default function SeimasGame({ hotData } = {}) {
     body = <TitleScreen lang={lang} setLang={setLang} saved={saved} onNew={() => { setScreen('select'); try { window.scrollTo({ top: 0 }); } catch (e) { /* ignore */ } }} onContinue={() => { gameRef.current = saved; setGame(saved); setScreen('game'); try { window.scrollTo({ top: 0 }); } catch (e) { /* ignore */ } }} />;
   } else if (game.phase === 'campaign' && derived) {
     const { shares, nat, proj } = derived;
-    body = (
+    const glowEnd = game.tut === 4 || (game.ap === 0 && game.tut >= 5);
+    const onEnd = () => (game.ap > 0 ? setConfirmEnd(true) : doEnd());
+    const tabBody = (
+      <>
+        {tab === 'map' && <MapTab g={game} shares={shares} proj={proj} sel={sel} onSelect={openRegion} skipTips={skipTips} wide={wide} />}
+        {tab === 'polls' && <PollsTab g={game} nat={nat} proj={proj} />}
+        {tab === 'hq' && <HQTab g={game} act={act} openSheet={openSheet} />}
+        {tab === 'news' && <NewsTab g={game} />}
+      </>
+    );
+    const drawer = sel && <RegionDrawer g={game} rid={sel} proj={proj} docked={wide} onClose={closeRegion} onAction={(rid, type) => { const first = gameRef.current.tut === 2; act((g) => doRegionAction(g, rid, type)); if (first && !wide) setSel(null); }} onTravel={(rid) => act((g) => travel(g, rid))} tutStep={game.tut} onSkipTips={skipTips} />;
+    body = wide ? (
+      <>
+        <DesktopHud g={game} proj={proj} onHelp={() => setHelp(true)} lang={lang} setLang={setLang} onEnd={onEnd} glowEnd={glowEnd} />
+        <div className="grid gap-5 px-5 pt-1" style={{ gridTemplateColumns: '84px minmax(0, 1fr) 410px', paddingBottom: 56 }}>
+          <div className="pt-4"><NavRail tab={tab} setTab={goTab} /></div>
+          <main className="min-w-0 pb-4">{tabBody}</main>
+          <aside className="min-w-0 pt-4">{drawer || <SidePanel g={game} shares={shares} onSelect={openRegion} />}</aside>
+        </div>
+        <div className="fixed bottom-0 inset-x-0 z-30"><NewsTicker g={game} /></div>
+        {sheet === 'casino' && <CasinoSheet g={game} act={act} onClose={() => setSheet(null)} />}
+        {sheet === 'bet' && <BetSheet g={game} act={act} onClose={() => setSheet(null)} />}
+        {sheet === 'kompro' && <KomproSheet g={game} act={act} onClose={() => setSheet(null)} />}
+        {confirmEnd && <ConfirmEnd g={game} onCancel={() => setConfirmEnd(false)} onConfirm={doEnd} />}
+        {help && <HelpSheet onClose={() => setHelp(false)} />}
+        {game.queue.length > 0 && <QueueModal g={game} item={game.queue[0]} act={act} nat={nat} proj={proj} />}
+      </>
+    ) : (
       <>
         <Header g={game} proj={proj} onHelp={() => setHelp(true)} lang={lang} setLang={setLang} />
-        <main className="max-w-lg mx-auto" style={{ ...GUTTER, paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 128px)' }}>
-          {tab === 'map' && <MapTab g={game} shares={shares} proj={proj} sel={sel} onSelect={openRegion} skipTips={skipTips} />}
-          {tab === 'polls' && <PollsTab g={game} nat={nat} proj={proj} />}
-          {tab === 'hq' && <HQTab g={game} act={act} openSheet={openSheet} />}
-          {tab === 'news' && <NewsTab g={game} />}
-        </main>
-        <BottomNav tab={tab} setTab={goTab} g={game} glowEnd={game.tut === 4 || (game.ap === 0 && game.tut >= 5)} onEnd={() => (game.ap > 0 ? setConfirmEnd(true) : doEnd())} />
-        {sel && <RegionDrawer g={game} rid={sel} proj={proj} onClose={closeRegion} onAction={(rid, type) => { const first = gameRef.current.tut === 2; act((g) => doRegionAction(g, rid, type)); if (first) setSel(null); }} onTravel={(rid) => act((g) => travel(g, rid))} tutStep={game.tut} onSkipTips={skipTips} />}
+        <main className="max-w-lg mx-auto" style={{ ...GUTTER, paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 150px)' }}>{tabBody}</main>
+        <BottomNav tab={tab} setTab={goTab} g={game} glowEnd={glowEnd} onEnd={onEnd} />
+        {drawer}
         {sheet === 'casino' && <CasinoSheet g={game} act={act} onClose={() => setSheet(null)} />}
         {sheet === 'bet' && <BetSheet g={game} act={act} onClose={() => setSheet(null)} />}
         {sheet === 'kompro' && <KomproSheet g={game} act={act} onClose={() => setSheet(null)} />}
@@ -5709,8 +6066,9 @@ export default function SeimasGame({ hotData } = {}) {
   return (
     <div className="sbl min-h-screen antialiased" lang={lang}>
       <style>{GLOBAL_CSS}</style>
+      <Backdrop kind={screen !== 'game' || !game ? 'night' : game.phase === 'campaign' ? 'seimas' : game.phase === 'result' || game.phase === 'vote' ? 'palace' : 'night'} />
       {body}
-      {toast && <Toast t={toast} />}
+      {toast && <Toast t={toast} wideToast={wide} />}
     </div>
   );
 }

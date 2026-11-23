@@ -1,8 +1,14 @@
 # Seimas: Battle for Lithuania
 
-A friendly, cartoon-style strategy game about the **2028 Lithuanian Seimas election**, designed for phones and available in **Lithuanian and English** (switch with the LT/EN toggle). You lead a real party and its real leader through a twelve-week campaign, then try to build a 71-seat governing majority and survive the Seimas confidence vote.
+A political-drama strategy game about the **2028 Lithuanian Seimas election**, playable on **phones and desktop**, in **Lithuanian and English** (switch with the LT/EN toggle). You lead a real party and its real leader through a twelve-week campaign, then try to build a 71-seat governing majority and survive the Seimas confidence vote.
 
 > Fictional simulation. Real parties and leaders appear for context; every event, quote and result is invented. Party emblems are original designs, not official logos, and leader portraits are cartoon drawings, not photos or likenesses. Starting polls roughly follow late-2026 averages, and party leaders were checked in November 2026.
+
+## Look and layout
+
+- **Dark "political drama" design**: night-blue glass panels over a blurred landmark, condensed italic headlines on black title bars, amber call-to-action buttons, white answer pills, party-coloured rows, shield emblems, white stat pills and a rolling national-news ticker.
+- **Phones**: a compact top bar with the leader's card, stat pills and a campaign timeline (months, debates, endorsements, election day), and a bottom bar with the news ticker and sections.
+- **Desktop (1024 px and wider)**: a command-centre layout with a full-width top bar (leader card, timeline, Next week), a navigation rail on the left, the large campaign map in the centre and a docked side panel on the right that shows region details or the latest news. News, debates and voters open as centred cinematic cards. Candidate selection becomes a two-pane screen with a large preview.
 
 ## Playing
 
