@@ -7,21 +7,22 @@
  * Single-file React component. Tailwind CSS + lucide-react. No external APIs. Lithuanian & English.
  * Map outlines simplified from @react-map/lithuania (MIT License, Copyright (c) Shubham Singh).
  */
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useId } from 'react';
 import {
-  Map as MapIcon, BarChart3, Building2, Newspaper, ChevronRight, ChevronDown, X, Zap, Wallet, TrendingUp,
-  TrendingDown, Megaphone, Smartphone, Radio, DoorOpen, Swords, Users, Shield, Home, HeartPulse, Truck,
+  Map as MapIcon, BarChart3, Building2, Newspaper, ChevronRight, ChevronDown, X, Zap, Wallet,
+  Megaphone, Smartphone, Radio, DoorOpen, Swords, Users, Shield, Home, HeartPulse, Truck,
   Factory, Tractor, Plane, Anchor, GraduationCap, Globe, Coins, HandCoins, Handshake, Crown, Vote,
   RotateCcw, HelpCircle, AlertTriangle, Flame, Mic, Scale, Leaf, Info, ArrowRight, TramFront, TrainFront,
   Languages, PiggyBank, Trophy, Music, Mail, SkipForward, Check, Tv, Target, Briefcase, Play, Sparkles,
   ShieldAlert, Siren, Flag, Star, Smile, Meh, Frown, Lightbulb, Medal, Landmark, Heart, Sprout,
-  Wheat, LockOpen, Rocket, Dices, Search, Cloud, CloudRain, Sun, Gavel, Ticket, Eye,
+  Wheat, LockOpen, Rocket, Hammer, Church, Dices, Search, Cloud, CloudRain, Sun, Gavel, Ticket, Eye,
 } from 'lucide-react';
 
 /* ============================================================
    Language (lt / en)
    ============================================================ */
 let LANG = 'lt';
+let ADVISOR = true; // Rūta's tutorial & tips (chosen per campaign)
 const tt = (en, lt) => (LANG === 'lt' ? lt : en);
 const bi = (en, lt) => ({ en, lt });
 const L = (x) => (x == null ? '' : typeof x === 'string' ? x : x[LANG] != null ? x[LANG] : x.en);
@@ -229,6 +230,38 @@ const PARTIES = {
     perk: bi('Almost unbeatable at home, weak everywhere else.', 'Namuose beveik nenugalimi, kitur – silpni.'),
     strongholds: bi('Vilnius District and Šalčininkai', 'Vilniaus rajonas ir Šalčininkai'),
   },
+  DP: {
+    id: 'DP', short: 'DP', name: 'Darbo partija', full: 'Darbo partija', color: '#7C3AED', emblem: Hammer,
+    leader: 'Gintaras Steponėnas', ideology: bi('Centre-left · Populist', 'Centro kairė · Populistai'), pos: { econ: -30, social: 30, defense: 30, green: 0 }, funds: 500,
+    difficulty: 'hard', stars: 3,
+    blurb: bi('The once-mighty Labour Party, hoping for a comeback in the regions.', 'Kadaise galinga Darbo partija, tikinti sugrįžimu regionuose.'),
+    perk: bi('Old local networks: door-knocking builds your ground team 50% faster.', 'Seni vietos tinklai: agitacija nuo durų iki durų stiprina komandą 50 % greičiau.'),
+    strongholds: bi('Kaunas County, Panevėžys and small towns', 'Kauno apskritis, Panevėžys ir miesteliai'),
+  },
+  LIT: {
+    id: 'LIT', short: 'L&T', name: 'Laisvė ir teisingumas', full: 'Partija „Laisvė ir teisingumas“', color: '#1E3A8A', emblem: Scale,
+    leader: 'Artūras Zuokas', ideology: bi('Liberal-conservative', 'Liberalūs konservatoriai'), pos: { econ: 30, social: 30, defense: 60, green: 0 }, funds: 550,
+    difficulty: 'hard', stars: 3,
+    blurb: bi('A small liberal-conservative party with a well-known Vilnius politician at the helm.', 'Nedidelė liberalių konservatorių partija, kuriai vadovauja žinomas Vilniaus politikas.'),
+    perk: bi('Vilnius knows your leader: campaigning in Vilnius City works 30% better.', 'Vilnius pažįsta jūsų lyderį: agitacija Vilniaus mieste veikia 30 % geriau.'),
+    strongholds: bi('Vilnius City', 'Vilniaus miestas'),
+  },
+  KS: {
+    id: 'KS', short: 'KS', name: 'Krikščionių sąjunga', full: 'Krikščionių sąjunga', color: '#92400E', emblem: Church,
+    leader: 'Rimantas Jonas Dagys', ideology: bi('Christian conservative', 'Krikščionys konservatoriai'), pos: { econ: 30, social: 90, defense: 60, green: -30 }, funds: 450,
+    difficulty: 'hard', stars: 3,
+    blurb: bi('Christian conservatives campaigning on family values.', 'Krikščionys konservatoriai, kurių kampanijos ašis – šeimos vertybės.'),
+    perk: bi('Family-values pledges land 40% harder with traditional voters.', 'Šeimos vertybių pažadai tradiciniams rinkėjams veikia 40 % stipriau.'),
+    strongholds: bi('Kaunas and traditional rural parishes', 'Kaunas ir tradicinės kaimo parapijos'),
+  },
+  LZP: {
+    id: 'LZP', short: 'LŽP', name: 'Žaliųjų partija', full: 'Lietuvos žaliųjų partija', color: '#06B6D4', emblem: Leaf,
+    leader: 'Ieva Budraitė', ideology: bi('Green · Progressive', 'Žalieji · Progresyvieji'), pos: { econ: 0, social: -60, defense: 30, green: 90 }, funds: 400,
+    difficulty: 'hard', stars: 3,
+    blurb: bi('Environmentalists who want Lithuania to go green, fast.', 'Aplinkosaugininkai, norintys, kad Lietuva kuo greičiau žalėtų.'),
+    perk: bi('Green pledges and online ads work extra well with young city voters.', 'Žali pažadai ir reklama internete ypač veikia jaunus miestiečius.'),
+    strongholds: bi('Young voters in Vilnius, Kaunas and Klaipėda', 'Jauni Vilniaus, Kauno ir Klaipėdos rinkėjai'),
+  },
   KITI: {
     id: 'KITI', short: 'Kiti', name: 'Kiti ir nepriklausomi', full: 'Mažosios partijos ir nepriklausomi kandidatai', color: '#64748B', emblem: Users,
     leader: '', ideology: bi('Fragmented', 'Įvairūs'), pos: { econ: -10, social: 30, defense: 30, green: 0 },
@@ -240,18 +273,28 @@ const leaderSurname = (p) => {
   return n ? n.split(' ').slice(-1)[0] : '';
 };
 const DIFF_LABEL = { easy: bi('Easy', 'Lengva'), medium: bi('Medium', 'Vidutinė'), hard: bi('Hard', 'Sunki') };
-const PARTY_IDS = ['LSDP', 'TS', 'NA', 'DSVL', 'LS', 'LVZS', 'LP', 'LLRA'];
+const PARTY_IDS = ['LSDP', 'TS', 'NA', 'DSVL', 'LS', 'LVZS', 'LP', 'LLRA', 'DP', 'LIT', 'KS', 'LZP'];
 const ALL_IDS = [...PARTY_IDS, 'KITI'];
-const SEAT_ORDER = ['LSDP', 'DSVL', 'LVZS', 'NA', 'LLRA', 'KITI', 'LP', 'LS', 'TS'];
+const SEAT_LEFT = ['LSDP', 'DP', 'DSVL', 'LVZS', 'NA', 'LLRA', 'KS', 'KITI'];
+const SEAT_RIGHT = ['LZP', 'LP', 'LS', 'LIT', 'TS'];
+const SEAT_ORDER = [...SEAT_LEFT, ...SEAT_RIGHT];
 const WEEKS = 12;
 const MAJORITY = 71;
 const DEBATE_WEEKS = [4, 8, 11];
 const VRK_LIMIT = 2300;
-const FUND_MULT = { LSDP: 1, TS: 1.6, NA: 0.75, DSVL: 0.9, LS: 1.35, LVZS: 0.95, LP: 0.85, LLRA: 0.8 };
-const BACKFIRE = { LSDP: 0.22, TS: 0.2, NA: 0.07, DSVL: 0.38, LS: 0.22, LVZS: 0.18, LP: 0.2, LLRA: 0.25 };
+const FUND_MULT = { LSDP: 1, TS: 1.6, NA: 0.75, DSVL: 0.9, LS: 1.35, LVZS: 0.95, LP: 0.85, LLRA: 0.8, DP: 0.75, LIT: 0.85, KS: 0.7, LZP: 0.65 };
+const BACKFIRE = { LSDP: 0.22, TS: 0.2, NA: 0.07, DSVL: 0.38, LS: 0.22, LVZS: 0.18, LP: 0.2, LLRA: 0.25, DP: 0.15, LIT: 0.18, KS: 0.2, LZP: 0.3 };
 const FATIGUE = [1, 0.8, 0.62, 0.48, 0.38, 0.3];
 // Late-2026 polling shift relative to the 2024 regional baselines below.
-const BASE_SHIFT = { TS: 1.13, LSDP: 0.84, NA: 0.98, LVZS: 1.75, DSVL: 0.97, LS: 0.95, LP: 0.92, LLRA: 1, KITI: 0.86 };
+const BASE_SHIFT = { TS: 1.13, LSDP: 0.84, NA: 0.98, LVZS: 1.75, DSVL: 0.97, LS: 0.95, LP: 0.92, LLRA: 1, KITI: 0.86, DP: 1, LIT: 1, KS: 1, LZP: 1 };
+// Smaller parties carved out of the 'others' bloc (percent of each region's vote, before the 2026 shift).
+const MINOR_BASE = {
+  VNO: { DP: 1.5, LIT: 4, KS: 1.5, LZP: 2.5 }, VLC: { DP: 2, LIT: 2, KS: 1.5, LZP: 0.8 }, KNS: { DP: 2.5, LIT: 2, KS: 2.5, LZP: 2 },
+  KNC: { DP: 3.5, LIT: 1.5, KS: 2, LZP: 1 }, KLP: { DP: 2.5, LIT: 2, KS: 1.5, LZP: 1.8 }, TEL: { DP: 2.5, LIT: 1.5, KS: 2, LZP: 0.8 },
+  TAU: { DP: 3, LIT: 1.5, KS: 2, LZP: 0.8 }, SIA: { DP: 3, LIT: 1.5, KS: 1.8, LZP: 1 }, PAN: { DP: 3.5, LIT: 1.5, KS: 1.8, LZP: 1 },
+  UTE: { DP: 3, LIT: 1.5, KS: 1.5, LZP: 1.2 }, ALY: { DP: 3, LIT: 1.5, KS: 1.8, LZP: 1 }, MAR: { DP: 3, LIT: 1.5, KS: 2.2, LZP: 0.8 },
+  ABR: { DP: 0.5, LIT: 2.5, KS: 1, LZP: 2.5 },
+};
 
 /* ============================================================
    Policy axes, issues, voter groups
@@ -406,6 +449,9 @@ const REGIONS = [
 ];
 REGIONS.forEach((r) => {
   if (!r.voters) r.voters = Math.round(r.pop * 0.82);
+  const mb = MINOR_BASE[r.id];
+  Object.assign(r.base, mb);
+  r.base.KITI = Math.max(3, r.base.KITI - sum(Object.values(mb)));
   ALL_IDS.forEach((p) => { r.base[p] *= BASE_SHIFT[p]; });
 });
 const REG = Object.fromEntries(REGIONS.map((r) => [r.id, r]));
@@ -414,7 +460,7 @@ const rl = (r) => L((typeof r === 'string' ? REG[r] : r).long);
 const consName = (name) => tt(`${name} district`, `${name} apygarda`);
 const TOTAL_VOTERS = sum(REGIONS.map((r) => r.voters));
 const AXIS_MEAN = Object.fromEntries(AXIS_IDS.map((a) => [a, sum(REGIONS.map((r) => r.ideal[a] * r.voters)) / TOTAL_VOTERS]));
-const URB_SENS = { LSDP: -0.15, TS: 0.5, NA: -0.5, DSVL: -0.1, LS: 0.6, LVZS: -0.7, LP: 1.0, LLRA: 0, KITI: -0.1 };
+const URB_SENS = { LSDP: -0.15, TS: 0.5, NA: -0.5, DSVL: -0.1, LS: 0.6, LVZS: -0.7, LP: 1.0, LLRA: 0, KITI: -0.1, DP: -0.3, LIT: 0.3, KS: -0.2, LZP: 0.6 };
 const LEAN_SIGMA = { KITI: 0.32, LLRA: 0.15 };
 const consById = (cid) => {
   const [rid, i] = cid.split('-');
@@ -465,6 +511,7 @@ const MINISTRY_IDS = Object.keys(MINISTRIES);
 const MIN_PREF = {
   LSDP: ['fin', 'soc', 'hea', 'int'], TS: ['mfa', 'def', 'fin', 'ene'], NA: ['int', 'env', 'jus', 'agr'], DSVL: ['env', 'hea', 'ene', 'edu'],
   LS: ['eco', 'jus', 'tra', 'edu'], LVZS: ['agr', 'hea', 'cul', 'edu'], LP: ['jus', 'cul', 'edu', 'eco'], LLRA: ['ene', 'tra', 'cul'],
+  DP: ['soc', 'eco', 'agr'], LIT: ['eco', 'tra', 'jus'], KS: ['soc', 'edu', 'cul'], LZP: ['env', 'ene', 'tra'],
 };
 const DEMANDS = {
   LSDP: { text: bi('Progressive income tax and pension indexation', 'Progresiniai pajamų mokesčiai ir pensijų indeksavimas'), axis: ['econ', -1] },
@@ -475,13 +522,18 @@ const DEMANDS = {
   LVZS: { text: bi('Farm support package and strict alcohol control', 'Žemės ūkio paramos paketas ir griežta alkoholio kontrolė'), axis: ['social', 1] },
   LP: { text: bi('Civil partnership and cannabis decriminalisation', 'Partnerystė ir kanapių dekriminalizavimas'), axis: ['social', -1] },
   LLRA: { text: bi('Minority-language schools and original-spelling surnames', 'Tautinių mažumų mokyklos ir originali pavardžių rašyba'), axis: null },
+  DP: { text: bi('A higher minimum wage and a regional jobs programme', 'Didesnė MMA ir regionų darbo vietų programa'), axis: ['econ', -1] },
+  LIT: { text: bi('More powers for mayors and lower business taxes', 'Daugiau galių merams ir mažesni verslo mokesčiai'), axis: ['econ', 1] },
+  KS: { text: bi('Constitutional protection of the traditional family', 'Tradicinės šeimos apsauga Konstitucijoje'), axis: ['social', 1] },
+  LZP: { text: bi('A climate law for net zero by 2040', 'Klimato įstatymas: neutralumas iki 2040 m.'), axis: ['green', 1] },
   KITI: { text: bi('Local projects in their districts', 'Vietiniai projektai jų apygardose'), axis: null },
 };
 const AFFINITY = {
   'NA|TS': -35, 'LS|NA': -40, 'LP|NA': -50, 'DSVL|NA': -10, 'LSDP|NA': 10, 'LVZS|NA': 10, 'LLRA|LP': -35, 'LP|LVZS': -30,
   'LS|LVZS': -15, 'LVZS|TS': -10, 'LLRA|LS': -15, 'LSDP|LVZS': 10, 'LS|TS': 10, 'LP|TS': 5, 'DSVL|LSDP': 5, 'LLRA|TS': 5, 'LLRA|LSDP': 5,
+  'DP|LSDP': 8, 'DP|NA': 5, 'KS|TS': 10, 'KS|LP': -40, 'KS|LS': -20, 'KS|LZP': -25, 'LP|LZP': 12, 'LZP|NA': -30, 'LIT|TS': 5, 'LIT|LS': 5,
+  'DSVL|LZP': 10, 'KS|LVZS': 10, 'KS|LLRA': 5,
 };
-const SEIMAS_2024 = { LSDP: 52, TS: 28, NA: 20, DSVL: 14, LS: 12, LVZS: 8, LLRA: 3, KITI: 4 };
 
 /* ============================================================
    News events (three choices each). Fictional; no real person is named.
@@ -678,6 +730,106 @@ const EVENTS = [
     ],
   },
   {
+    id: 'drones', cat: bi('Security', 'Saugumas'), icon: ShieldAlert, scene: 'klaipeda',
+    title: bi('Unidentified drones circle the Klaipėda LNG terminal', 'Virš Klaipėdos SGD terminalo sukasi neatpažinti dronai'),
+    body: bi('For two nights running, drones hover over the gas terminal and the port. The navy says it lacks the equipment to bring them down.', 'Dvi naktis iš eilės dronai sklando virš dujų terminalo ir uosto. Karinės jūrų pajėgos sako neturinčios įrangos jiems numušti.'),
+    choices: [
+      { label: bi('Promise a €100M anti-drone shield', 'Pažadėti 100 mln. eurų priešdroninį skydą'), tag: 'security', fx: { reg: [['KLP', 1.6], ['border', 0.6]], axis: ['defense', 1, 0.7], groups: { business: 2 } } },
+      { label: bi('Ask NATO allies for help and keep calm', 'Kreiptis į NATO sąjungininkus ir nekelti panikos'), tag: 'moderate', fx: { pc: 1, mom: 0.3, reg: [['urban', 0.4]] } },
+      { label: bi('Blame the government for leaving the port open', 'Kaltinti Vyriausybę, kad paliko uostą neapsaugotą'), tag: 'populist', fx: { mom: 1, reg: [['KLP', 0.8]], pc: -1 } },
+    ],
+  },
+  {
+    id: 'housing', cat: bi('Housing', 'Būstas'), icon: Home, scene: 'vilnius',
+    title: bi('Vilnius rents jump 20% in a year', 'Nuoma Vilniuje per metus pabrango 20 %'),
+    body: bi('A one-bedroom flat in Žvėrynas now costs more than an average monthly salary. Young families say they are being priced out of the capital.', 'Vieno kambario butas Žvėryne jau kainuoja daugiau nei vidutinis mėnesio atlyginimas. Jaunos šeimos sako, kad sostinė joms tampa neįperkama.'),
+    choices: [
+      { label: bi('Cap rent rises at inflation', 'Apriboti nuomos kainų augimą infliacijos dydžiu'), tag: 'welfare', fx: { reg: [['VNO', 1.3], ['KNS', 0.6]], axis: ['econ', -1, 0.6], groups: { youth: 4, business: -5 } } },
+      { label: bi('Build 10,000 municipal rental flats', 'Pastatyti 10 000 savivaldybės nuomojamų butų'), tag: 'moderate', fx: { money: -30, reg: [['urban', 0.9]], groups: { youth: 3, public: 2 } } },
+      { label: bi('Cut red tape so developers build faster', 'Mažinti biurokratiją, kad statytojai statytų greičiau'), tag: 'business', fx: { reg: [['VNO', 0.8]], axis: ['econ', 1, 0.5], groups: { business: 5 }, money: 40 } },
+    ],
+  },
+  {
+    id: 'forest', cat: bi('Environment', 'Aplinka'), icon: Leaf, scene: 'lakes',
+    title: bi('Plan to log old-growth forest in Labanoras sparks protests', 'Planas kirsti senąjį Labanoro mišką sukėlė protestus'),
+    body: bi('State forest managers want to clear 2,000 hectares for biomass. Activists chain themselves to pine trees; local sawmills want the jobs.', 'Valstybinių miškų urėdija nori iškirsti 2 000 hektarų biokurui. Aktyvistai prisirakina prie pušų, o vietos lentpjūvės nori darbo vietų.'),
+    choices: [
+      { label: bi('Protect the forest: no logging in parks', 'Apsaugoti mišką – jokių kirtimų parkuose'), tag: 'green', fx: { reg: [['urban', 1], ['UTE', -0.5]], axis: ['green', 1, 0.6], groups: { youth: 4, farmers: -2 } } },
+      { label: bi('Allow logging, keep the jobs', 'Leisti kirsti ir išsaugoti darbo vietas'), tag: 'agri', fx: { reg: [['rural', 0.9], ['urban', -0.6]], axis: ['green', -1, 0.5], groups: { farmers: 3, youth: -4 } } },
+      { label: bi('Order an independent study first', 'Pirmiausia užsakyti nepriklausomą tyrimą'), tag: 'moderate', fx: { pc: 1, und: 0.3 } },
+    ],
+  },
+  {
+    id: 'pilgrims', cat: bi('Culture', 'Kultūra'), icon: Church, scene: 'crosses',
+    title: bi('50,000 pilgrims expected at the Hill of Crosses', 'Prie Kryžių kalno laukiama 50 000 piligrimų'),
+    body: bi('A national pilgrimage day near Šiauliai draws crowds from every parish. Party leaders are being asked whether they will attend.', 'Nacionalinė piligrimystės diena prie Šiaulių sutraukia tikinčiuosius iš visų parapijų. Partijų lyderių klausiama, ar jie dalyvaus.'),
+    choices: [
+      { label: bi('Walk with the pilgrims', 'Eiti kartu su piligrimais'), tag: 'traditional', fx: { reg: [['SIA', 1.4], ['rural', 0.6], ['VNO', -0.3]], axis: ['social', 1, 0.5], groups: { seniors: 4, youth: -2 } } },
+      { label: bi('Fund the site’s restoration, skip the photo-op', 'Skirti lėšų vietovės tvarkymui, bet nesifotografuoti'), tag: 'moderate', fx: { money: -25, pc: 1, reg: [['SIA', 0.6]] } },
+      { label: bi('Spend the day at a tech fair in Vilnius instead', 'Tą dieną praleisti technologijų mugėje Vilniuje'), tag: 'progressive', fx: { reg: [['VNO', 0.8], ['SIA', -0.8]], groups: { youth: 3, seniors: -3 } } },
+    ],
+  },
+  {
+    id: 'banks', cat: bi('Economy', 'Ekonomika'), icon: Landmark, scene: 'vilnius',
+    title: bi('Banks post record profits of €1.4 billion', 'Bankų pelnas pasiekė rekordinius 1,4 mlrd. eurų'),
+    body: bi('High interest rates helped the big Scandinavian banks earn more in Lithuania than ever. Calls grow for a solidarity tax.', 'Dėl aukštų palūkanų didieji Skandinavijos bankai Lietuvoje uždirbo daugiau nei bet kada. Vis garsiau kalbama apie solidarumo mokestį.'),
+    choices: [
+      { label: bi('A windfall tax to fund defence and pensions', 'Solidarumo mokestis gynybai ir pensijoms'), tag: 'welfare', fx: { reg: [['all', 0.7]], axis: ['econ', -1, 0.6], groups: { seniors: 3, business: -4 } } },
+      { label: bi('Hands off: taxes scare off investors', 'Neliesti – mokesčiai baido investuotojus'), tag: 'business', fx: { money: 60, axis: ['econ', 1, 0.5], groups: { business: 5 }, mom: -0.3 } },
+      { label: bi('Negotiate a voluntary contribution', 'Derėtis dėl savanoriško įnašo'), tag: 'moderate', fx: { pc: 2, mom: 0.2 } },
+    ],
+  },
+  {
+    id: 'flood', cat: bi('Disaster', 'Nelaimė'), icon: CloudRain, scene: 'fields',
+    title: bi('Spring floods cut off villages near Rusnė', 'Pavasario potvynis atkirto kaimus prie Rusnės'),
+    body: bi('The Nemunas delta is under water. Hundreds of homes are flooded and farmers have lost their first crop of the year.', 'Nemuno delta apsemta. Užlieta šimtai namų, ūkininkai neteko pirmojo metų derliaus.'),
+    choices: [
+      { label: bi('Go there in waders and promise compensation', 'Nuvykti su bridkelnėmis ir pažadėti kompensacijas'), tag: 'welfare', fx: { money: -20, reg: [['KLP', 1.2], ['TAU', 1], ['rural', 0.4]], groups: { farmers: 4 }, mom: 0.5 } },
+      { label: bi('Present a climate adaptation plan', 'Pristatyti klimato kaitos prisitaikymo planą'), tag: 'green', fx: { reg: [['urban', 0.8]], axis: ['green', 1, 0.5], pc: 1 } },
+      { label: bi('Attack the slow emergency response', 'Kritikuoti lėtą gelbėjimo tarnybų darbą'), tag: 'populist', fx: { mom: 1, reg: [['KLP', 0.6]], pc: -1 } },
+    ],
+  },
+  {
+    id: 'callcentre', cat: bi('Jobs', 'Darbo vietos'), icon: Factory, scene: 'town',
+    title: bi('Šiauliai call centre replaces 600 workers with AI', 'Šiaulių skambučių centras 600 darbuotojų pakeičia dirbtiniu intelektu'),
+    body: bi('A foreign-owned company says chatbots will now answer customers in 12 languages. It is the city’s biggest layoff in a decade.', 'Užsienio kapitalo įmonė skelbia, kad klientams 12 kalbų dabar atsakys pokalbių robotai. Tai didžiausias atleidimas mieste per dešimtmetį.'),
+    choices: [
+      { label: bi('A retraining fund for every laid-off worker', 'Perkvalifikavimo fondas kiekvienam atleistajam'), tag: 'welfare', fx: { money: -20, reg: [['SIA', 1.4], ['rural', 0.4]], groups: { public: 2 }, axis: ['econ', -1, 0.3] } },
+      { label: bi('Make Lithuania Europe’s AI hub', 'Paversti Lietuvą Europos dirbtinio intelekto centru'), tag: 'business', fx: { reg: [['VNO', 0.9], ['KNS', 0.5], ['SIA', -0.6]], groups: { business: 4, youth: 2 } } },
+      { label: bi('Propose a “robot tax”', 'Pasiūlyti „robotų mokestį“'), tag: 'populist', fx: { mom: 0.9, reg: [['SIA', 0.8]], axis: ['econ', -1, 0.4], groups: { business: -4 } } },
+    ],
+  },
+  {
+    id: 'eurovision', cat: bi('Culture', 'Kultūra'), icon: Music, scene: 'vilnius',
+    title: bi('Lithuania wins Eurovision! Who hosts next year?', 'Lietuva laimėjo „Euroviziją“! Kas rengs kitais metais?'),
+    body: bi('The whole country is singing. Now Vilnius and Kaunas both want the contest, and it will cost around €30 million.', 'Dainuoja visa šalis. Dabar konkursą nori rengti ir Vilnius, ir Kaunas, o tai kainuos apie 30 mln. eurų.'),
+    choices: [
+      { label: bi('Back Vilnius, the capital', 'Palaikyti sostinę Vilnių'), tag: 'youth', fx: { reg: [['VNO', 1.3], ['KNS', -0.8]], groups: { youth: 3 } } },
+      { label: bi('Back Kaunas and its Žalgiris Arena', 'Palaikyti Kauną ir „Žalgirio“ areną'), tag: 'youth', fx: { reg: [['KNS', 1.4], ['KNC', 0.5], ['VNO', -0.7]], groups: { youth: 2 } } },
+      { label: bi('Spend the €30M on hospitals instead', 'Tuos 30 mln. eurų skirti ligoninėms'), tag: 'populist', fx: { reg: [['rural', 0.9], ['urban', -0.4]], groups: { seniors: 3, youth: -3 }, mom: 0.4 } },
+    ],
+  },
+  {
+    id: 'deepfake', cat: bi('Online', 'Internetas'), icon: Smartphone, scene: 'town',
+    title: bi('A deepfake of your leader goes viral on TikTok', 'TikTok’e plinta jūsų lyderio klastotė'),
+    body: bi('A fake video shows your leader “admitting” to taking bribes. It has 300,000 views and is spreading fast in Russian-language groups.', 'Suklastotame vaizdo įraše jūsų lyderis neva „prisipažįsta“ ėmęs kyšius. Jį jau peržiūrėjo 300 000 žmonių, jis sparčiai plinta rusakalbėse grupėse.'),
+    choices: [
+      { label: bi('Laugh it off with your own funny video', 'Atsakyti savo juokingu vaizdo įrašu'), tag: 'youth', risk: { chance: 0.6, ok: { mom: 1.8, groups: { youth: 4 } }, okText: bi('Your reply gets twice the views of the fake.', 'Jūsų atsakymas surenka dvigubai daugiau peržiūrų nei klastotė.'), fail: { mom: -1.2, scandal: 4 }, failText: bi('The joke falls flat and the fake keeps spreading.', 'Juokelis nepavyko, o klastotė plinta toliau.') } },
+      { label: bi('Report it to the police and the VRK', 'Pranešti policijai ir VRK'), tag: 'moderate', fx: { pc: 1, scandal: -3, mom: -0.2 } },
+      { label: bi('Demand a ban on political deepfakes', 'Reikalauti uždrausti politines klastotes'), tag: 'security', fx: { reg: [['urban', 0.6]], axis: ['defense', 1, 0.3], pc: 1 } },
+    ],
+  },
+  {
+    id: 'alcohol', cat: bi('Health', 'Sveikata'), icon: HeartPulse, scene: 'town',
+    title: bi('Proposal: no alcohol sales at petrol stations, drinking age 21', 'Siūloma uždrausti prekybą alkoholiu degalinėse ir didinti amžių iki 21'),
+    body: bi('Health experts say Lithuania still drinks more than almost any country in the EU. Shop owners warn of a black market.', 'Sveikatos ekspertai teigia, kad Lietuvoje vis dar geriama daugiau nei beveik bet kurioje ES šalyje. Prekybininkai perspėja dėl juodosios rinkos.'),
+    choices: [
+      { label: bi('Support it: health comes first', 'Palaikyti – sveikata svarbiausia'), tag: 'traditional', fx: { reg: [['rural', 0.7]], axis: ['social', 1, 0.5], groups: { seniors: 3, public: 2, youth: -4, business: -2 } } },
+      { label: bi('Oppose it: adults can decide for themselves', 'Prieštarauti – suaugusieji gali spręsti patys'), tag: 'progressive', fx: { reg: [['urban', 0.9]], axis: ['social', -1, 0.4], groups: { youth: 4, business: 2 } } },
+      { label: bi('Fund prevention programmes in schools instead', 'Vietoj to finansuoti prevencijos programas mokyklose'), tag: 'moderate', fx: { money: -15, pc: 1, groups: { public: 3 } } },
+    ],
+  },
+  {
     id: 'scandal_mp', scandal: true, cat: bi('Scandal', 'Skandalas'), icon: Flame,
     title: bi('Your party’s MP filmed driving drunk in Kaunas', 'Jūsų partijos Seimo narys nufilmuotas vairuojantis neblaivus Kaune'),
     body: bi('The dashcam video has 400,000 views by breakfast. Every TV channel wants your reaction.', 'Iki pusryčių vaizdo registratoriaus įrašas surinko 400 000 peržiūrų. Visi kanalai laukia jūsų reakcijos.'),
@@ -698,6 +850,12 @@ const EVENTS = [
     ],
   },
 ];
+const EVENT_SCENE = {
+  energy: 'town', border: 'trakai', leak: 'seimas', tractors: 'fields', eurobarometer: 'town', teachers: 'kaunas', hospitals: 'town',
+  rail: 'fields', brigade: 'vilnius', emigration: 'world', port: 'klaipeda', cyber: 'seimas', language: 'trakai', basketball: 'kaunas',
+  pensions: 'town', taxes: 'seimas', festival: 'vilnius', partnership: 'seimas', president: 'palace', scandal_mp: 'kaunas', scandal_money: 'seimas',
+};
+EVENTS.forEach((e) => { if (!e.scene) e.scene = EVENT_SCENE[e.id] || 'town'; });
 const EVENT_MAP = Object.fromEntries(EVENTS.map((e) => [e.id, e]));
 
 /* ============================================================
@@ -705,7 +863,7 @@ const EVENT_MAP = Object.fromEntries(EVENTS.map((e) => [e.id, e]));
    ============================================================ */
 const DEBATES = [
   {
-    title: bi('The Economy', 'Ekonomika'),
+    title: bi('The Economy', 'Ekonomika'), closing: true,
     questions: [
       {
         q: bi('Prices are up a quarter in three years. What exactly will you do about the cost of living?', 'Kainos per trejus metus pakilo ketvirtadaliu. Ką konkrečiai darysite dėl pragyvenimo kainų?'),
@@ -722,6 +880,24 @@ const DEBATES = [
           { t: bi('A regional investment fund and affordable rental housing.', 'Regionų investicijų fondas ir įperkamas nuomojamas būstas.'), style: 'welfare', base: 6, axis: ['econ', -1], tags: [['rural', 0.6]] },
           { t: bi('Lower income tax for young professionals under 30.', 'Mažesnis pajamų mokestis jauniems specialistams iki 30 metų.'), style: 'business', base: 6, axis: ['econ', 1], tags: [['urban', 0.6], ['ABR', 1.5]] },
           { t: bi('Dual citizenship and a real diaspora strategy.', 'Dviguba pilietybė ir tikra diasporos strategija.'), style: 'youth', base: 6, tags: [['ABR', 2.5], ['urban', 0.3]] },
+        ],
+      },
+      {
+        q: bi('Should owners of second and third homes pay a progressive property tax?', 'Ar antrųjų ir trečiųjų būstų savininkai turėtų mokėti progresinį nekilnojamojo turto mokestį?'),
+        answers: [
+          { t: bi('Yes. Someone with three flats can pay more than a nurse.', 'Taip. Turintis tris butus gali mokėti daugiau nei slaugytoja.'), style: 'welfare', base: 6, axis: ['econ', -1], tags: [['urban', 0.4], ['rural', 0.5]] },
+          { t: bi('No. Taxing savings punishes the middle class.', 'Ne. Apmokestinti santaupas – bausti vidurinę klasę.'), style: 'business', base: 6, axis: ['econ', 1], tags: [['urban', 0.7]] },
+          { t: bi('Only after we fix the property register and close the loopholes.', 'Tik sutvarkę turto registrą ir užkamšę spragas.'), style: 'technocrat', base: 5.5, tags: [['all', 0.3]] },
+          { t: bi('Tax the banks before you tax families!', 'Pirma apmokestinkite bankus, o ne šeimas!'), style: 'populist', base: 6, axis: ['econ', -1], tags: [['rural', 0.7]], pc: -1 },
+        ],
+      },
+      {
+        q: bi('Small towns are emptying while Vilnius booms. What is your plan for the regions?', 'Miesteliai tuštėja, o Vilnius klesti. Koks jūsų planas regionams?'),
+        answers: [
+          { t: bi('Move state agencies out of Vilnius and pay a regional bonus.', 'Iškelti valstybės įstaigas iš Vilniaus ir mokėti regioninį priedą.'), style: 'welfare', base: 6, axis: ['econ', -1], tags: [['rural', 1], ['VNO', -0.5]] },
+          { t: bi('Zero profit tax for five years for firms that invest in the regions.', 'Penkerius metus jokio pelno mokesčio regionuose investuojančioms įmonėms.'), style: 'business', base: 6, axis: ['econ', 1], tags: [['rural', 0.6], ['urban', 0.3]] },
+          { t: bi('Fast trains: Rail Baltica stops in every county seat.', 'Greiti traukiniai: „Rail Baltica“ sustos kiekviename apskrities centre.'), style: 'technocrat', base: 5.5, tags: [['all', 0.4]] },
+          { t: bi('The Vilnius elite forgot you. We won’t.', 'Vilniaus elitas jus pamiršo. Mes – ne.'), style: 'populist', base: 6, tags: [['rural', 0.9], ['VNO', -0.7]] },
         ],
       },
       {
@@ -761,10 +937,26 @@ const DEBATES = [
           { t: bi('No. Build a professional army instead.', 'Ne. Kurkime profesionalią kariuomenę.'), style: 'youth', base: 5.5, axis: ['defense', -1], tags: [['urban', 0.4]] },
         ],
       },
+      {
+        q: bi('Ukraine asks for more air defence. Should we send systems we still need ourselves?', 'Ukraina prašo daugiau oro gynybos. Ar siųsti sistemas, kurių patiems dar reikia?'),
+        answers: [
+          { t: bi('Yes. Ukraine’s fight is our fight.', 'Taip. Ukrainos kova – mūsų kova.'), style: 'security', base: 6, axis: ['defense', 1], tags: [['VNO', 0.8], ['urban', 0.4]] },
+          { t: bi('Help with money and training, but keep our own shield.', 'Padėti pinigais ir mokymais, bet išlaikyti savo skydą.'), style: 'moderate', base: 6, tags: [['all', 0.4]] },
+          { t: bi('Our own villages come first.', 'Pirmiausia – mūsų pačių kaimai.'), style: 'populist', base: 5.5, axis: ['defense', -1], tags: [['rural', 0.6], ['VNO', -0.8]], pc: -1 },
+        ],
+      },
+      {
+        q: bi('Russian disinformation floods social media before the vote. How do you fight back?', 'Prieš rinkimus socialinius tinklus užlieja Rusijos dezinformacija. Kaip kovosite?'),
+        answers: [
+          { t: bi('A media literacy course in every school.', 'Medijų raštingumo pamokos kiekvienoje mokykloje.'), style: 'youth', base: 6, tags: [['urban', 0.6]] },
+          { t: bi('Block the channels and fine the platforms hard.', 'Blokuoti kanalus ir skirti platformoms dideles baudas.'), style: 'security', base: 6, axis: ['defense', 1], tags: [['VNO', 0.5], ['border', 0.4]] },
+          { t: bi('Trust people: free speech, not censorship.', 'Pasitikėti žmonėmis: žodžio laisvė, ne cenzūra.'), style: 'populist', base: 5.5, tags: [['rural', 0.5], ['urban', -0.3]] },
+        ],
+      },
     ],
   },
   {
-    title: bi('Values, Energy & the Future', 'Vertybės, energetika ir ateitis'),
+    title: bi('Values, Energy & the Future', 'Vertybės, energetika ir ateitis'), closing: true,
     questions: [
       {
         q: bi('Will your government pass the civil partnership law?', 'Ar jūsų Vyriausybė priims partnerystės įstatymą?'),
@@ -783,6 +975,24 @@ const DEBATES = [
         ],
       },
       {
+        q: bi('Should Lithuania move to a four-day working week?', 'Ar Lietuvai pereiti prie keturių dienų darbo savaitės?'),
+        answers: [
+          { t: bi('Yes, starting with a public-sector pilot next year.', 'Taip, pradedant bandomuoju projektu viešajame sektoriuje kitais metais.'), style: 'progressive', base: 6, axis: ['econ', -1], tags: [['urban', 0.7]] },
+          { t: bi('Productivity first. Shorter weeks will follow.', 'Pirmiausia našumas. Trumpesnė savaitė ateis vėliau.'), style: 'business', base: 6, axis: ['econ', 1], tags: [['urban', 0.4]] },
+          { t: bi('Families need time together: yes, and keep Sundays free.', 'Šeimoms reikia laiko kartu: taip, ir sekmadieniai turi likti laisvi.'), style: 'traditional', base: 5.5, axis: ['social', 1], tags: [['rural', 0.6]] },
+          { t: bi('Fine, but raise pensions first.', 'Gerai, bet pirmiausia pakelkime pensijas.'), style: 'welfare', base: 5.5, tags: [['rural', 0.7]] },
+        ],
+      },
+      {
+        q: bi('Climate: should petrol and diesel cars be taxed more?', 'Klimatas: ar benzininius ir dyzelinius automobilius reikia apmokestinti labiau?'),
+        answers: [
+          { t: bi('Yes, and spend every cent on public transport.', 'Taip, ir kiekvieną centą skirti viešajam transportui.'), style: 'green', base: 6, axis: ['green', 1], tags: [['urban', 0.8], ['rural', -0.6]] },
+          { t: bi('No new taxes on people who must drive to work.', 'Jokių naujų mokesčių tiems, kam į darbą tenka važiuoti automobiliu.'), style: 'populist', base: 6, axis: ['green', -1], tags: [['rural', 0.9], ['urban', -0.3]] },
+          { t: bi('Subsidies for used electric cars instead of penalties.', 'Vietoj baudų – subsidijos naudotiems elektromobiliams.'), style: 'moderate', base: 6, tags: [['all', 0.4]] },
+          { t: bi('Cut fuel excise and let the market decide.', 'Sumažinti degalų akcizą ir leisti spręsti rinkai.'), style: 'business', base: 5.5, axis: ['econ', 1], tags: [['rural', 0.4]] },
+        ],
+      },
+      {
         q: bi('Final word. Look into the camera and speak to the undecided.', 'Paskutinis žodis. Pažiūrėkite į kamerą ir kreipkitės į neapsisprendusius.'),
         answers: [
           { t: bi('“Lithuania is stronger when we stop shouting at each other.”', '„Lietuva stipresnė, kai nustojame vieni ant kitų rėkti.“'), style: 'moderate', base: 6, tags: [['all', 0.4]] },
@@ -793,16 +1003,6 @@ const DEBATES = [
     ],
   },
 ];
-const STYLE_NAMES = {
-  technocrat: bi('Expert', 'Ekspertiškai'), attack: bi('Attack', 'Puolimas'), security: bi('Security', 'Saugumas'), welfare: bi('Welfare', 'Socialinė parama'),
-  populist: bi('Populist', 'Populistiškai'), business: bi('Business', 'Verslas'), youth: bi('Youth', 'Jaunimas'), moderate: bi('Calm', 'Ramiai'),
-  traditional: bi('Family values', 'Šeimos vertybės'), progressive: bi('Progressive', 'Progresyviai'), green: bi('Green', 'Žaliai'),
-};
-const TAG_NAMES = {
-  welfare: bi('Welfare', 'Socialinė parama'), security: bi('Security', 'Saugumas'), populist: bi('Populist', 'Populizmas'), agri: bi('Farm', 'Žemės ūkis'),
-  business: bi('Business', 'Verslas'), youth: bi('Youth', 'Jaunimas'), minority: bi('Minority', 'Mažumos'), moderate: bi('Moderate', 'Nuosaikumas'),
-  green: bi('Green', 'Žalia'), traditional: bi('Family values', 'Šeimos vertybės'), progressive: bi('Progressive', 'Progresyvumas'),
-};
 // Map outlines: simplified from @react-map/lithuania (MIT License, (c) Shubham Singh).
 const COUNTY_SHAPES = {
   ALY: { label: [423, 519], d: 'M374,466L377,468L379,468L381,465L390,466L388,469L394,466L394,461L403,462L408,459L409,456L406,455L409,448L414,446L419,447L421,451L424,449L433,449L434,445L439,445L441,443L443,443L442,448L444,453L456,454L461,453L462,451L464,462L460,464L466,468L463,475L466,474L468,477L480,476L479,478L484,479L485,474L496,470L502,475L501,480L502,484L505,481L520,482L520,479L528,478L528,480L530,476L543,473L543,482L540,482L540,485L530,487L531,490L528,490L531,505L525,505L523,507L525,509L522,510L520,514L517,514L516,515L514,515L515,518L507,520L507,525L516,529L518,539L516,539L518,542L510,547L517,556L517,562L524,565L519,566L519,571L518,570L516,574L510,574L506,580L499,581L500,568L498,568L495,571L490,570L487,574L476,581L468,593L465,594L464,593L464,595L463,593L455,595L453,592L451,594L449,594L441,583L438,585L435,584L434,579L426,583L422,582L421,586L406,589L403,589L402,583L396,580L392,585L388,583L380,588L383,591L380,595L377,595L376,590L368,586L355,589L351,585L345,585L340,580L338,573L344,566L344,558L339,546L338,538L335,533L330,532L324,521L317,515L318,510L315,505L320,503L319,499L323,491L335,489L332,487L332,482L342,479L342,467L356,461L357,457L360,455L365,464L369,462Z' },
@@ -845,6 +1045,10 @@ function initGG(p, r) {
     case 'LVZS': return rural ? 34 : 10;
     case 'LP': return ['VNO', 'KNS'].includes(r.id) ? 18 : 4;
     case 'LLRA': return r.id === 'VLC' ? 50 : r.id === 'VNO' ? 28 : 3;
+    case 'DP': return rural ? 22 : 12;
+    case 'LIT': return r.id === 'VNO' ? 18 : 6;
+    case 'KS': return 10;
+    case 'LZP': return rural ? 3 : 8;
     default: return 8;
   }
 }
@@ -895,6 +1099,9 @@ const leaderOf = (shares, exclude) => PARTY_IDS.filter((p) => p !== exclude).sor
 function ceilingOf(p, r) {
   if (p === 'LLRA') return r.id === 'VLC' ? 56 : r.id === 'VNO' ? 16 : r.id === 'UTE' ? 12 : 5;
   if (p === 'LP') return { VNO: 34, KNS: 26, ABR: 34, KLP: 16 }[r.id] || 9;
+  if (p === 'LIT') return r.id === 'VNO' ? 26 : 16;
+  if (p === 'LZP') return r.urban > 0.6 ? 24 : 10;
+  if (p === 'DP' || p === 'KS') return 24;
   return 58;
 }
 const satOf = (p, r, share) => clamp(1 - share / ceilingOf(p, r), 0.08, 1);
@@ -903,6 +1110,8 @@ function geoMult(p, r) {
   if (p === 'LLRA') return r.id === 'VLC' ? 1.5 : r.id === 'VNO' ? 1.3 : r.id === 'UTE' ? 0.7 : 0.35;
   if (p === 'LP') return ['VNO', 'KNS', 'ABR'].includes(r.id) ? 1 : r.id === 'KLP' ? 0.85 : 0.6;
   if (p === 'TS' && r.id === 'ABR') return 1.2;
+  if (p === 'LIT') return r.id === 'VNO' ? 1.3 : 0.8;
+  if (p === 'LZP') return r.urban > 0.6 ? 1 : 0.6;
   return 1;
 }
 function traitMult(p, type, r) {
@@ -918,6 +1127,7 @@ function traitMult(p, type, r) {
     if (p === 'LP') m *= 1.6;
     if (p === 'LS') m *= 1.25;
     if (p === 'LVZS' || p === 'LLRA') m *= 0.8;
+    if (p === 'LZP') m *= 1.3;
   } else if (type === 'tv') {
     if (p === 'LVZS') m *= 1.2;
     if (p === 'LSDP') m *= 1.1;
@@ -981,7 +1191,7 @@ function vrkCheck(g) {
 /* ============================================================
    New game
    ============================================================ */
-function newGame(pid) {
+function newGame(pid, advisor = true) {
   const seed = (Math.random() * 1e9) | 0;
   const rand = mulberry32(seed);
   const support = {}, undecided = {}, gg = {}, boost = {};
@@ -999,7 +1209,7 @@ function newGame(pid) {
   const leans = buildLeans(rand);
   const stars = {};
   PARTY_IDS.filter((p) => p !== pid).forEach((p) => {
-    const n = ['TS', 'LSDP', 'NA', 'LVZS'].includes(p) ? 3 : 2;
+    const n = ['TS', 'LSDP', 'NA', 'LVZS'].includes(p) ? 3 : ['DP', 'LIT', 'KS', 'LZP'].includes(p) ? 1 : 2;
     const cids = Object.keys(leans);
     for (let k = 0; k < n; k++) {
       const w = cids.map((cid) => {
@@ -1011,14 +1221,19 @@ function newGame(pid) {
     }
   });
   const g = {
-    v: 3, seed, player: pid, week: 1, phase: 'campaign', tut: 0,
+    v: 4, seed, player: pid, week: 1, phase: 'campaign', tut: advisor ? 0 : 99, advisor,
     ap: 6, apMax: 6, money: PARTIES[pid].funds, pc: 6, scandal: pid === 'NA' ? 10 : 4,
     stance: { ...PARTIES[pid].pos }, lastShift: {},
     momentum: Object.fromEntries(ALL_IDS.map((p) => [p, 0])),
     groupMood: Object.fromEntries(GROUPS.map((G) => [G.id, 0])),
     support, undecided, gg, boost, leans, stars,
     weekActs: {}, natActs: {}, weekLog: {}, attacksThisWeek: 0, lastIncome: 0, vrkHit: false, weather: null,
-    history: [], news: [], newsId: 0, queue: [{ type: 'brief' }], usedEvents: [], lastEventWeek: 1,
+    history: [], news: [], newsId: 0, queue: advisor ? [{ type: 'brief' }] : [], usedEvents: [], lastEventWeek: 1,
+    debateQs: DEBATES.map((D) => {
+      const n = D.questions.length - (D.closing ? 1 : 0);
+      const pick = Array.from({ length: n }, (_, i) => [i, rand()]).sort((a, b) => a[1] - b[1]).slice(0, D.closing ? 2 : 3).map((x) => x[0]).sort((a, b) => a - b);
+      return D.closing ? [...pick, n] : pick;
+    }),
     stats: { actions: 0, spent: 0, shifts: 0, debates: [], events: 0, gambleNet: 0, gambles: 0 },
     election: null, coal: null, vote: null, result: null,
   };
@@ -1107,7 +1322,7 @@ function doRegionAction(g, rid, type) {
     gainSupport(g, rid, p, POWER.tv * (1.25 - 0.65 * r.urban) * traitMult(p, 'tv', r) * k, 0.8);
   } else if (type === 'door') {
     const gg0 = g.gg[rid][p];
-    g.gg[rid][p] = Math.min(100, gg0 + 14 * (1 - gg0 / 110) * geoMult(p, r));
+    g.gg[rid][p] = Math.min(100, gg0 + 14 * (1 - gg0 / 110) * geoMult(p, r) * (p === 'DP' ? 1.5 : 1));
     g.boost[rid][p] = Math.min(0.25, g.boost[rid][p] + 0.02);
     gainSupport(g, rid, p, POWER.door * k, 0.6);
     msg = tt(`Volunteers knocked on doors in ${rs(r)}: ground team ${Math.round(gg0)}→${Math.round(g.gg[rid][p])}`, `Savanoriai agitavo – ${rs(r)}: komanda ${Math.round(gg0)}→${Math.round(g.gg[rid][p])}`);
@@ -1162,7 +1377,7 @@ function doNational(g, id, target) {
   } else if (id === 'small') {
     const amt = Math.round(smallAmount(g) * (0.9 + Math.random() * 0.2));
     g.money += amt;
-    if (['NA', 'LVZS', 'LP', 'LLRA'].includes(p)) g.momentum[p] = clamp(g.momentum[p] + 0.4, -10, 10);
+    if (['NA', 'LVZS', 'LP', 'LLRA', 'DP', 'KS', 'LZP'].includes(p)) g.momentum[p] = clamp(g.momentum[p] + 0.4, -10, 10);
     msg = tt(`Small donors chipped in ${fmtEur(amt)}`, `Smulkūs aukotojai suaukojo ${fmtEur(amt)}`);
   } else if (id === 'lobby') {
     g.pc -= A.pc;
@@ -1304,7 +1519,7 @@ function aiTurn(g) {
   for (const p of PARTY_IDS) {
     if (p === g.player) continue;
     const nat = nationalShares(g)[p];
-    const n = nat > 14 ? 4 : nat > 7 ? 3 : 2;
+    const n = nat > 14 ? 4 : nat > 7 ? 3 : nat > 3 ? 2 : 1;
     const size = clamp(Math.sqrt(nat / 12), 0.5, 1.15);
     const list = [];
     for (let i = 0; i < n; i++) {
@@ -1442,9 +1657,9 @@ function endWeek(g) {
    Event & debate effects
    ============================================================ */
 const TAG_BONUS = {
-  welfare: { LSDP: 1.4, DSVL: 1.15, LVZS: 1.1 }, security: { TS: 1.3, LS: 1.1 }, populist: { NA: 1.4, LVZS: 1.15 },
-  agri: { LVZS: 1.4, LSDP: 1.1 }, business: { LS: 1.3, TS: 1.15 }, youth: { LP: 1.5, LS: 1.2 }, minority: { LLRA: 2 },
-  moderate: { DSVL: 1.3 }, green: { LP: 1.2, DSVL: 1.25 }, traditional: { LVZS: 1.4, LLRA: 1.3, NA: 1.1 }, progressive: { LP: 1.5, LS: 1.2 },
+  welfare: { LSDP: 1.4, DSVL: 1.15, LVZS: 1.1, DP: 1.2 }, security: { TS: 1.3, LS: 1.1 }, populist: { NA: 1.4, LVZS: 1.15, DP: 1.15 },
+  agri: { LVZS: 1.4, LSDP: 1.1 }, business: { LS: 1.3, TS: 1.15, LIT: 1.15 }, youth: { LP: 1.5, LS: 1.2, LZP: 1.2 }, minority: { LLRA: 2 },
+  moderate: { DSVL: 1.3 }, green: { LP: 1.2, DSVL: 1.25, LZP: 1.5 }, traditional: { LVZS: 1.4, LLRA: 1.3, NA: 1.1, KS: 1.4 }, progressive: { LP: 1.5, LS: 1.2, LZP: 1.2 },
 };
 const TARGET_LABEL = { all: bi('Everywhere', 'Visur'), urban: bi('Cities', 'Miestai'), rural: bi('Villages', 'Kaimai'), border: bi('Border regions', 'Pasienis'), agri: bi('Farm country', 'Žemės ūkio kraštai') };
 function targetRegions(t) {
@@ -1488,31 +1703,6 @@ function applyFx(g, fx, tag, isScandal) {
   applyGroups(g, fx.groups, tag, mult);
   REGIONS.forEach((r) => normalizeRegion(g, r.id));
 }
-function fxChips(fx) {
-  if (!fx) return [];
-  const out = [];
-  if (fx.money) out.push({ t: `${fx.money > 0 ? '+' : '−'}${fmtEur(Math.abs(fx.money))}`, good: fx.money > 0 });
-  if (fx.mom) out.push({ t: `${tt('Buzz', 'Pagreitis')} ${fx.mom > 0 ? '▲' : '▼'}`, good: fx.mom > 0 });
-  if (fx.pc) out.push({ t: `${tt('Favours', 'Ryšiai')} ${fx.pc > 0 ? '+' : '−'}${Math.abs(fx.pc)}`, good: fx.pc > 0 });
-  if (fx.scandal) out.push({ t: `${tt('Scandal risk', 'Skandalo rizika')} ${fx.scandal > 0 ? '▲' : '▼'}`, good: fx.scandal < 0 });
-  if (fx.und) out.push({ t: `${tt('Undecided', 'Neapsisprendę')} ▲`, good: true });
-  (fx.reg || []).forEach(([t, d]) => {
-    const name = TARGET_LABEL[t] ? L(TARGET_LABEL[t]) : REG[t] ? rs(t) : t;
-    out.push({ t: `${name} ${d > 0 ? (d >= 1.5 ? '▲▲' : '▲') : d <= -1.5 ? '▼▼' : '▼'}`, good: d > 0 });
-  });
-  if (fx.groups) Object.entries(fx.groups).forEach(([id, d]) => out.push({ t: `${L(GROUPS.find((G) => G.id === id).name)} ${d > 0 ? '▲' : '▼'}`, good: d > 0 }));
-  if (fx.axis) {
-    const [ax, dir] = fx.axis;
-    const nm = {
-      econ: dir < 0 ? tt('Welfare fans', 'Paramos šalininkai') : tt('Tax-cut fans', 'Mokesčių mažinimo šalininkai'),
-      social: dir < 0 ? tt('Liberal voters', 'Liberalūs rinkėjai') : tt('Traditional voters', 'Tradicinių vertybių rinkėjai'),
-      defense: dir > 0 ? tt('Army fans', 'Kariuomenės rėmėjai') : tt('Army sceptics', 'Kariuomenės skeptikai'),
-      green: dir > 0 ? tt('Green voters', 'Žalieji rinkėjai') : tt('Energy-bill voters', 'Sąskaitomis susirūpinę'),
-    }[ax];
-    out.push({ t: `${nm} ▲`, good: true });
-  }
-  return out;
-}
 function resolveEvent(g, ci) {
   const item = g.queue[0];
   const ev = EVENT_MAP[item.id];
@@ -1539,6 +1729,10 @@ const STYLE_BONUS = {
   LVZS: { traditional: 2, welfare: 1, populist: 1, progressive: -1 },
   LP: { progressive: 2.5, youth: 2, green: 1.5, business: 0.5, populist: -1, traditional: -2 },
   LLRA: { traditional: 2, minority: 3, welfare: 0.5 },
+  DP: { welfare: 1.5, populist: 1.5, attack: 0.5 },
+  LIT: { business: 1, populist: 1, moderate: 0.5 },
+  KS: { traditional: 2.5, security: 0.5, progressive: -2 },
+  LZP: { green: 2.5, progressive: 1.5, youth: 1, populist: -1 },
 };
 function scoreAnswer(g, ans) {
   let s = ans.base + ((STYLE_BONUS[g.player] || {})[ans.style] || 0);
@@ -1606,7 +1800,7 @@ function transferAff(g, q, X) {
   const d = sum(AXIS_IDS.map((a) => Math.abs(pq[a] - px[a])));
   let aff = Math.exp(-d / 150);
   if (q === 'NA' && ['TS', 'LS', 'LP'].includes(X)) aff *= 0.5;
-  if (['LP', 'LS'].includes(q) && ['NA', 'LLRA'].includes(X)) aff *= 0.45;
+  if (['LP', 'LS', 'LZP'].includes(q) && ['NA', 'LLRA', 'KS'].includes(X)) aff *= 0.45;
   if ((q === 'MINOR' || q === 'KITI') && ['NA', 'LVZS'].includes(X)) aff *= 1.3;
   return aff;
 }
@@ -1740,10 +1934,12 @@ function demandConflicts(g, partners, accepted) {
   });
   return out;
 }
+// A partner much bigger than you wants the Prime Minister's job for itself.
+const sizePenalty = (g, p) => (p === 'KITI' ? 0 : clamp(Math.round((g.election.seats[p] / Math.max(1, g.election.seats[g.player]) - 1.2) * 30), 0, 80));
 function willingness(g, p, coal) {
   const S = g.election.seats;
   const largest = ALL_IDS.slice().sort((a, b) => S[b] - S[a])[0];
-  let w = compat(g, g.player, p) + (coal.accepted[p] ? 15 : 0) + 7 * (coal.sweet[p] || 0) + (largest === g.player ? 8 : -5);
+  let w = compat(g, g.player, p) + (coal.accepted[p] ? 15 : 0) + 7 * (coal.sweet[p] || 0) + (largest === g.player ? 8 : -5) - sizePenalty(g, p);
   coal.partners.forEach((q) => { if (q !== p && compat(g, p, q) < 25) w -= 18; });
   demandConflicts(g, coal.partners, coal.accepted).forEach(([, q]) => { if (q === p) w -= 10; });
   return clamp(Math.round(w), 0, 100);
@@ -1897,13 +2093,13 @@ function groupApproval(g, G) {
 /* ============================================================
    Save / load (per-viewer convenience)
    ============================================================ */
-const SAVE_KEY = 'seimas-bfl-save-v3';
+const SAVE_KEY = 'seimas-bfl-save-v4';
 function loadSave() {
   try {
     const raw = window.localStorage.getItem(SAVE_KEY);
     if (!raw) return null;
     const g = JSON.parse(raw);
-    return g && g.v === 3 && g.phase !== 'result' ? g : null;
+    return g && g.v === 4 && g.phase !== 'result' ? g : null;
   } catch (e) { return null; }
 }
 function writeSave(g) {
@@ -1974,26 +2170,563 @@ function Delta({ v, d = 1, pct }) {
   if (v == null || Math.abs(v) < 0.05) return <span className="t-muted">±0</span>;
   return <span style={{ color: v > 0 ? GREEN : RED }}>{v > 0 ? '▲' : '▼'}{pct ? fmtPct(Math.abs(v), d) : nf(Math.abs(v), d)}</span>;
 }
-function Advisor({ size = 48 }) {
+/* ============================================================
+   Cartoon portraits. Original drawings: stylised avatars, not photos or likenesses.
+   ============================================================ */
+const SKIN = ['#FBD9BE', '#F4C29F', '#E5A77D', '#C68B63'];
+const LOOKS = {
+  LSDP: { s: 1, hair: 'side', hc: '#3A2A22', suit: '#27304F' },
+  TS: { s: 0, hair: 'short', hc: '#4A3426', suit: '#1E2A46', beard: 'stubble' },
+  NA: { s: 1, hair: 'crop', hc: '#2E2620', suit: '#3B3F4A', brow: 2.6 },
+  DSVL: { s: 0, hair: 'quiff', hc: '#5A3A24', suit: '#24463A', beard: 'short' },
+  LS: { s: 0, hair: 'long', hc: '#D9B26A', top: '#F4F4F5', fem: true },
+  LVZS: { s: 1, hair: 'shaved', hc: '#6B5A4A', suit: '#2C4527', beard: 'full', glasses: 'rect' },
+  LP: { s: 0, hair: 'messy', hc: '#2D211B', suit: '#3A2D57', glasses: 'round' },
+  LLRA: { s: 1, hair: 'receding', hc: '#A1A7AE', suit: '#2B2B3A', mous: true },
+  DP: { s: 2, hair: 'side', hc: '#7A7F86', suit: '#3A2F55' },
+  LIT: { s: 0, hair: 'swept', hc: '#C9CDD2', suit: '#1E2B4F' },
+  KS: { s: 1, hair: 'receding', hc: '#BABEC4', suit: '#4A3322', glasses: 'rect' },
+  LZP: { s: 0, hair: 'bun', hc: '#8A4B2A', top: '#0E7C74', fem: true, earring: true },
+  KITI: { s: 2, hair: 'short', hc: '#4A4A4A', suit: '#475569' },
+  ruta: { s: 0, hair: 'long', hc: '#7A4A2E', top: '#2F6FDE', fem: true, scarf: true, bg: '#FFE08A' },
+  host: { s: 1, hair: 'side', hc: '#2A2A2A', suit: '#111827', glasses: 'rect', headset: true, acc: '#DC2626', bg: '#C7D2FE' },
+  anchor: { s: 0, hair: 'bob', hc: '#2D211B', top: '#B91C1C', fem: true, acc: '#FDB913', bg: '#FDE68A' },
+  croupier: { s: 2, hair: 'slick', hc: '#1F1F1F', suit: '#111111', bow: true, visor: true, acc: '#DC2626', bg: '#86EFAC' },
+  detective: { s: 1, hair: 'short', hc: '#3A2A22', suit: '#6B5B45', hat: true, mous: true, acc: '#1F2544', bg: '#D6D3D1' },
+  bookie: { s: 0, hair: 'short', hc: '#8A4B2A', suit: '#14532D', cap: '#166534', acc: '#FDB913', bg: '#BBF7D0' },
+  seniors: { s: 0, hair: 'bun', hc: '#D4D4D8', top: '#9D4E77', fem: true, glasses: 'round', bg: '#FBCFE8' },
+  youth: { s: 2, hair: 'curly', hc: '#2A1C14', top: '#F97316', hood: true, bg: '#FED7AA' },
+  farmers: { s: 1, hair: 'short', hc: '#6B4A2A', top: '#4D7C0F', cap: '#3F6212', mous: true, bg: '#D9F99D' },
+  business: { s: 0, hair: 'swept', hc: '#3A2A22', suit: '#1E293B', acc: '#0284C7', bg: '#BAE6FD' },
+  public: { s: 1, hair: 'bob', hc: '#5A3A24', top: '#FFFFFF', fem: true, glasses: 'rect', steth: true, bg: '#BFDBFE' },
+  minority: { s: 1, hair: 'long', hc: '#3A2A22', top: '#BE123C', fem: true, acc: '#FDB913', bg: '#FECDD3' },
+};
+const CHAR_NAMES = {
+  ruta: bi('Rūta, your campaign manager', 'Rūta, jūsų štabo vadovė'), host: bi('LRT debate host', 'LRT debatų vedėjas'),
+  anchor: bi('News anchor', 'Žinių vedėja'), croupier: bi('Croupier', 'Krupjė'), detective: bi('Private investigator', 'Privatus detektyvas'),
+  bookie: bi('Bookmaker', 'Lažybų agentas'),
+};
+function mixHex(a, b, k) {
+  const pa = [1, 3, 5].map((i) => parseInt(a.slice(i, i + 2), 16));
+  const pb = [1, 3, 5].map((i) => parseInt(b.slice(i, i + 2), 16));
+  return `#${pa.map((v, i) => Math.round(v + (pb[i] - v) * k).toString(16).padStart(2, '0')).join('')}`;
+}
+const HAIR_BACK = {
+  long: 'M15.8 52 C13 38 14.5 17 32 15.6 C49.5 17 51 38 48.2 52 Z',
+  bob: 'M16.6 44 C14.8 30 18.3 16.2 32 16.2 C45.7 16.2 49.2 30 47.4 44 C44 45.5 41.5 44.5 40.5 42 L23.5 42 C22.5 44.5 20 45.5 16.6 44 Z',
+  bun: 'M19 34 C17.6 24 22 17 32 16.6 C42 17 46.4 24 45 34 Z',
+};
+const HAIR_FRONT = {
+  short: 'M18.8 30 C18.5 20 25 16.5 32 16.5 C39 16.5 45.5 20 45.2 30 C42 25.5 38 23.5 32 23.5 C26 23.5 22 25.5 18.8 30 Z',
+  side: 'M18.8 30 C18 19 26 15.5 33 16.2 C40 16.8 46 21 45.2 30 C43 25 39.5 22.2 34.5 22.4 C30 22.6 27 21.8 24.6 23.6 C22 25.4 20 27.6 18.8 30 Z',
+  crop: 'M19.4 27.5 C19.6 20 25 17 32 17 C39 17 44.4 20 44.6 27.5 C41 24 37 22.6 32 22.6 C27 22.6 23 24 19.4 27.5 Z',
+  quiff: 'M18.8 30 C18 21 22.5 17 27.5 16.6 C29.5 12.6 37 12.2 40.2 15.6 C44.2 17.6 46 23 45.2 30 C42 25 38 23 32 23 C26 23 22 25.5 18.8 30 Z',
+  shaved: 'M19.6 27 C20 20 25.5 17.3 32 17.3 C38.5 17.3 44 20 44.4 27 C40 23.6 36 22.6 32 22.6 C28 22.6 24 23.6 19.6 27 Z',
+  messy: 'M18.8 30 C16.8 22 20.6 16.2 26.6 16.4 L28.6 12.8 L31.8 15.6 L35.2 12.4 L37.2 16.4 C43 16.4 47.2 22 45.2 30 C42 25 38 23 32 23 C26 23 22 25.5 18.8 30 Z',
+  swept: 'M18.8 30 C18 20 25 15.6 33 15.8 C41 16 46 21 45.2 30 C44 24.6 40 21.4 34 21 C28 20.6 22 24 18.8 30 Z',
+  slick: 'M19 29 C18.6 20 25 16.4 32 16.4 C39 16.4 45.4 20 45 29 C43 24.6 39 22.2 32 22.2 C25 22.2 21 24.6 19 29 Z',
+  curly: 'M18.4 31 C14.8 27 17.6 21 21.4 21 C21 16 26.8 13.6 29.4 16.4 C31 12.8 37 13.2 38.2 16.8 C42.2 15.4 46.8 19 45.2 23 C48.2 25 47.6 30 45.6 31 C42 26 37 24 32 24 C27 24 22 26 18.4 31 Z',
+  long: 'M18.8 31 C18.4 21 25 16.6 32 16.6 C39 16.6 45.6 21 45.2 31 C41 25 36 22 30 22.4 C25.4 22.8 21.4 26.4 18.8 31 Z',
+  bob: 'M18.8 30 C18.6 21 25 16.8 32 16.8 C39 16.8 45.4 21 45.2 30 C44 26.2 42 24.6 40 24.6 L24 24.6 C22 24.6 20 26.2 18.8 30 Z',
+  bun: 'M18.8 30 C18.6 21 25 17 32 17 C39 17 45.4 21 45.2 30 C42 25.4 37.6 23.4 32 23.4 C26.4 23.4 22 25.4 18.8 30 Z',
+};
+function Portrait({ who, size = 56, mood = 'happy', badge, ring, title }) {
+  const uid = useId().replace(/:/g, '');
+  const P = PARTIES[who];
+  const lk = LOOKS[who] || LOOKS.KITI;
+  const acc = lk.acc || (P ? P.color : SUN);
+  const bg = lk.bg || (P ? mixHex(P.color, '#FFFFFF', 0.62) : '#E2E8F0');
+  const skin = SKIN[lk.s || 0];
+  const name = title || (P ? (P.leader || partyShort(who)) : CHAR_NAMES[who] ? L(CHAR_NAMES[who]) : '');
+  const gl = lk.glasses;
+  const by = gl ? -1.3 : 0;
+  const brow = lk.brow || 1.9;
+  const browD = mood === 'sad' ? ['M24.6 28.6 L29.6 26.9', 'M34.4 26.9 L39.4 28.6'] : mood === 'grr' ? ['M24.6 27 L29.6 28.6', 'M34.4 28.6 L39.4 27'] : ['M24.6 28.4 Q27.1 26.8 29.6 28.2', 'M34.4 28.2 Q36.9 26.8 39.4 28.4'];
+  const my = lk.mous ? 1 : 0;
+  const mouth = {
+    happy: <path d={`M27 ${38 + my} Q32 ${43 + my} 37 ${38 + my}`} fill="none" stroke={INK} strokeWidth="2.2" strokeLinecap="round" />,
+    grin: <path d={`M26.4 ${37.4 + my} Q32 ${45.5 + my} 37.6 ${37.4 + my} Z`} fill="#7F1D1D" stroke={INK} strokeWidth="2" strokeLinejoin="round" />,
+    ok: <path d={`M27.6 ${39.6 + my} Q32 ${41 + my} 36.4 ${39.6 + my}`} fill="none" stroke={INK} strokeWidth="2.2" strokeLinecap="round" />,
+    sad: <path d={`M27.4 ${41.4 + my} Q32 ${37.6 + my} 36.6 ${41.4 + my}`} fill="none" stroke={INK} strokeWidth="2.2" strokeLinecap="round" />,
+    wow: <ellipse cx="32" cy={40 + my} rx="2.6" ry="3" fill="#7F1D1D" stroke={INK} strokeWidth="1.8" />,
+    grr: <path d={`M27.6 ${40.4 + my} L36.4 ${40.4 + my}`} fill="none" stroke={INK} strokeWidth="2.4" strokeLinecap="round" />,
+  }[mood] || null;
+  const eyeR = mood === 'wow' ? 2.3 : 1.9;
+  const top = lk.top;
   return (
-    <svg viewBox="0 0 64 64" width={size} height={size} className="shrink-0" role="img" aria-label={tt('Rūta, your campaign manager', 'Rūta, jūsų štabo vadovė')}>
-      <circle cx="32" cy="32" r="29.5" fill="#FFE08A" stroke={INK} strokeWidth="3" />
-      <path d="M13 40 C10 18 22 10 32 10 C44 10 54 18 51 40 Z" fill="#7A4A2E" stroke={INK} strokeWidth="2.5" strokeLinejoin="round" />
-      <path d="M17 61 C19 50 25 46 32 46 C39 46 45 50 47 61" fill="#2F6FDE" stroke={INK} strokeWidth="2.5" strokeLinejoin="round" />
-      <rect x="27" y="47" width="10" height="3" fill={FLAG.y} /><rect x="27" y="50" width="10" height="3" fill={FLAG.g} /><rect x="27" y="53" width="10" height="3" fill={FLAG.r} />
-      <circle cx="32" cy="32" r="13.5" fill="#F8CBA6" stroke={INK} strokeWidth="2.5" />
-      <path d="M18.5 30 C20 20 28 17 33 18 C40 19 45 23 45.5 30 C40 26 33 24 25 27 Z" fill="#7A4A2E" stroke={INK} strokeWidth="2" strokeLinejoin="round" />
-      <circle cx="27" cy="32.5" r="1.9" fill={INK} /><circle cx="37" cy="32.5" r="1.9" fill={INK} />
-      <circle cx="23.5" cy="37" r="2.2" fill="#F28B82" opacity="0.7" /><circle cx="40.5" cy="37" r="2.2" fill="#F28B82" opacity="0.7" />
-      <path d="M27.5 38 Q32 42.5 36.5 38" fill="none" stroke={INK} strokeWidth="2.2" strokeLinecap="round" />
-    </svg>
+    <span className="relative inline-block shrink-0 align-middle" style={{ width: size, height: size }}>
+      <svg viewBox="0 0 64 64" width={size} height={size} role="img" aria-label={name} style={{ display: 'block' }}>
+        <defs><clipPath id={`pc${uid}`}><circle cx="32" cy="32" r="29.5" /></clipPath></defs>
+        <circle cx="32" cy="32" r="29.5" fill={bg} />
+        <g clipPath={`url(#pc${uid})`}>
+          <circle cx="32" cy="70" r="30" fill="#FFFFFF" opacity="0.35" />
+          {lk.hood && <path d="M12 64 C10 40 16 13 32 12 C48 13 54 40 52 64 Z" fill={top} stroke={INK} strokeWidth="2.5" />}
+          {HAIR_BACK[lk.hair] && <path d={HAIR_BACK[lk.hair]} fill={lk.hc} stroke={INK} strokeWidth="2.5" strokeLinejoin="round" />}
+          {lk.hair === 'bun' && <circle cx="32" cy="14.6" r="5.6" fill={lk.hc} stroke={INK} strokeWidth="2.4" />}
+          <path d="M11.5 66 C12.5 53 20.5 47.6 32 47.6 C43.5 47.6 51.5 53 52.5 66 Z" fill={lk.suit || top || '#475569'} stroke={INK} strokeWidth="2.5" strokeLinejoin="round" />
+          <path d="M28 43.5 L28 49.5 Q32 52.5 36 49.5 L36 43.5 Z" fill={skin} stroke={INK} strokeWidth="2.2" strokeLinejoin="round" />
+          {lk.suit && !lk.hood && (
+            <g>
+              <path d="M26.8 48.4 L32 58.5 L37.2 48.4 Q32 51.6 26.8 48.4 Z" fill="#FFFFFF" stroke={INK} strokeWidth="1.8" strokeLinejoin="round" />
+              {lk.bow
+                ? <path d="M27.6 49.6 L31.4 51.4 L27.6 53.2 Z M36.4 49.6 L32.6 51.4 L36.4 53.2 Z" fill={acc} stroke={INK} strokeWidth="1.5" strokeLinejoin="round" />
+                : <path d="M30.9 50.2 L33.1 50.2 L34 56 L32 59.5 L30 56 Z" fill={acc} stroke={INK} strokeWidth="1.5" strokeLinejoin="round" />}
+              <path d="M26.8 48.4 L29.2 56 M37.2 48.4 L34.8 56" stroke={INK} strokeWidth="1.5" strokeLinecap="round" opacity="0.55" />
+            </g>
+          )}
+          {!lk.suit && !lk.scarf && !lk.hood && <circle cx="32" cy="53.4" r="2.1" fill={acc} stroke={INK} strokeWidth="1.5" />}
+          {lk.scarf && (
+            <g>
+              <rect x="26.5" y="47.4" width="11" height="3" fill={FLAG.y} /><rect x="26.5" y="50.4" width="11" height="3" fill={FLAG.g} /><rect x="26.5" y="53.4" width="11" height="3" fill={FLAG.r} />
+              <rect x="26.5" y="47.4" width="11" height="9" fill="none" stroke={INK} strokeWidth="1.5" />
+            </g>
+          )}
+          {lk.steth && <path d="M25 48 C24 55 28 58.5 32 58.5 C36 58.5 40 55 39 48 M32 58.5 L32 61" fill="none" stroke="#334155" strokeWidth="1.8" strokeLinecap="round" />}
+          <circle cx="18.8" cy="33.2" r="2.9" fill={skin} stroke={INK} strokeWidth="2" />
+          <circle cx="45.2" cy="33.2" r="2.9" fill={skin} stroke={INK} strokeWidth="2" />
+          {lk.earring && <circle cx="18.6" cy="37.4" r="1.4" fill={SUN} stroke={INK} strokeWidth="1" />}
+          <ellipse cx="32" cy="31.6" rx="13.2" ry="14.2" fill={skin} stroke={INK} strokeWidth="2.5" />
+          {lk.beard && (
+            <path
+              d="M19.4 33.6 C19.8 44 25 47.4 32 47.4 C39 47.4 44.2 44 44.6 33.6 C43.6 39 41 42.2 38 42.8 C35 43.3 29 43.3 26 42.8 C23 42.2 20.4 39 19.4 33.6 Z"
+              fill={lk.hc} opacity={lk.beard === 'stubble' ? 0.28 : 0.95} stroke={lk.beard === 'stubble' ? 'none' : INK} strokeWidth="2" strokeLinejoin="round"
+            />
+          )}
+          {(lk.mous || lk.beard === 'full') && <path d="M26.8 37.6 C28.8 35.8 31 36.2 32 37.2 C33 36.2 35.2 35.8 37.2 37.6 C35.6 38.8 33.6 38.6 32 38 C30.4 38.6 28.4 38.8 26.8 37.6 Z" fill={lk.hc} stroke={INK} strokeWidth="1.5" strokeLinejoin="round" />}
+          {HAIR_FRONT[lk.hair] && (
+            <path d={HAIR_FRONT[lk.hair]} fill={lk.hc} opacity={lk.hair === 'shaved' ? 0.6 : 1} stroke={INK} strokeWidth="2.3" strokeLinejoin="round" />
+          )}
+          {lk.hair === 'receding' && (
+            <g fill={lk.hc} stroke={INK} strokeWidth="2" strokeLinejoin="round">
+              <path d="M18.9 34 C18.4 27.5 19.6 24 22.4 22.2 C21.6 26 21.6 29.6 22.2 34 Z" />
+              <path d="M45.1 34 C45.6 27.5 44.4 24 41.6 22.2 C42.4 26 42.4 29.6 41.8 34 Z" />
+            </g>
+          )}
+          {lk.hair === 'receding' && <path d="M27 21.2 Q32 19.6 37 21.2" fill="none" stroke="#FFFFFF" strokeWidth="1.6" strokeLinecap="round" opacity="0.7" />}
+          <g transform={`translate(0 ${by})`} fill="none" stroke={mixHex(lk.hc, '#1F2544', 0.55)} strokeWidth={brow} strokeLinecap="round">
+            <path d={browD[0]} /><path d={browD[1]} />
+          </g>
+          {mood === 'grin'
+            ? <g fill="none" stroke={INK} strokeWidth="2" strokeLinecap="round"><path d="M24.8 33 Q27 30.6 29.2 33" /><path d="M34.8 33 Q37 30.6 39.2 33" /></g>
+            : <g fill={INK}><circle cx="27" cy="32.6" r={eyeR} /><circle cx="37" cy="32.6" r={eyeR} /></g>}
+          {gl === 'round' && <g fill="#FFFFFF" fillOpacity="0.18" stroke={INK} strokeWidth="1.8"><circle cx="27" cy="32.6" r="4.4" /><circle cx="37" cy="32.6" r="4.4" /><path d="M31.4 32.2 L32.6 32.2" /></g>}
+          {gl === 'rect' && <g fill="#FFFFFF" fillOpacity="0.18" stroke={INK} strokeWidth="1.8"><rect x="22.4" y="29.4" width="9" height="6.6" rx="1.8" /><rect x="32.6" y="29.4" width="9" height="6.6" rx="1.8" /><path d="M31.4 31.6 L32.6 31.6" /></g>}
+          <circle cx="23.2" cy="37.4" r="2.2" fill="#F28B82" opacity="0.6" /><circle cx="40.8" cy="37.4" r="2.2" fill="#F28B82" opacity="0.6" />
+          {mouth}
+          {lk.headset && (
+            <g fill="none" stroke={INK} strokeWidth="2.4" strokeLinecap="round">
+              <path d="M17.6 31 C17 14 47 14 46.4 31" />
+              <rect x="15" y="29" width="5" height="8" rx="2" fill="#334155" />
+              <path d="M17.6 36.6 C18.6 41.6 22.4 43 26 42.2" strokeWidth="1.8" />
+              <circle cx="26.4" cy="42.1" r="1.4" fill={INK} />
+            </g>
+          )}
+          {lk.visor && <path d="M17.2 25.6 C22 21.6 42 21.6 46.8 25.6 L48.6 28.4 C42 24.6 22 24.6 15.4 28.4 Z" fill="#16A34A" fillOpacity="0.85" stroke={INK} strokeWidth="2" strokeLinejoin="round" />}
+          {lk.hat && (
+            <g stroke={INK} strokeWidth="2.3" strokeLinejoin="round">
+              <path d="M21 23.6 C20.6 12.4 43.4 12.4 43 23.6 Z" fill="#57534E" />
+              <path d="M21.2 21 L42.8 21 L43 23.6 L21 23.6 Z" fill="#1F2544" />
+              <ellipse cx="32" cy="24" rx="17.4" ry="3.4" fill="#57534E" />
+            </g>
+          )}
+          {lk.cap && (
+            <g stroke={INK} strokeWidth="2.3" strokeLinejoin="round">
+              <path d="M18.8 26.4 C18.4 15.6 45.6 15.6 45.2 26.4 Z" fill={lk.cap} />
+              <path d="M30 26.2 C36 24 44 24.4 50.6 26.8 C46 29 36 28.8 30 26.2 Z" fill={lk.cap} />
+            </g>
+          )}
+        </g>
+        <circle cx="32" cy="32" r="29.5" fill="none" stroke={ring || INK} strokeWidth={ring ? 4 : 3} />
+      </svg>
+      {badge && P && who !== 'KITI' && (
+        <span className="absolute" style={{ right: -Math.round(size * 0.08), bottom: -Math.round(size * 0.06) }}>
+          <PartyEmblem p={who} size={Math.max(20, Math.round(size * 0.42))} />
+        </span>
+      )}
+    </span>
   );
 }
-function Coach({ title, children, actions, onSkip, className = '' }) {
+function Advisor({ size = 48 }) {
+  return <Portrait who="ruta" size={size} />;
+}
+function FaceRow({ ids, size = 34, overlap = 0.28 }) {
+  return (
+    <div className="flex items-center" aria-hidden="true">
+      {ids.map((p, i) => (
+        <span key={p} style={{ marginLeft: i ? -Math.round(size * overlap) : 0, zIndex: ids.length - i }} className="relative"><Portrait who={p} size={size} /></span>
+      ))}
+    </div>
+  );
+}
+
+/* ============================================================
+   Landmark scenes (original illustrations of real places)
+   ============================================================ */
+const SCENE_CAP = {
+  vilnius: bi('Gediminas Tower, Vilnius', 'Gedimino pilies bokštas, Vilnius'),
+  trakai: bi('Trakai Island Castle', 'Trakų salos pilis'),
+  kaunas: bi('Kaunas Castle', 'Kauno pilis'),
+  klaipeda: bi('Klaipėda harbour and the Meridianas', 'Klaipėdos uostas ir „Meridianas“'),
+  crosses: bi('Hill of Crosses, near Šiauliai', 'Kryžių kalnas prie Šiaulių'),
+  lakes: bi('Lakes and pine forests', 'Ežerai ir pušynai'),
+  fields: bi('Farmland and a stork’s nest', 'Laukai ir gandralizdis'),
+  town: bi('A Lithuanian town square', 'Lietuvos miestelio aikštė'),
+  world: bi('Lithuanians around the world', 'Lietuviai visame pasaulyje'),
+  seimas: bi('The Seimas Palace, Vilnius', 'Seimo rūmai, Vilnius'),
+  palace: bi('The Presidential Palace, Vilnius', 'Prezidentūra, Vilnius'),
+  studio: bi('LRT debate studio', 'LRT debatų studija'),
+  night: bi('Election night at the Seimas', 'Rinkimų naktis prie Seimo'),
+};
+const REGION_SCENE = { VNO: 'vilnius', VLC: 'trakai', KNS: 'kaunas', KNC: 'fields', KLP: 'klaipeda', TEL: 'lakes', TAU: 'fields', SIA: 'crosses', PAN: 'town', UTE: 'lakes', ALY: 'town', MAR: 'fields', ABR: 'world' };
+const SW = { stroke: INK, strokeWidth: 2.4, strokeLinejoin: 'round' };
+function SkyCloud({ x, y, s = 1 }) {
+  return <path transform={`translate(${x} ${y}) scale(${s})`} d="M0 14 C-1 7 6 3 11 6 C13 -1 25 -2 28 5 C34 3 39 8 37 14 Z" fill="#FFFFFF" {...SW} strokeWidth={2 / s} />;
+}
+function TriFlag({ x, y, w = 18, pole = 22 }) {
+  const h = w * 0.6;
+  return (
+    <g>
+      <line x1={x} y1={y} x2={x} y2={y + pole} stroke={INK} strokeWidth="2" />
+      <rect x={x} y={y} width={w} height={h / 3} fill={FLAG.y} /><rect x={x} y={y + h / 3} width={w} height={h / 3} fill={FLAG.g} /><rect x={x} y={y + (2 * h) / 3} width={w} height={h / 3} fill={FLAG.r} />
+      <rect x={x} y={y} width={w} height={h} fill="none" stroke={INK} strokeWidth="1.6" />
+    </g>
+  );
+}
+function Pine({ x, y, s = 1, c = '#1F7A4D' }) {
+  return <path transform={`translate(${x} ${y}) scale(${s})`} d="M0 -26 L8 -12 L5 -12 L11 -2 L-11 -2 L-5 -12 L-8 -12 Z M-1.5 -2 L-1.5 4 L1.5 4 L1.5 -2" fill={c} stroke={INK} strokeWidth={1.8 / s} strokeLinejoin="round" />;
+}
+function Bricks({ x, y, w, h }) {
+  const rows = [];
+  for (let yy = y + 6; yy < y + h - 2; yy += 7) rows.push(<line key={yy} x1={x + 3} x2={x + w - 3} y1={yy} y2={yy} stroke="#7C2D12" strokeWidth="1" opacity="0.35" />);
+  return <g>{rows}</g>;
+}
+function Battlement({ x, y, w, n, fill }) {
+  const step = w / (2 * n - 1);
+  let d = `M${x} ${y + 6}`;
+  for (let i = 0; i < n; i++) {
+    const x0 = x + i * 2 * step;
+    d += ` L${x0} ${y} L${x0 + step} ${y} L${x0 + step} ${y + 6}`;
+    if (i < n - 1) d += ` L${x0 + 2 * step} ${y + 6}`;
+  }
+  d += ' Z';
+  return <path d={d} fill={fill} {...SW} strokeWidth="2" />;
+}
+function sceneRand(seed) {
+  let s = seed;
+  return () => { s = (s * 16807) % 2147483647; return (s - 1) / 2147483646; };
+}
+function SceneArt({ kind, uid, parties }) {
+  const night = kind === 'night' || kind === 'studio';
+  const sky = night ? ['#1B2050', '#3B3F7A'] : ['#78C6F3', '#D3F0FF'];
+  const water = (y, c = '#4FA3E0') => (
+    <g>
+      <rect x="-2" y={y} width="364" height={142 - y} fill={c} stroke={INK} strokeWidth="2.4" />
+      {[0, 1, 2].map((i) => <path key={i} d={`M${30 + i * 110} ${y + 14 + (i % 2) * 10} q8 -5 16 0 t16 0`} fill="none" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" opacity="0.8" />)}
+    </g>
+  );
+  const ground = (c = '#7ACB5A', d = 'M-2 112 C60 99 120 104 180 109 C240 114 300 100 362 105 L362 142 L-2 142 Z') => <path d={d} fill={c} {...SW} />;
+  let body = null;
+  if (kind === 'vilnius') {
+    body = (
+      <g>
+        {[[8, 78, 26, 34], [36, 70, 22, 42], [210, 74, 26, 38], [300, 80, 30, 32], [334, 72, 26, 40]].map(([x, y, w, h], i) => <rect key={i} x={x} y={y} width={w} height={h} fill="#EAF2F9" stroke={INK} strokeWidth="1.8" />)}
+        <rect x="246" y="46" width="16" height="66" fill="#F8FAFC" stroke={INK} strokeWidth="2" />
+        <path d="M244 46 L254 30 L264 46 Z" fill="#F8FAFC" {...SW} strokeWidth="2" />
+        <rect x="250" y="56" width="8" height="10" rx="4" fill="#94A3B8" stroke={INK} strokeWidth="1.4" />
+        <path d="M266 112 L266 72 L298 72 L298 112 Z" fill="#F8FAFC" stroke={INK} strokeWidth="2" />
+        <path d="M262 72 L282 58 L302 72 Z" fill="#F1F5F9" {...SW} strokeWidth="2" />
+        {[270, 278, 286, 294].map((x) => <line key={x} x1={x} x2={x} y1="76" y2="110" stroke={INK} strokeWidth="1.4" opacity="0.5" />)}
+        <path d="M64 114 C84 82 104 68 140 66 C176 68 196 84 216 114 Z" fill="#5DBB4A" {...SW} />
+        {[[82, 98], [96, 86], [190, 92], [204, 104], [112, 78]].map(([x, y], i) => <circle key={i} cx={x} cy={y} r="7" fill="#2F9E55" stroke={INK} strokeWidth="1.8" />)}
+        <path d="M118 112 C126 98 134 86 140 80" fill="none" stroke="#E7D3A8" strokeWidth="3" strokeLinecap="round" />
+        <rect x="126" y="34" width="28" height="34" fill="#C0582E" stroke={INK} strokeWidth="2.4" />
+        <Bricks x={126} y={34} w={28} h={34} />
+        <line x1="134" y1="36" x2="134" y2="66" stroke={INK} strokeWidth="1.2" opacity="0.4" /><line x1="146" y1="36" x2="146" y2="66" stroke={INK} strokeWidth="1.2" opacity="0.4" />
+        <path d="M136 52 L136 46 Q140 42 144 46 L144 52 Z" fill="#1F2544" />
+        <Battlement x={124} y={28} w={32} n={4} fill="#C0582E" />
+        <TriFlag x={140} y={6} w={20} pole={22} />
+      </g>
+    );
+  } else if (kind === 'trakai') {
+    body = (
+      <g>
+        <path d="M-2 92 C40 84 80 88 120 86 C170 84 220 90 260 86 C300 82 330 88 362 86 L362 100 L-2 100 Z" fill="#2F8F4E" {...SW} />
+        {[20, 46, 300, 326, 350].map((x, i) => <Pine key={i} x={x} y={90} s={0.8} />)}
+        {water(96)}
+        <ellipse cx="200" cy="104" rx="96" ry="9" fill="#5DBB4A" stroke={INK} strokeWidth="2.2" />
+        <rect x="132" y="66" width="136" height="36" fill="#C0582E" stroke={INK} strokeWidth="2.4" />
+        <Bricks x={132} y={66} w={136} h={36} />
+        <Battlement x={132} y={60} w={136} n={9} fill="#C0582E" />
+        {[[118, 58], [266, 58]].map(([x, y]) => (
+          <g key={x}>
+            <rect x={x} y={y} width="16" height={102 - y} fill="#B4502A" stroke={INK} strokeWidth="2.2" />
+            <path d={`M${x - 3} ${y} L${x + 8} ${y - 18} L${x + 19} ${y} Z`} fill="#9F1D20" {...SW} strokeWidth="2" />
+          </g>
+        ))}
+        <rect x="186" y="34" width="30" height="68" fill="#C0582E" stroke={INK} strokeWidth="2.4" />
+        <Bricks x={186} y={34} w={30} h={68} />
+        <path d="M182 34 L201 10 L220 34 Z" fill="#9F1D20" {...SW} />
+        {[194, 204].map((x) => <path key={x} d={`M${x} 52 L${x} 46 Q${x + 2.5} 43 ${x + 5} 46 L${x + 5} 52 Z`} fill="#1F2544" />)}
+        <path d="M200 102 L200 112" stroke={INK} strokeWidth="2" />
+        <path d="M30 104 L118 102" stroke="#8B5A2B" strokeWidth="4" strokeLinecap="round" />
+        {[44, 66, 88, 110].map((x) => <line key={x} x1={x} x2={x} y1="103" y2="112" stroke={INK} strokeWidth="2" />)}
+        <path d="M300 122 L332 122 L326 130 L306 130 Z" fill="#FFFFFF" {...SW} strokeWidth="2" />
+        <path d="M316 120 L316 100 L330 118 Z" fill="#FFFFFF" {...SW} strokeWidth="2" />
+      </g>
+    );
+  } else if (kind === 'kaunas') {
+    body = (
+      <g>
+        <path d="M-2 96 C50 88 90 92 140 94 C200 96 260 86 362 90 L362 142 L-2 142 Z" fill="#7ACB5A" {...SW} />
+        <path d="M200 142 C220 124 270 112 362 110 L362 142 Z" fill="#4FA3E0" {...SW} />
+        <path d="M250 128 q8 -5 16 0 t16 0" fill="none" stroke="#FFFFFF" strokeWidth="2" strokeLinecap="round" />
+        <rect x="282" y="40" width="14" height="56" fill="#F8FAFC" stroke={INK} strokeWidth="2" />
+        <path d="M286 40 L286 32 L292 32 L292 40" fill="#F8FAFC" stroke={INK} strokeWidth="1.8" />
+        <path d="M289 24 L289 32 M285.5 27 L292.5 27" stroke={INK} strokeWidth="2" />
+        <rect x="150" y="70" width="100" height="36" fill="#C0582E" stroke={INK} strokeWidth="2.4" />
+        <Bricks x={150} y={70} w={100} h={36} />
+        <Battlement x={150} y={64} w={100} n={7} fill="#C0582E" />
+        <rect x="250" y="58" width="22" height="48" fill="#B4502A" stroke={INK} strokeWidth="2.2" />
+        <path d="M246 58 L261 40 L276 58 Z" fill="#9F1D20" {...SW} strokeWidth="2" />
+        <rect x="108" y="44" width="44" height="62" rx="4" fill="#C0582E" stroke={INK} strokeWidth="2.4" />
+        <Bricks x={108} y={44} w={44} h={62} />
+        {[118, 130, 142].map((x) => <line key={x} x1={x} y1="46" x2={x} y2="104" stroke={INK} strokeWidth="1.1" opacity="0.35" />)}
+        <path d="M100 46 L130 10 L160 46 Z" fill="#9F1D20" {...SW} />
+        <path d="M124 70 L124 62 Q130 56 136 62 L136 70 Z" fill="#1F2544" />
+        <TriFlag x={130} y={-2} w={16} pole={14} />
+        <path d="M-2 116 C60 110 120 114 200 120 L200 142 L-2 142 Z" fill="#5DBB4A" {...SW} />
+      </g>
+    );
+  } else if (kind === 'klaipeda') {
+    body = (
+      <g>
+        {[[250, 40], [280, 50]].map(([x, y]) => <path key={x} d={`M${x} 102 L${x} ${y} L${x + 34} ${y} M${x} ${y + 10} L${x + 22} ${y} M${x + 30} ${y} L${x + 30} ${y + 18}`} fill="none" stroke="#EAB308" strokeWidth="3" strokeLinecap="round" />)}
+        <path d="M-2 104 C20 80 60 74 96 86 C110 92 116 98 120 104 Z" fill="#F5D98B" {...SW} />
+        {[30, 62, 84].map((x) => <path key={x} d={`M${x} 86 l-3 -8 M${x + 3} 86 l1 -9 M${x + 6} 86 l4 -7`} stroke="#4D7C0F" strokeWidth="1.8" strokeLinecap="round" />)}
+        <path d="M44 86 L48 40 L60 40 L64 86 Z" fill="#FFFFFF" {...SW} />
+        {[48, 64].map((y) => <path key={y} d={`M${46.5 - (y - 40) * 0.04} ${y} L${61.5 + (y - 40) * 0.04} ${y} L${62 + (y - 40) * 0.05} ${y + 8} L${46 - (y - 40) * 0.05} ${y + 8} Z`} fill="#DC2626" />)}
+        <rect x="45" y="30" width="18" height="10" fill="#FDE68A" stroke={INK} strokeWidth="2" />
+        <path d="M43 30 L54 20 L65 30 Z" fill="#DC2626" {...SW} strokeWidth="2" />
+        {water(102, '#3B82F6')}
+        <path d="M150 104 L300 104 L286 124 L166 124 Z" fill="#1F2544" {...SW} />
+        <path d="M168 112 L284 112" stroke="#FFFFFF" strokeWidth="2" />
+        {[186, 226, 266].map((x, i) => (
+          <g key={x}>
+            <line x1={x} y1="104" x2={x} y2={i === 1 ? 18 : 28} stroke={INK} strokeWidth="2.4" />
+            <path d={`M${x - 14} ${i === 1 ? 26 : 36} L${x + 14} ${i === 1 ? 26 : 36} L${x + 17} ${i === 1 ? 54 : 60} L${x - 17} ${i === 1 ? 54 : 60} Z`} fill="#FFFFFF" {...SW} strokeWidth="2" />
+            <path d={`M${x - 16} ${i === 1 ? 60 : 66} L${x + 16} ${i === 1 ? 60 : 66} L${x + 19} ${i === 1 ? 88 : 92} L${x - 19} ${i === 1 ? 88 : 92} Z`} fill="#FFFFFF" {...SW} strokeWidth="2" />
+          </g>
+        ))}
+        <path d="M150 104 L140 84 L186 98" fill="none" stroke={INK} strokeWidth="1.6" />
+        <TriFlag x={292} y={78} w={14} pole={26} />
+      </g>
+    );
+  } else if (kind === 'crosses') {
+    const rnd = sceneRand(7);
+    const crosses = [];
+    for (let i = 0; i < 64; i++) {
+      const x = 46 + rnd() * 268;
+      const surf = 60 + Math.pow((x - 180) / 150, 2) * 58;
+      const y = surf + 8 + rnd() * (122 - surf) * 0.75;
+      const s = 5 + ((y - 60) / 62) * 9 + rnd() * 3;
+      crosses.push([x, y, s]);
+    }
+    crosses.sort((a, b) => a[1] - b[1]);
+    body = (
+      <g>
+        {ground('#9BD37A', 'M-2 118 C60 112 120 116 180 116 C240 116 300 110 362 114 L362 142 L-2 142 Z')}
+        <path d="M28 124 C60 76 120 58 180 58 C240 58 300 76 332 124 Z" fill="#B7CF7A" {...SW} />
+        <path d="M172 124 L176 64 L184 64 L188 124 Z" fill="#E7D3A8" stroke={INK} strokeWidth="1.6" />
+        {crosses.map(([x, y, s], i) => (
+          <path key={i} d={`M${x.toFixed(1)} ${y.toFixed(1)} l0 ${(-s * 1.6).toFixed(1)} M${(x - s * 0.5).toFixed(1)} ${(y - s * 1.15).toFixed(1)} l${s.toFixed(1)} 0`} stroke={i % 5 === 0 ? '#5B3A1E' : INK} strokeWidth={Math.max(1.4, s / 5)} strokeLinecap="round" />
+        ))}
+        <path d="M178 54 L178 20 M168 30 L188 30" stroke={INK} strokeWidth="4" strokeLinecap="round" />
+      </g>
+    );
+  } else if (kind === 'lakes') {
+    body = (
+      <g>
+        <path d="M-2 86 C40 70 90 74 140 82 C190 90 240 72 290 74 C320 76 340 80 362 78 L362 104 L-2 104 Z" fill="#2F8F4E" {...SW} />
+        {[12, 34, 56, 78, 214, 236, 258, 280, 302, 324, 346].map((x, i) => <Pine key={x} x={x} y={92 - (i % 3) * 4} s={0.9 + (i % 2) * 0.2} c={i % 2 ? '#1F7A4D' : '#166A40'} />)}
+        <rect x="120" y="58" width="44" height="40" fill="#A16207" stroke={INK} strokeWidth="2.2" />
+        {[128, 136, 144, 152].map((x) => <line key={x} x1={x} x2={x} y1="60" y2="96" stroke={INK} strokeWidth="1" opacity="0.35" />)}
+        <path d="M114 60 L142 40 L170 60 Z" fill="#78350F" {...SW} strokeWidth="2" />
+        <rect x="136" y="22" width="12" height="22" fill="#A16207" stroke={INK} strokeWidth="2" />
+        <path d="M133 24 L142 8 L151 24 Z" fill="#78350F" {...SW} strokeWidth="2" />
+        <path d="M142 2 L142 8 M139 4 L145 4" stroke={INK} strokeWidth="1.8" />
+        <path d="M136 98 L136 84 Q142 78 148 84 L148 98 Z" fill="#1F2544" />
+        {water(100)}
+        <path d="M222 120 L262 120 L256 127 L228 127 Z" fill="#B45309" {...SW} strokeWidth="2" />
+        <path d="M240 120 L246 108" stroke={INK} strokeWidth="2" />
+      </g>
+    );
+  } else if (kind === 'fields') {
+    body = (
+      <g>
+        <path d="M-2 92 C60 84 140 88 200 90 C260 92 320 84 362 86 L362 142 L-2 142 Z" fill="#FACC15" {...SW} />
+        <path d="M-2 108 C80 98 160 104 240 108 C290 110 330 104 362 104 L362 142 L-2 142 Z" fill="#84CC16" {...SW} />
+        <path d="M-2 126 C90 118 200 124 362 120 L362 142 L-2 142 Z" fill="#65A30D" {...SW} />
+        {[30, 60, 90].map((x) => <path key={x} d={`M${x} 98 q20 -4 40 0`} fill="none" stroke="#A16207" strokeWidth="1.6" opacity="0.6" />)}
+        <rect x="40" y="62" width="60" height="32" fill="#FFFFFF" stroke={INK} strokeWidth="2.2" />
+        <path d="M34 64 L70 40 L106 64 Z" fill="#B91C1C" {...SW} />
+        <rect x="64" y="74" width="12" height="20" fill="#92400E" stroke={INK} strokeWidth="1.8" />
+        <rect x="46" y="70" width="12" height="10" fill="#93C5FD" stroke={INK} strokeWidth="1.8" /><rect x="82" y="70" width="12" height="10" fill="#93C5FD" stroke={INK} strokeWidth="1.8" />
+        <line x1="250" y1="108" x2="250" y2="44" stroke="#78350F" strokeWidth="4" />
+        <ellipse cx="250" cy="44" rx="18" ry="6" fill="#A16207" stroke={INK} strokeWidth="2" />
+        <path d="M244 38 C242 28 250 24 256 28 L262 30 L256 32 C258 36 256 40 250 40 Z" fill="#FFFFFF" {...SW} strokeWidth="1.8" />
+        <path d="M247 37 C250 40 256 39 257 36 L252 36 Z" fill={INK} />
+        <path d="M261 29 L272 32 L261 31.5 Z" fill="#DC2626" stroke={INK} strokeWidth="1" />
+        <circle cx="257" cy="28.5" r="1" fill={INK} />
+        {[[160, 104], [196, 108], [300, 112]].map(([x, y]) => (
+          <g key={x}>
+            <circle cx={x} cy={y} r="11" fill="#EAB308" stroke={INK} strokeWidth="2.2" />
+            <path d={`M${x} ${y} m-5 0 a5 5 0 1 1 5 5 a3 3 0 1 1 -3 -3`} fill="none" stroke="#A16207" strokeWidth="1.6" />
+          </g>
+        ))}
+      </g>
+    );
+  } else if (kind === 'town') {
+    const houses = [[6, 78, 38, '#FCA5A5'], [44, 72, 36, '#FDE68A'], [234, 74, 38, '#BAE6FD'], [272, 80, 36, '#BBF7D0'], [308, 72, 40, '#FBCFE8']];
+    body = (
+      <g>
+        {houses.map(([x, y, w, c]) => (
+          <g key={x}>
+            <rect x={x} y={y} width={w} height={112 - y} fill={c} stroke={INK} strokeWidth="2" />
+            <path d={`M${x - 3} ${y} L${x + w / 2} ${y - 16} L${x + w + 3} ${y} Z`} fill="#B91C1C" {...SW} strokeWidth="2" />
+            <rect x={x + w / 2 - 5} y={y + 10} width="10" height="10" fill="#FFFFFF" stroke={INK} strokeWidth="1.6" />
+          </g>
+        ))}
+        <rect x="112" y="56" width="104" height="56" fill="#F8FAFC" stroke={INK} strokeWidth="2.4" />
+        <path d="M108 58 L164 34 L220 58 Z" fill="#F1F5F9" {...SW} />
+        {[[112, 22], [196, 22]].map(([x, y]) => (
+          <g key={x}>
+            <rect x={x} y={y + 12} width="20" height={100 - y} fill="#F8FAFC" stroke={INK} strokeWidth="2.2" />
+            <path d={`M${x - 2} ${y + 12} L${x + 10} ${y - 12} L${x + 22} ${y + 12} Z`} fill="#334155" {...SW} strokeWidth="2" />
+            <path d={`M${x + 10} ${y - 20} L${x + 10} ${y - 12} M${x + 6.5} ${y - 17} L${x + 13.5} ${y - 17}`} stroke={INK} strokeWidth="1.8" />
+            <path d={`M${x + 6} ${y + 30} L${x + 6} ${y + 24} Q${x + 10} ${y + 19} ${x + 14} ${y + 24} L${x + 14} ${y + 30} Z`} fill="#1F2544" />
+          </g>
+        ))}
+        <path d="M152 112 L152 86 Q164 74 176 86 L176 112 Z" fill="#92400E" stroke={INK} strokeWidth="2" />
+        <circle cx="164" cy="66" r="6" fill="#93C5FD" stroke={INK} strokeWidth="1.8" />
+        <path d="M-2 112 L362 112 L362 142 L-2 142 Z" fill="#D6D3D1" {...SW} />
+        {[20, 60, 100, 140, 180, 220, 260, 300, 340].map((x) => <path key={x} d={`M${x} 122 l12 0 M${x + 18} 132 l12 0`} stroke="#A8A29E" strokeWidth="2" strokeLinecap="round" />)}
+      </g>
+    );
+  } else if (kind === 'world') {
+    body = (
+      <g>
+        <circle cx="180" cy="120" r="78" fill="#3B82F6" {...SW} />
+        <path d="M120 74 C136 62 158 60 170 70 C182 78 176 92 162 94 C150 96 146 108 134 104 C122 100 112 86 120 74 Z" fill="#4ADE80" {...SW} strokeWidth="2" />
+        <path d="M196 66 C214 58 238 66 244 82 C250 96 236 104 224 98 C214 94 206 100 198 92 C190 84 186 72 196 66 Z" fill="#4ADE80" {...SW} strokeWidth="2" />
+        <path d="M150 120 C162 112 184 114 192 124 C198 134 186 142 170 142 C156 142 144 130 150 120 Z" fill="#4ADE80" {...SW} strokeWidth="2" />
+        <path d="M40 60 C90 20 160 22 214 40" fill="none" stroke={INK} strokeWidth="2" strokeDasharray="5 6" strokeLinecap="round" />
+        <g transform="translate(236 46) rotate(18)">
+          <path d="M-22 0 C-22 -4 18 -5 24 -1 C27 1 24 3 20 3 L-22 3 Z" fill="#FFFFFF" {...SW} strokeWidth="2" />
+          <path d="M-4 -1 L-14 -16 L-6 -16 L8 -1 Z M-4 3 L-12 14 L-5 14 L8 3 Z M-20 -1 L-26 -10 L-21 -10 L-14 -1 Z" fill="#E2E8F0" {...SW} strokeWidth="1.8" />
+        </g>
+        <TriFlag x={204} y={58} w={16} pole={18} />
+        <path d="M56 58 c-4 -6 4 -10 6 -4 c2 -6 10 -2 6 4 l-6 6 z" fill="#F87171" stroke={INK} strokeWidth="1.5" />
+      </g>
+    );
+  } else if (kind === 'seimas' || kind === 'night') {
+    const win = night ? '#FDE68A' : '#93C5FD';
+    body = (
+      <g>
+        <rect x="52" y="70" width="98" height="44" fill="#F1F5F9" stroke={INK} strokeWidth="2.4" />
+        <rect x="230" y="70" width="98" height="44" fill="#F1F5F9" stroke={INK} strokeWidth="2.4" />
+        {[80, 94].map((y) => (
+          <g key={y}>
+            <rect x="58" y={y} width="86" height="7" fill={win} stroke={INK} strokeWidth="1.4" />
+            <rect x="236" y={y} width="86" height="7" fill={win} stroke={INK} strokeWidth="1.4" />
+          </g>
+        ))}
+        <rect x="150" y="28" width="80" height="86" fill="#F8FAFC" stroke={INK} strokeWidth="2.6" />
+        {[158, 170, 182, 194, 206, 218].map((x) => <rect key={x} x={x} y="36" width="6" height="66" fill={win} stroke={INK} strokeWidth="1.2" />)}
+        <rect x="146" y="22" width="88" height="8" fill="#CBD5E1" stroke={INK} strokeWidth="2.2" />
+        <TriFlag x={190} y={-2} w={22} pole={24} />
+        <path d="M-2 114 L362 114 L362 142 L-2 142 Z" fill={night ? '#475569' : '#D6D3D1'} {...SW} />
+        {[118, 124, 130].map((y, i) => <line key={y} x1={160 - i * 8} x2={220 + i * 8} y1={y} y2={y} stroke={INK} strokeWidth="1.6" opacity="0.5" />)}
+        {[24, 336].map((x) => <g key={x}><line x1={x} y1="114" x2={x} y2="56" stroke={INK} strokeWidth="2" /><rect x={x} y="56" width="20" height="13" fill="#1D4ED8" stroke={INK} strokeWidth="1.6" />{[0, 1, 2, 3, 4, 5].map((k) => <circle key={k} cx={x + 10 + 4 * Math.cos(k * 1.047)} cy={62.5 + 4 * Math.sin(k * 1.047)} r="0.9" fill={SUN} />)}</g>)}
+      </g>
+    );
+  } else if (kind === 'palace') {
+    body = (
+      <g>
+        <rect x="40" y="58" width="280" height="56" fill="#FFF1BF" stroke={INK} strokeWidth="2.4" />
+        <rect x="36" y="50" width="288" height="10" fill="#CBD5E1" stroke={INK} strokeWidth="2.2" />
+        {[54, 78, 102, 238, 262, 286].map((x) => [66, 88].map((y) => <rect key={`${x}${y}`} x={x} y={y} width="14" height="14" fill="#93C5FD" stroke={INK} strokeWidth="1.6" />))}
+        <path d="M136 50 L180 26 L224 50 Z" fill="#FFF7DB" {...SW} />
+        <rect x="136" y="50" width="88" height="64" fill="#FFF7DB" stroke={INK} strokeWidth="2.2" />
+        {[144, 158, 172, 186, 200, 214].map((x) => <rect key={x} x={x - 3} y="56" width="8" height="58" fill="#FFFFFF" stroke={INK} strokeWidth="1.5" />)}
+        <TriFlag x={180} y={4} w={18} pole={22} />
+        <path d="M-2 114 L362 114 L362 142 L-2 142 Z" fill="#D6D3D1" {...SW} />
+        {[20, 330].map((x) => <circle key={x} cx={x} cy="108" r="12" fill="#2F9E55" stroke={INK} strokeWidth="2" />)}
+      </g>
+    );
+  } else if (kind === 'studio') {
+    const ps = (parties || []).slice(0, 5);
+    const n = Math.max(ps.length, 1);
+    body = (
+      <g>
+        {[60, 180, 300].map((x) => <path key={x} d={`M${x - 8} -2 L${x + 8} -2 L${x + 46} 120 L${x - 46} 120 Z`} fill="#FFFFFF" opacity="0.08" />)}
+        <rect x="120" y="14" width="120" height="44" rx="6" fill="#0F172A" stroke="#93C5FD" strokeWidth="2.4" />
+        <text x="180" y="40" textAnchor="middle" fill="#FFFFFF" fontSize="18" fontWeight="900" style={F_DISPLAY}>LRT</text>
+        <text x="180" y="52" textAnchor="middle" fill="#93C5FD" fontSize="8" fontWeight="800" letterSpacing="2">{tt('DEBATE', 'DEBATAI')}</text>
+        <path d="M-2 112 L362 112 L362 142 L-2 142 Z" fill="#2E335E" stroke="#4B5288" strokeWidth="2" />
+        {ps.map((p, i) => {
+          const x = 30 + ((300 / n) * (i + 0.5));
+          return (
+            <g key={p}>
+              <path d={`M${x - 20} 84 L${x + 20} 84 L${x + 16} 116 L${x - 16} 116 Z`} fill={PARTIES[p].color} stroke={INK} strokeWidth="2.2" />
+              <rect x={x - 22} y="80" width="44" height="6" fill="#E2E8F0" stroke={INK} strokeWidth="1.8" />
+              <circle cx={x} cy="100" r="6" fill="#FFFFFF" stroke={INK} strokeWidth="1.6" />
+            </g>
+          );
+        })}
+      </g>
+    );
+  }
+  return (
+    <g>
+      <defs>
+        <linearGradient id={`sk${uid}`} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor={sky[0]} /><stop offset="1" stopColor={sky[1]} /></linearGradient>
+      </defs>
+      <rect x="-2" y="-2" width="364" height="144" fill={`url(#sk${uid})`} />
+      {night ? (
+        <g>
+          {[[30, 18], [70, 34], [110, 12], [250, 22], [290, 40], [330, 14], [160, 30]].map(([x, y], i) => <circle key={i} cx={x} cy={y} r={i % 2 ? 1.4 : 2} fill="#FDE68A" />)}
+          {kind === 'night' && <path d="M312 22 a14 14 0 1 0 10 24 a11 11 0 1 1 -10 -24 Z" fill="#FDE68A" stroke={INK} strokeWidth="2" />}
+        </g>
+      ) : (
+        <g>
+          <circle cx="318" cy="28" r="15" fill={SUN} stroke={INK} strokeWidth="2.4" />
+          <SkyCloud x={24} y={18} s={1.1} />
+          <SkyCloud x={196} y={10} s={0.85} />
+        </g>
+      )}
+      {body}
+    </g>
+  );
+}
+function Scene({ kind, h = 128, caption = true, className = '', parties, children }) {
+  const uid = useId().replace(/:/g, '');
+  const cap = caption && SCENE_CAP[kind] ? L(SCENE_CAP[kind]) : null;
+  return (
+    <div className={`relative overflow-hidden ${className}`} style={{ height: h, border: `3px solid ${INK}`, borderRadius: 22, background: '#BFE6FA' }}>
+      <svg viewBox="0 0 360 140" preserveAspectRatio="xMidYMid slice" width="100%" height="100%" role="img" aria-label={cap || ''} style={{ display: 'block' }}>
+        <SceneArt kind={kind} uid={uid} parties={parties} />
+      </svg>
+      {cap && <span className="absolute left-2 bottom-2 cx-chip px-2 py-0.5 text-xs" style={{ background: 'rgba(255,255,255,0.92)' }}>{cap}</span>}
+      {children}
+    </div>
+  );
+}
+function Coach({ title, children, actions, onSkip, className = '', essential }) {
+  if (!ADVISOR && !essential) return null;
   return (
     <div className={`cx-card cx-cream p-3 sbl-pop ${className}`} role="note">
       <div className="flex gap-3 items-start">
-        <Advisor size={46} />
+        {ADVISOR ? <Advisor size={46} /> : <span className="grid place-items-center rounded-full shrink-0 bg-white" style={{ width: 40, height: 40, border: `2.5px solid ${INK}` }}><Info size={20} strokeWidth={2.6} /></span>}
         <div className="min-w-0 flex-1">
           {title && <div className="cx-title text-lg leading-tight">{title}</div>}
           <div className="text-sm font-semibold leading-snug mt-0.5">{children}</div>
@@ -2052,7 +2785,7 @@ function InfoTip({ title, children }) {
         <Sheet onClose={() => setOpen(false)} label={title} z="z-50">
           <SheetHead title={title} onClose={() => setOpen(false)} />
           <div style={GUTTER} className="pt-4 flex flex-col gap-3">
-            <div className="flex gap-3 items-start"><Advisor size={44} /><div className="font-semibold leading-relaxed">{children}</div></div>
+            <div className="flex gap-3 items-start">{ADVISOR ? <Advisor size={44} /> : <Info size={26} className="shrink-0" strokeWidth={2.6} />}<div className="font-semibold leading-relaxed">{children}</div></div>
             <Btn className="h-12" onClick={() => setOpen(false)}>{tt('Got it', 'Supratau')}</Btn>
           </div>
         </Sheet>
@@ -2084,8 +2817,8 @@ function Confetti() {
    Seat chart, poll bars, trend
    ============================================================ */
 function Hemicycle({ seats, highlight, dim, label = '', showCount = true }) {
-  const left = SEAT_ORDER.slice(0, 6);
-  const right = SEAT_ORDER.slice(6);
+  const left = SEAT_LEFT;
+  const right = SEAT_RIGHT;
   const Lx = [], Rx = [];
   left.forEach((p) => { for (let i = 0; i < (seats[p] || 0); i++) Lx.push(p); });
   right.forEach((p) => { for (let i = 0; i < (seats[p] || 0); i++) Rx.push(p); });
@@ -2109,8 +2842,9 @@ function Hemicycle({ seats, highlight, dim, label = '', showCount = true }) {
     </svg>
   );
 }
-function PollBars({ shares, highlight, threshold, deltas }) {
-  const ids = ALL_IDS.slice().sort((a, b) => (a === 'KITI' ? 1 : 0) - (b === 'KITI' ? 1 : 0) || shares[b] - shares[a]);
+function PollBars({ shares, highlight, threshold, deltas, minShow = 0 }) {
+  const ids = ALL_IDS.filter((p) => p === highlight || p === 'KITI' || shares[p] >= minShow)
+    .sort((a, b) => (a === 'KITI' ? 1 : 0) - (b === 'KITI' ? 1 : 0) || shares[b] - shares[a]);
   const max = Math.max(30, ...ids.map((p) => shares[p]));
   const cols = deltas ? '84px 1fr 52px 50px' : '84px 1fr 56px';
   return (
@@ -2157,18 +2891,19 @@ function SeatTable({ seats, pr, smd, highlight }) {
 }
 function TrendChart({ history, player }) {
   const W = 340, H = 190, pl = 24, pr = 62, pt = 10, pb = 22;
-  const vals = history.flatMap((h) => PARTY_IDS.map((p) => h.shares[p]));
+  const shown = PARTY_IDS.filter((p) => p === player || Math.max(...history.map((h) => h.shares[p])) >= 3);
+  const vals = history.flatMap((h) => shown.map((p) => h.shares[p]));
   const yMax = Math.ceil(Math.max(25, ...vals) / 5) * 5;
   const x = (w) => pl + (w / WEEKS) * (W - pl - pr);
   const y = (v) => pt + (1 - v / yMax) * (H - pt - pb);
   const last = history[history.length - 1];
-  const labels = PARTY_IDS.map((p) => ({ p, y: y(last.shares[p]) })).sort((a, b) => a.y - b.y);
+  const labels = shown.map((p) => ({ p, y: y(last.shares[p]) })).sort((a, b) => a.y - b.y);
   for (let i = 1; i < labels.length; i++) if (labels[i].y - labels[i - 1].y < 10) labels[i].y = labels[i - 1].y + 10;
   const over = labels.length ? labels[labels.length - 1].y - (H - pb + 2) : 0;
   if (over > 0) labels.forEach((l) => { l.y -= over; });
   const ticks = [];
   for (let v = 0; v <= yMax; v += 10) ticks.push(v);
-  const order = PARTY_IDS.filter((p) => p !== player).concat(player);
+  const order = shown.filter((p) => p !== player).concat(player);
   return (
     <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto block" role="img" aria-label={tt('Weekly national polling trend', 'Savaitinių apklausų tendencija')}>
       {ticks.map((v) => (
@@ -2307,11 +3042,11 @@ function ActionTile({ type, g, r, rival, onAction }) {
   const und = g.undecided[r.id];
   let effect;
   if (type === 'attack') effect = tt(`${partyShort(rival)} ▼ · ${Math.round(attackBackfire(g, r) * 100)}% backfire risk`, `${partyShort(rival)} ▼ · ${Math.round(attackBackfire(g, r) * 100)} % rizika atsisukti`);
-  else if (type === 'door') effect = tt(`Ground team ${Math.round(g.gg[r.id][p])} → ${Math.round(Math.min(100, g.gg[r.id][p] + 14 * (1 - g.gg[r.id][p] / 110) * geoMult(p, r)))}`, `Komanda ${Math.round(g.gg[r.id][p])} → ${Math.round(Math.min(100, g.gg[r.id][p] + 14 * (1 - g.gg[r.id][p] / 110) * geoMult(p, r)))}`);
+  else if (type === 'door') effect = tt(`Ground team ${Math.round(g.gg[r.id][p])} → ${Math.round(Math.min(100, g.gg[r.id][p] + 14 * (1 - g.gg[r.id][p] / 110) * geoMult(p, r) * (p === 'DP' ? 1.5 : 1)))}`, `Komanda ${Math.round(g.gg[r.id][p])} → ${Math.round(Math.min(100, g.gg[r.id][p] + 14 * (1 - g.gg[r.id][p] / 110) * geoMult(p, r) * (p === 'DP' ? 1.5 : 1)))}`);
   else if (type === 'star') {
     const t = starTarget(g, r.id);
     effect = t ? tt(`${consById(t.cid)[0]}: ${t.gap < 0 ? 'you trail' : 'you lead'}`, `${consById(t.cid)[0]}: ${t.gap < 0 ? 'atsiliekate' : 'pirmaujate'}`) : tt('Every district covered', 'Visos apygardos užimtos');
-  } else effect = tt(`About +${nf((actionPreview(g, r.id, type) * 100) / (100 - und))}% for you`, `Apie +${nf((actionPreview(g, r.id, type) * 100) / (100 - und))} % jums`);
+  } else effect = ADVISOR ? tt(`Rūta’s guess: about +${nf((actionPreview(g, r.id, type) * 100) / (100 - und))}% for you`, `Rūtos spėjimas: apie +${nf((actionPreview(g, r.id, type) * 100) / (100 - und))} % jums`) : null;
   const Icon = A.icon;
   return (
     <button type="button" disabled={disabled} onClick={() => onAction(r.id, type)} className="cx-btn cx-white flex-col items-start text-left p-3" style={{ minHeight: 132, justifyContent: 'flex-start', gap: 6 }}>
@@ -2320,7 +3055,7 @@ function ActionTile({ type, g, r, rival, onAction }) {
         <span className="cx-title text-base leading-tight">{L(A.label)}</span>
       </div>
       <span className="text-sm font-semibold t-muted leading-snug">{L(A.desc)}</span>
-      <span className="text-sm font-extrabold leading-snug" style={{ color: type === 'attack' ? '#B91C1C' : GREEN }}>{effect}</span>
+      {effect && <span className="text-sm font-extrabold leading-snug" style={{ color: type === 'attack' ? '#B91C1C' : GREEN }}>{effect}</span>}
       <span className="mt-auto inline-flex items-center gap-1 text-sm font-extrabold"><Zap size={15} style={{ fill: SUN }} />1 · {fmtEur(cost)}</span>
     </button>
   );
@@ -2340,6 +3075,7 @@ function RegionDrawer({ g, rid, proj, onClose, onAction, tutStep, onSkipTips }) 
     <Sheet onClose={onClose} label={rl(r)}>
       <SheetHead kicker={tt(`${r.seats} ${seatsWord(r.seats)} to win here`, `Čia galima laimėti: ${r.seats} ${seatsWord(r.seats)}`)} title={rl(r)} onClose={onClose} />
       <div className="flex flex-col gap-4 pt-4" style={GUTTER}>
+        <Scene kind={REGION_SCENE[rid] || 'town'} h={112} />
         <div className="cx-soft p-3">
           <div className="flex items-center justify-between gap-2 mb-2">
             <span className="font-extrabold">{raceText(info)}</span>
@@ -2384,7 +3120,7 @@ function RegionDrawer({ g, rid, proj, onClose, onAction, tutStep, onSkipTips }) 
             </div>
             <div>
               <div className="text-sm font-extrabold t-muted mb-2">{tt(`Every party here (${fmtPct(g.undecided[rid], 0)} still undecided)`, `Visos partijos (${fmtPct(g.undecided[rid], 0)} dar neapsisprendę)`)}</div>
-              <PollBars shares={info.s} highlight={p} />
+              <PollBars shares={info.s} highlight={p} minShow={2} />
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div className="cx-soft p-3"><div className="text-xs font-extrabold t-muted mb-1.5">{tt('Your ground team', 'Jūsų komanda vietoje')}</div><Bar value={g.gg[rid][p]} color={PARTIES[p].color} /><div className="cx-num mt-1">{Math.round(g.gg[rid][p])}/100</div></div>
@@ -2424,7 +3160,7 @@ function Header({ g, proj, onHelp, lang, setLang }) {
     <header className="sticky z-30" style={{ top: 'env(safe-area-inset-top, 0px)', background: '#fff', borderBottom: `3px solid ${INK}` }}>
       <div className="max-w-lg mx-auto pt-2.5 pb-2.5" style={GUTTER}>
         <div className="flex items-center gap-2.5">
-          <PartyEmblem p={g.player} size={44} />
+          <Portrait who={g.player} size={46} badge />
           <div className="min-w-0 flex-1">
             <div className="cx-title text-xl leading-none whitespace-nowrap">{tt(`Week ${g.week}`, `${g.week} savaitė`)} <span className="t-muted">{tt('of 12', 'iš 12')}</span></div>
             <div className="grid gap-1 mt-1.5" style={{ gridTemplateColumns: 'repeat(12, 1fr)' }} aria-hidden="true">
@@ -2535,7 +3271,7 @@ function Warnings({ g }) {
 }
 function RaceBriefing({ g, shares, onOpen }) {
   if (g.ap <= 0) {
-    return <Coach title={tt('That’s your week done!', 'Savaitė baigta!')}>{tt('You’ve used all your energy. Tap the big yellow Next week button to see how the polls move.', 'Panaudojote visą energiją. Spauskite didelį geltoną mygtuką „Kita savaitė“ ir pažiūrėkite, kaip pasikeis reitingai.')}</Coach>;
+    return <Coach essential title={tt('That’s your week done!', 'Savaitė baigta!')}>{tt('You’ve used all your energy. Tap the big yellow Next week button to see how the polls move.', 'Panaudojote visą energiją. Spauskite didelį geltoną mygtuką „Kita savaitė“ ir pažiūrėkite, kaip pasikeis reitingai.')}</Coach>;
   }
   const races = REGIONS.map((r) => ({ r, info: raceInfo(g, r, shares[r.id]) })).filter((x) => Math.abs(x.info.gap) < 4).sort((a, b) => Math.abs(a.info.gap) - Math.abs(b.info.gap));
   return (
@@ -2633,8 +3369,8 @@ function PollsTab({ g, nat, proj }) {
             const a = groupApproval(g, G);
             const Icon = G.icon;
             return (
-              <div key={G.id} className="grid items-center gap-2" style={{ gridTemplateColumns: '28px 1fr 96px 24px' }}>
-                <Icon size={20} strokeWidth={2.4} />
+              <div key={G.id} className="grid items-center gap-2" style={{ gridTemplateColumns: '36px 1fr 96px 24px' }}>
+                <Portrait who={G.id} size={36} mood={a >= 55 ? 'happy' : a >= 40 ? 'ok' : 'sad'} title={L(G.name)} />
                 <span className="font-extrabold text-sm truncate">{L(G.name)}</span>
                 <Bar value={a} color={a >= 55 ? '#4ADE80' : a >= 40 ? SUN : '#F87171'} h={14} />
                 <Mood w={a} size={20} />
@@ -2901,6 +3637,10 @@ function CasinoSheet({ g, act, onClose }) {
     <Sheet onClose={spinning ? undefined : onClose} label={tt('Casino', 'Kazino')} dark>
       <SheetHead kicker={tt('Vilnius Old Town · after midnight', 'Vilniaus senamiestis · po vidurnakčio')} title={tt('Casino night', 'Vakaras kazino')} onClose={spinning ? undefined : onClose} dark />
       <div style={GUTTER} className="pt-4 flex flex-col gap-4">
+        <div className="flex items-center gap-3">
+          <Portrait who="croupier" size={56} mood={spinning ? 'wow' : 'happy'} />
+          <div className="rounded-2xl px-3 py-2 font-extrabold text-sm" style={{ background: '#2E335E', border: '2.5px solid #4B5288' }}>{tt('“Faites vos jeux! Place your bets, please.”', '„Faites vos jeux! Statykite, prašom.“')}</div>
+        </div>
         <div className="rounded-2xl p-3 text-sm font-bold flex gap-2" style={{ background: '#3A1F2B', border: `2.5px solid #E5484D` }}>
           <AlertTriangle size={18} className="shrink-0" style={{ color: '#FCA5A5' }} />
           <span>{tt('This is party money. Every spin has a 12% chance of a photographer, and winnings make VRK suspicious. On average the casino wins.', 'Tai partijos pinigai. Kiekvieno sukimo metu 12 % tikimybė, kad jus nufotografuos, o laimėjimai sukelia VRK įtarimų. Vidutiniškai laimi kazino.')}</span>
@@ -2960,6 +3700,10 @@ function BetSheet({ g, act, onClose }) {
     <Sheet onClose={onClose} label={tt('Bet on Žalgiris', 'Lažybos dėl „Žalgirio“')} dark>
       <SheetHead kicker={tt('Tonight · EuroLeague', 'Šįvakar · Eurolyga')} title={tt('Bet on Žalgiris', 'Lažybos dėl „Žalgirio“')} onClose={onClose} dark />
       <div style={GUTTER} className="pt-4 flex flex-col gap-4">
+        <div className="flex items-center gap-3">
+          <Portrait who="bookie" size={56} mood={res ? (res.win ? 'sad' : 'grin') : 'happy'} />
+          <div className="rounded-2xl px-3 py-2 font-extrabold text-sm" style={{ background: '#2E335E', border: '2.5px solid #4B5288' }}>{tt('“Žalgiris at home? Safe as houses, friend.”', '„Žalgiris namuose? Tikri pinigai, drauguži.“')}</div>
+        </div>
         {!res ? (
           <>
             <div className="rounded-2xl p-3 text-sm font-bold flex gap-2" style={{ background: '#3A1F2B', border: '2.5px solid #E5484D' }}>
@@ -3007,17 +3751,21 @@ function KomproSheet({ g, act, onClose }) {
     <Sheet onClose={onClose} label={tt('Dig up dirt', 'Ieškoti kompromato')}>
       <SheetHead kicker={tt('Opposition research', 'Opozicijos tyrimas')} title={tt('Dig up dirt', 'Ieškoti kompromato')} onClose={onClose} />
       <div style={GUTTER} className="pt-4 flex flex-col gap-3">
+        <div className="flex items-center gap-3">
+          <Portrait who="detective" size={56} mood="ok" />
+          <div className="cx-soft px-3 py-2 font-extrabold text-sm">{tt('“Everyone has a skeleton somewhere. Who are we looking at?”', '„Kiekvienas turi griaučių spintoje. Ką tikriname?“')}</div>
+        </div>
         <div className="grid grid-cols-3 gap-2 text-center">
           {[['45%', tt('Dirt found', 'Rasta'), '#BBF7D0'], ['35%', tt('Nothing', 'Nieko'), '#E3EDF5'], ['20%', tt('You get caught', 'Įkliūsite'), '#FECACA']].map(([v, l, c]) => (
             <div key={l} className="rounded-2xl p-2" style={{ background: c, border: `2.5px solid ${INK}` }}><div className="cx-num text-xl">{LANG === 'lt' ? v.replace('%', ' %') : v}</div><div className="text-xs font-extrabold">{l}</div></div>
           ))}
         </div>
         <div className="text-sm font-extrabold t-muted">{tt('Pick a target', 'Pasirinkite taikinį')}</div>
-        <div className="flex flex-col gap-2" role="radiogroup" aria-label={tt('Target party', 'Partija')}>
+        <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label={tt('Target party', 'Partija')}>
           {rivals.map((q) => (
-            <button key={q} type="button" role="radio" aria-checked={target === q} onClick={() => setTarget(q)} className="cx-btn justify-start gap-3 px-3 py-2" style={{ background: target === q ? '#FFF1C2' : '#fff', boxShadow: `0 3px 0 ${INK}` }}>
-              <PartyEmblem p={q} size={36} />
-              <span className="text-left"><span className="block font-black">{partyShort(q)}</span><span className="block text-xs font-bold t-muted">{PARTIES[q].leader}</span></span>
+            <button key={q} type="button" role="radio" aria-checked={target === q} onClick={() => setTarget(q)} className="cx-btn justify-start gap-2 px-2 py-2 min-w-0" style={{ background: target === q ? '#FFF1C2' : '#fff', boxShadow: `0 3px 0 ${INK}` }}>
+              <Portrait who={q} size={38} mood={target === q ? 'wow' : 'ok'} />
+              <span className="text-left min-w-0"><span className="block font-black text-sm truncate">{partyShort(q)}</span><span className="block text-xs font-bold t-muted truncate">{leaderSurname(q)}</span></span>
             </button>
           ))}
         </div>
@@ -3071,6 +3819,9 @@ function WelcomeModal({ g, nat, proj, onStart, onSkip }) {
   return (
     <Sheet label={tt('Welcome', 'Sveiki')}>
       <div style={GUTTER} className="pt-6 flex flex-col gap-4">
+        <Scene kind="seimas" h={104} caption={false}>
+          <div className="absolute right-3 bottom-2 flex items-end gap-1"><Portrait who={p} size={52} badge /></div>
+        </Scene>
         <div className="flex items-center gap-3">
           <Advisor size={72} />
           <div>
@@ -3111,7 +3862,7 @@ function ReportModal({ g, item, onClose }) {
       <div style={GUTTER} className="pt-6 flex flex-col gap-4">
         <div className="cx-title text-3xl leading-none">{tt(`Week ${item.week} is over!`, `${item.week} savaitė baigėsi!`)}</div>
         <div className="cx-card p-4 flex items-center gap-4" style={{ background: d >= 0 ? '#DCFCE7' : '#FEE2E2' }}>
-          {d >= 0 ? <TrendingUp size={44} strokeWidth={2.6} style={{ color: GREEN }} /> : <TrendingDown size={44} strokeWidth={2.6} style={{ color: RED }} />}
+          <Portrait who={p} size={58} mood={d >= 0.3 ? 'grin' : d >= 0 ? 'happy' : d > -0.5 ? 'ok' : 'sad'} />
           <div>
             <div className="text-sm font-extrabold t-muted">{tt(`New poll for ${partyShort(p)}`, `Nauja ${partyShort(p)} apklausa`)}</div>
             <div className="cx-num text-4xl leading-none">{fmtPct(cur[p])} <span className="text-xl"><Delta v={d} /></span></div>
@@ -3119,9 +3870,9 @@ function ReportModal({ g, item, onClose }) {
         </div>
         <div className="cx-soft p-3 flex flex-col gap-2 text-sm font-semibold">
           <div className="font-black text-base">{tt('Meanwhile…', 'Tuo metu…')}</div>
-          {riser && riser.d > 0.1 && <div className="flex gap-2 items-start"><PartyDot p={riser.q} />{tt(`${partyShort(riser.q)} gained the most this week (${fmtSignedPct(riser.d)}).`, `Daugiausia šią savaitę paaugo ${partyShort(riser.q)} (${fmtSignedPct(riser.d)}).`)}</div>}
+          {riser && riser.d > 0.1 && <div className="flex gap-2 items-center"><Portrait who={riser.q} size={34} mood="grin" />{tt(`${partyShort(riser.q)} gained the most this week (${fmtSignedPct(riser.d)}).`, `Daugiausia šią savaitę paaugo ${partyShort(riser.q)} (${fmtSignedPct(riser.d)}).`)}</div>}
           {attacks.length > 0
-            ? <div className="flex gap-2 items-start"><Swords size={16} className="shrink-0 mt-0.5" style={{ color: RED }} />{tt('Attack ads against you:', 'Puolimai prieš jus:')} {attacks.map((a) => `${partyShort(a.p)} (${rs(a.rid)})`).join(', ')}. {tt('Door-knocking protects you from these.', 'Nuo jų apsaugo agitacija nuo durų iki durų.')}</div>
+            ? <div className="flex gap-2 items-center"><FaceRow ids={[...new Set(attacks.map((a) => a.p))].slice(0, 3)} size={34} /><span>{tt('Attack ads against you:', 'Puolimai prieš jus:')} {attacks.map((a) => `${partyShort(a.p)} (${rs(a.rid)})`).join(', ')}.{g.advisor !== false ? tt(' Door-knocking protects you from these.', ' Nuo jų apsaugo agitacija nuo durų iki durų.') : ''}</span></div>
             : <div className="flex gap-2 items-start"><Shield size={16} className="shrink-0 mt-0.5" />{tt('No rival attacked you this week.', 'Šią savaitę jūsų niekas nepuolė.')}</div>}
           <div className="flex gap-2 items-start"><Wallet size={16} className="shrink-0 mt-0.5" style={{ color: GREEN }} />{tt(`Supporters donated ${fmtEur(g.lastIncome)}.`, `Rėmėjai paaukojo ${fmtEur(g.lastIncome)}.`)}</div>
         </div>
@@ -3152,33 +3903,24 @@ function EventModal({ g, item, onChoose, onClose }) {
   return (
     <Sheet label={tt('Breaking news', 'Skubi naujiena')}>
       <div style={GUTTER} className="pt-6 flex flex-col gap-4">
-        <div className="flex items-center gap-2">
-          <span className={`cx-chip px-3 py-1 text-sm text-white ${done ? '' : 'sbl-blink'}`} style={{ background: '#E5484D' }}>{ev.scandal ? tt('SCANDAL!', 'SKANDALAS!') : tt('BREAKING NEWS', 'SKUBI NAUJIENA')}</span>
-          <span className="text-sm font-extrabold t-muted">{L(ev.cat)}</span>
-        </div>
-        <div className="flex gap-3 items-start">
-          <span className="grid place-items-center rounded-2xl shrink-0" style={{ width: 52, height: 52, background: '#FFF1C2', border: `3px solid ${INK}` }}><Icon size={26} strokeWidth={2.5} /></span>
-          <h2 className="cx-title text-2xl leading-tight">{L(ev.title)}</h2>
-        </div>
+        <Scene kind={ev.scene || 'town'} h={112} caption={false}>
+          <div className="absolute left-2 top-2 flex items-center gap-1.5">
+            <span className={`cx-chip px-3 py-1 text-sm text-white ${done ? '' : 'sbl-blink'}`} style={{ background: '#E5484D' }}>{ev.scandal ? tt('SCANDAL!', 'SKANDALAS!') : tt('BREAKING NEWS', 'SKUBI NAUJIENA')}</span>
+            <span className="cx-chip px-2.5 py-1 text-xs" style={{ background: 'rgba(255,255,255,0.92)' }}><Icon size={14} strokeWidth={2.6} />{L(ev.cat)}</span>
+          </div>
+          <div className="absolute right-2 bottom-2"><Portrait who="anchor" size={58} mood={ev.scandal ? 'wow' : 'ok'} /></div>
+        </Scene>
+        <h2 className="cx-title text-2xl leading-tight">{L(ev.title)}</h2>
         <p className="font-semibold leading-relaxed">{L(ev.body)}</p>
         {!done ? (
           <div className="flex flex-col gap-3">
             <div className="cx-title text-lg">{tt('What do you say?', 'Ką atsakysite?')}</div>
-            {ev.choices.map((ch, i) => {
-              const chips = ch.risk ? [{ t: tt('50/50 gamble', 'Loterija 50/50'), good: false }] : fxChips(ch.fx);
-              const fits = ch.tag && TAG_BONUS[ch.tag] && TAG_BONUS[ch.tag][g.player] > 1;
-              return (
-                <button key={i} type="button" onClick={() => onChoose(i)} className="cx-btn cx-white w-full flex-col items-start text-left p-3" style={{ gap: 8 }}>
-                  <div className="flex items-start gap-2 w-full">
-                    <span className="font-black text-base flex-1">{L(ch.label)}</span>
-                  </div>
-                  <div className="flex flex-wrap gap-1.5">
-                    {fits && <span className="cx-chip px-2 py-0.5 text-xs" style={{ background: '#E9D5FF' }}>{tt('Fits your party', 'Tinka jūsų partijai')}</span>}
-                    {chips.map((c) => <span key={c.t} className="cx-chip px-2 py-0.5 text-xs" style={{ background: c.good ? '#BBF7D0' : '#FECACA' }}>{c.t}</span>)}
-                  </div>
-                </button>
-              );
-            })}
+            {ev.choices.map((ch, i) => (
+              <button key={i} type="button" onClick={() => onChoose(i)} className="cx-btn cx-white w-full items-center text-left p-3" style={{ gap: 10, minHeight: 60 }}>
+                <span className="cx-num grid place-items-center rounded-full shrink-0" style={{ width: 30, height: 30, background: '#FFF1C2', border: `2.5px solid ${INK}` }}>{String.fromCharCode(65 + i)}</span>
+                <span className="font-black text-base flex-1">{L(ch.label)}</span>
+              </button>
+            ))}
           </div>
         ) : (
           <div className="flex flex-col gap-3 sbl-fade">
@@ -3205,16 +3947,17 @@ function DebateModal({ g, item, onFinish, onClose }) {
   const [reveal, setReveal] = useState(null);
   const [meter, setMeter] = useState(5);
   const res = item.done;
-  const Q = D.questions[qi];
+  const qs = (g.debateQs && g.debateQs[item.id]) || D.questions.map((_, i) => i).slice(0, 3);
+  const Q = D.questions[qs[qi]];
   const choose = (ai) => {
     if (reveal) return;
     const sc = scoreAnswer(g, Q.answers[ai]);
     setMeter(sc.score);
     setReveal({ ai, ...sc });
-    setPicks([...picks, { qi, ai, score: sc.score }]);
+    setPicks([...picks, { qi: qs[qi], ai, score: sc.score }]);
   };
-  const next = () => { if (qi < D.questions.length - 1) { setQi(qi + 1); setReveal(null); } else onFinish(picks); };
-  const rivalsOnStage = PARTY_IDS.filter((q) => q !== g.player).slice(0, 5);
+  const next = () => { if (qi < qs.length - 1) { setQi(qi + 1); setReveal(null); } else onFinish(picks); };
+  const rivalsOnStage = useMemo(() => { const n = nationalShares(g); return PARTY_IDS.filter((q) => q !== g.player).sort((a, b) => n[b] - n[a]).slice(0, 4); }, []);
   return (
     <Sheet label={tt('LRT debate', 'LRT debatai')}>
       <div style={GUTTER} className="pt-6 flex flex-col gap-4">
@@ -3224,37 +3967,45 @@ function DebateModal({ g, item, onFinish, onClose }) {
           <span className="text-sm font-extrabold t-muted ml-auto">{tt(`Debate ${item.id + 1} of 3`, `${item.id + 1} iš 3 debatų`)}</span>
         </div>
         <h2 className="cx-title text-3xl leading-none">{L(D.title)}</h2>
-        {!res && qi === 0 && !reveal && (
-          <div className="flex items-center gap-1.5 flex-wrap" aria-label={tt('On stage', 'Studijoje')}>
-            <PartyEmblem p={g.player} size={32} />
-            <span className="text-xs font-black mr-1">{tt('You', 'Jūs')}</span>
-            {rivalsOnStage.map((q) => <span key={q} className="inline-flex items-center gap-1 text-xs font-bold t-muted"><PartyDot p={q} size={10} />{leaderSurname(q)}</span>)}
-          </div>
+        {!res && (
+          <Scene kind="studio" h={118} caption={false} parties={[g.player, ...rivalsOnStage]}>
+            <div className="absolute inset-x-0 flex justify-around px-1" style={{ top: 30 }} aria-label={tt('On stage', 'Studijoje')}>
+              {[g.player, ...rivalsOnStage].map((q, i) => {
+                const mood = !reveal || i > 0 ? 'ok' : reveal.score >= 6.6 ? 'grin' : reveal.score >= 5.6 ? 'happy' : reveal.score >= 4.6 ? 'ok' : 'sad';
+                return (
+                  <span key={q} className="flex flex-col items-center" style={{ width: 62 }}>
+                    <Portrait who={q} size={i === 0 ? 46 : 40} mood={mood} ring={i === 0 ? SUN : undefined} />
+                    <span className="text-[10px] font-black leading-tight mt-0.5 px-1 rounded-full bg-white truncate max-w-full" style={{ border: `1.5px solid ${INK}` }}>{i === 0 ? tt('You', 'Jūs') : leaderSurname(q)}</span>
+                  </span>
+                );
+              })}
+            </div>
+          </Scene>
         )}
         {!res ? (
           <>
-            <div className="flex gap-1.5" aria-label={tt(`Question ${qi + 1} of ${D.questions.length}`, `${qi + 1} klausimas iš ${D.questions.length}`)}>
-              {D.questions.map((_, i) => <span key={i} className="flex-1 rounded-full" style={{ height: 10, border: `2px solid ${INK}`, background: i < qi || (i === qi && reveal) ? SUN : i === qi ? '#FFF1C2' : '#fff' }} />)}
+            <div className="flex gap-1.5" aria-label={tt(`Question ${qi + 1} of ${qs.length}`, `${qi + 1} klausimas iš ${qs.length}`)}>
+              {qs.map((_, i) => <span key={i} className="flex-1 rounded-full" style={{ height: 10, border: `2px solid ${INK}`, background: i < qi || (i === qi && reveal) ? SUN : i === qi ? '#FFF1C2' : '#fff' }} />)}
             </div>
-            <div className="cx-card p-4" style={{ background: '#DDF0FB' }}>
-              <div className="text-sm font-extrabold t-muted mb-1">{tt('The host asks:', 'Laidos vedėjas klausia:')}</div>
-              <p className="cx-title text-xl leading-snug">{L(Q.q)}</p>
+            <div className="flex gap-2.5 items-start">
+              <Portrait who="host" size={52} mood="ok" />
+              <div className="cx-card p-3 flex-1 min-w-0 relative" style={{ background: '#DDF0FB' }}>
+                <div className="text-xs font-extrabold t-muted mb-0.5">{tt('The LRT host asks:', 'LRT laidos vedėjas klausia:')}</div>
+                <p className="cx-title text-lg leading-snug">{L(Q.q)}</p>
+              </div>
             </div>
             <div>
               <div className="flex justify-between text-xs font-extrabold t-muted mb-1"><span>{tt('Audience hates it', 'Žiūrovams nepatinka')}</span><span>{tt('Audience loves it', 'Žiūrovai sužavėti')}</span></div>
               <Bar value={meter} max={10} color={meter >= 6 ? '#22C55E' : meter >= 5 ? SUN : '#F87171'} mark={5} h={18} />
             </div>
-            {item.id === 0 && qi === 0 && !reveal && <Coach title={tt('Debate tip', 'Debatų patarimas')}>{tt('Answers that fit your party’s style and your promises go down best. Contradicting your own promises costs you.', 'Geriausiai vertinami atsakymai, atitinkantys jūsų partijos stilių ir pažadus. Prieštaraujant savo pažadams – prarasite.')}</Coach>}
+            {item.id === 0 && qi === 0 && !reveal && g.tut !== 99 && <Coach title={tt('How debates work', 'Kaip vyksta debatai')}>{tt('Answers that fit your party’s style and your promises go down best. Contradicting your own promises costs you.', 'Geriausiai vertinami atsakymai, atitinkantys jūsų partijos stilių ir pažadus. Prieštaraujant savo pažadams – prarasite.')}</Coach>}
             <div className="flex flex-col gap-3">
               {Q.answers.map((a, i) => {
                 const chosen = reveal && reveal.ai === i;
                 return (
-                  <button key={i} type="button" disabled={!!reveal && !chosen} onClick={() => choose(i)} className={`cx-btn ${chosen ? 'cx-sun' : 'cx-white'} w-full flex-col items-start text-left p-3`} style={{ gap: 6 }}>
-                    <span className="font-black text-base leading-snug">{L(a.t)}</span>
-                    <span className="flex flex-wrap gap-1.5">
-                      <span className="cx-chip px-2 py-0.5 text-xs">{L(STYLE_NAMES[a.style])}</span>
-                      {a.pc ? <span className="cx-chip px-2 py-0.5 text-xs" style={{ background: '#FECACA' }}>{tt('Experts will scoff: −1 favour', 'Ekspertai pasišieps: −1 ryšys')}</span> : null}
-                    </span>
+                  <button key={i} type="button" disabled={!!reveal && !chosen} onClick={() => choose(i)} className={`cx-btn ${chosen ? 'cx-sun' : 'cx-white'} w-full items-center text-left p-3`} style={{ gap: 10, minHeight: 60 }}>
+                    <span className="cx-num grid place-items-center rounded-full shrink-0" style={{ width: 30, height: 30, background: '#fff', border: `2.5px solid ${INK}` }}>{String.fromCharCode(65 + i)}</span>
+                    <span className="font-black text-base leading-snug flex-1">{tt('“', '„')}{L(a.t).replace(/^[„“"]|[“”"]$/g, '')}{tt('”', '“')}</span>
                   </button>
                 );
               })}
@@ -3266,7 +4017,7 @@ function DebateModal({ g, item, onFinish, onClose }) {
                   <div className="font-black" style={{ color: reactionLabel(reveal.score)[1] }}>{reactionLabel(reveal.score)[0]}</div>
                   {reveal.note && <div className="text-xs font-extrabold" style={{ color: reveal.note === 'fits' ? GREEN : RED }}>{reveal.note === 'fits' ? tt('Fits your promises', 'Atitinka jūsų pažadus') : tt('Clashes with your promises', 'Prieštarauja jūsų pažadams')}</div>}
                 </div>
-                <Btn className="h-12 px-4" onClick={next}>{qi < D.questions.length - 1 ? tt('Next', 'Toliau') : tt('Results', 'Rezultatai')} <ArrowRight size={18} /></Btn>
+                <Btn className="h-12 px-4" onClick={next}>{qi < qs.length - 1 ? tt('Next', 'Toliau') : tt('Results', 'Rezultatai')} <ArrowRight size={18} /></Btn>
               </div>
             )}
           </>
@@ -3276,9 +4027,9 @@ function DebateModal({ g, item, onFinish, onClose }) {
               <div className="cx-title text-lg mb-2">{tt('Viewers’ vote: who won?', 'Žiūrovų balsavimas: kas laimėjo?')}</div>
               <div className="flex flex-col gap-2">
                 {res.poll.map((x, i) => (
-                  <div key={x.p} className="grid items-center gap-2" style={{ gridTemplateColumns: '26px 104px 1fr 48px' }}>
+                  <div key={x.p} className="grid items-center gap-2" style={{ gridTemplateColumns: '26px 118px 1fr 48px' }}>
                     <span className="cx-num">{i === 0 ? <Trophy size={20} style={{ color: AMBER }} /> : `#${i + 1}`}</span>
-                    <span className={`text-sm truncate inline-flex items-center gap-1.5 ${x.p === g.player ? 'font-black' : 'font-bold'}`}><PartyDot p={x.p} size={11} />{x.p === g.player ? tt('You', 'Jūs') : `${leaderSurname(x.p)}`}</span>
+                    <span className={`text-sm truncate inline-flex items-center gap-1.5 ${x.p === g.player ? 'font-black' : 'font-bold'}`}><Portrait who={x.p} size={26} mood={i === 0 ? 'grin' : 'ok'} />{x.p === g.player ? tt('You', 'Jūs') : `${leaderSurname(x.p)}`}</span>
                     <Bar value={x.pct} max={100} color={PARTIES[x.p].color} h={16} />
                     <span className="cx-num text-sm text-right">{fmtPct(x.pct, 0)}</span>
                   </div>
@@ -3328,7 +4079,7 @@ function ConfirmEnd({ g, onCancel, onConfirm }) {
     <Sheet onClose={onCancel} label={tt('End week', 'Baigti savaitę')}>
       <div style={GUTTER} className="pt-6 flex flex-col gap-4">
         <div className="flex items-center gap-3">
-          <Advisor size={56} />
+          {ADVISOR ? <Advisor size={56} /> : <span className="grid place-items-center rounded-full shrink-0" style={{ width: 52, height: 52, background: '#FFF1C2', border: `3px solid ${INK}` }}><Zap size={26} style={{ fill: SUN }} /></span>}
           <div className="cx-title text-2xl leading-tight">{tt(`Wait, you still have ${g.ap} energy!`, `Palaukite – dar liko ${g.ap} energijos!`)}</div>
         </div>
         <p className="font-semibold">{tt('Energy doesn’t carry over to next week.', 'Energija į kitą savaitę nepersikelia.')}{g.week >= WEEKS ? tt(' This is the last week. After this, the country votes!', ' Tai paskutinė savaitė – po jos šalis balsuoja!') : ''}</p>
@@ -3343,10 +4094,6 @@ function ConfirmEnd({ g, onCancel, onConfirm }) {
    Title & party picker
    ============================================================ */
 function TitleScreen({ saved, onNew, onContinue, lang, setLang }) {
-  const demoShares = useMemo(() => Object.fromEntries(REGIONS.map((r) => {
-    const t = sum(ALL_IDS.map((p) => r.base[p]));
-    return [r.id, Object.fromEntries(ALL_IDS.map((p) => [p, (r.base[p] / t) * 100]))];
-  })), []);
   return (
     <div className="max-w-lg mx-auto min-h-screen flex flex-col" style={{ ...GUTTER, paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 24px)' }}>
       <div className="pt-5 flex justify-end"><LangToggle lang={lang} setLang={setLang} /></div>
@@ -3356,9 +4103,11 @@ function TitleScreen({ saved, onNew, onContinue, lang, setLang }) {
         <div className="inline-block mt-4 cx-chip px-4 py-1.5 cx-title text-lg">{tt('Battle for Lithuania · 2028', 'Kova dėl Lietuvos · 2028')}</div>
         <p className="mt-4 font-semibold leading-relaxed text-base">{tt('Lead a real Lithuanian party through a 12-week campaign, win LRT debates and runoffs, then build a coalition of 71 out of 141 seats.', 'Veskite tikrą Lietuvos partiją per 12 savaičių kampaniją, laimėkite LRT debatus ir antruosius turus, o tada suburkite 71 iš 141 Seimo narių koaliciją.')}</p>
       </div>
-      <Card className="mt-5" style={{ background: '#BFE6FA', padding: 6 }}>
-        <CartoonMap shares={demoShares} sel={null} onSelect={() => {}} />
-      </Card>
+      <Scene kind="vilnius" h={150} className="mt-5" />
+      <div className="cx-card p-3 mt-3" style={{ boxShadow: `0 4px 0 ${INK}` }}>
+        <div className="flex justify-center"><FaceRow ids={PARTY_IDS} size={40} overlap={0.34} /></div>
+        <div className="text-center text-sm font-extrabold mt-2">{tt('12 parties · 12 real leaders · 1 Seimas', '12 partijų · 12 tikrų lyderių · 1 Seimas')}</div>
+      </div>
       <div className="grid grid-cols-3 gap-2 mt-4">
         {[[MapIcon, tt('12 weeks', '12 savaičių'), tt('of campaigning', 'kampanijos')], [Tv, tt('3 debates', '3 debatai'), tt('live on LRT', 'tiesiogiai LRT')], [Handshake, '71', tt('seats to govern', 'mandatas valdžiai')]].map(([Icon, a, b]) => (
           <div key={a} className="cx-card p-3 text-center" style={{ boxShadow: `0 4px 0 ${INK}` }}>
@@ -3378,6 +4127,7 @@ function TitleScreen({ saved, onNew, onContinue, lang, setLang }) {
 }
 function PartySelect({ onPick, onBack }) {
   const [sel, setSel] = useState(null);
+  const [helper, setHelper] = useState(true);
   const startNat = useMemo(() => nationalShares(newGame('LSDP')), []);
   const diffColor = { easy: '#BBF7D0', medium: '#FDE68A', hard: '#FECACA' };
   return (
@@ -3393,10 +4143,19 @@ function PartySelect({ onPick, onBack }) {
         {PARTY_IDS.map((p) => {
           const P = PARTIES[p];
           const on = sel === p;
+          const head = p === 'LSDP' ? [tt('In the Seimas now', 'Dabar Seime'), tt('Parties with seats today.', 'Partijos, šiandien turinčios vietų.')]
+            : p === 'DP' ? [tt('Outsiders', 'Autsaideriai'), tt('Under 5% today. Can you get them over the line?', 'Šiandien žemiau 5 %. Ar pavyks peržengti barjerą?')] : null;
           return (
-            <button key={p} type="button" onClick={() => setSel(p)} aria-pressed={on} className={`cx-btn ${on ? 'cx-cream' : 'cx-white'} w-full flex-col items-stretch text-left p-3`} style={{ gap: 8, borderWidth: on ? 4 : 3 }}>
+            <React.Fragment key={p}>
+            {head && (
+              <div className={p === 'LSDP' ? '' : 'mt-3'}>
+                <div className="cx-title text-lg leading-none">{head[0]}</div>
+                <div className="text-xs font-bold t-muted mt-0.5">{head[1]}</div>
+              </div>
+            )}
+            <button type="button" onClick={() => setSel(p)} aria-pressed={on} className={`cx-btn ${on ? 'cx-cream' : 'cx-white'} w-full flex-col items-stretch text-left p-3`} style={{ gap: 8, borderWidth: on ? 4 : 3 }}>
               <div className="flex items-center gap-3">
-                <PartyEmblem p={p} size={54} />
+                <Portrait who={p} size={60} badge mood={on ? 'grin' : 'happy'} />
                 <div className="min-w-0 flex-1">
                   <div className="flex items-baseline justify-between gap-2">
                     <span className="cx-title text-xl leading-tight">{P.short}</span>
@@ -3418,13 +4177,28 @@ function PartySelect({ onPick, onBack }) {
                 </div>
               )}
             </button>
+            </React.Fragment>
           );
         })}
       </div>
-      <p className="text-xs font-bold t-muted mt-4">{tt('Starting polls roughly follow late-2026 averages.', 'Pradiniai reitingai apytiksliai atitinka 2026 m. pabaigos vidurkius.')}</p>
+      <p className="text-xs font-bold t-muted mt-4">{tt('Starting polls roughly follow late-2026 averages. Portraits are cartoon drawings, not photos.', 'Pradiniai reitingai apytiksliai atitinka 2026 m. pabaigos vidurkius. Portretai – piešti, ne nuotraukos.')}</p>
+      <div className="cx-card p-3 mt-4" style={{ boxShadow: `0 4px 0 ${INK}` }}>
+        <div className="flex items-center gap-3">
+          <span style={{ opacity: helper ? 1 : 0.35, filter: helper ? 'none' : 'grayscale(1)' }}><Advisor size={52} /></span>
+          <div className="min-w-0 flex-1">
+            <div className="cx-title text-lg leading-tight">{tt('Rūta, campaign manager', 'Rūta, štabo vadovė')}</div>
+            <div className="text-xs font-bold t-muted">{helper ? tt('Walks you through week 1 and explains the rules. Never picks moves for you.', 'Pirmą savaitę paaiškina taisykles. Niekada nesirenka už jus.') : tt('Off: no tutorial, no tips, no forecasts. Just you.', 'Išjungta: jokio mokymo, patarimų ar prognozių. Tik jūs.')}</div>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-2 mt-3" role="radiogroup" aria-label={tt('Campaign manager', 'Štabo vadovė')}>
+          {[[true, tt('With Rūta', 'Su Rūta')], [false, tt('Play solo', 'Žaisti vienam')]].map(([v, l]) => (
+            <button key={l} type="button" role="radio" aria-checked={helper === v} onClick={() => setHelper(v)} className={`cx-btn ${helper === v ? 'cx-sun' : 'cx-white'} h-11 text-sm`} style={{ boxShadow: `0 3px 0 ${INK}` }}>{helper === v && <Check size={16} />}{l}</button>
+          ))}
+        </div>
+      </div>
       <div className="fixed bottom-0 inset-x-0 z-20" style={{ background: '#fff', borderTop: `3px solid ${INK}`, paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 14px)' }}>
         <div className="max-w-lg mx-auto pt-3" style={GUTTER}>
-          <Btn className="h-14 w-full text-lg" disabled={!sel} onClick={() => onPick(sel)}>{sel ? <>{tt(`Play as ${PARTIES[sel].short}`, `Žaisti už ${PARTIES[sel].short}`)} <ArrowRight size={20} /></> : tt('Tap a party to choose it', 'Paspauskite partiją')}</Btn>
+          <Btn className="h-14 w-full text-lg" disabled={!sel} onClick={() => onPick(sel, helper)}>{sel ? <>{tt(`Play as ${PARTIES[sel].short}`, `Žaisti už ${PARTIES[sel].short}`)} <ArrowRight size={20} /></> : tt('Tap a party to choose it', 'Paspauskite partiją')}</Btn>
         </div>
       </div>
     </div>
@@ -3522,6 +4296,9 @@ function ElectionNight({ g, onFinish }) {
           {stage !== 'final' && stage !== 'intro' && <button type="button" onClick={skip} className="text-sm font-extrabold underline inline-flex items-center gap-1 h-9">{tt('Skip to results', 'Iškart į rezultatus')} <SkipForward size={15} /></button>}
         </div>
       </div>
+      <Scene kind="night" h={104} className="mt-4" caption={false}>
+        <div className="absolute right-2 bottom-2"><Portrait who={me} size={50} badge mood={stage === 'final' ? (E.seats[me] >= 40 ? 'grin' : E.seats[me] >= 15 ? 'happy' : 'sad') : 'wow'} /></div>
+      </Scene>
       {stage === 'intro' && (
         <Card className="mt-4 p-4 cx-cream sbl-pop">
           <div className="flex items-center gap-3">
@@ -3633,7 +4410,7 @@ function CoalitionTalks({ g, act }) {
         <h2 className="cx-title text-4xl leading-none">{tt('Build your coalition', 'Burkite koaliciją')}</h2>
         <p className="font-semibold t-muted mt-1">{tt('Invite parties until your team has 71 seats. Everyone you invite has to be happy to join.', 'Kvieskite partijas, kol komanda turės 71 mandatą. Visi pakviestieji turi norėti prisijungti.')}</p>
       </div>
-      {!tip && <Coach className="mt-4" title={tt('This will be tough', 'Bus sunku')}>{tt('No team that includes you reaches 71 easily. You could join the winners as a junior partner, or go into opposition.', 'Jokia koalicija su jumis lengvai nesurenka 71. Galite prisijungti prie nugalėtojų kaip jaunesnysis partneris arba likti opozicijoje.')}</Coach>}
+      {!tip && <Coach essential className="mt-4" title={tt('This will be tough', 'Bus sunku')}>{tt('No team that includes you reaches 71 easily. You could join the winners as a junior partner, or go into opposition.', 'Jokia koalicija su jumis lengvai nesurenka 71. Galite prisijungti prie nugalėtojų kaip jaunesnysis partneris arba likti opozicijoje.')}</Coach>}
       <Card className="mt-4 p-4">
         <div className="flex items-end justify-between">
           <div>
@@ -3669,9 +4446,9 @@ function CoalitionTalks({ g, act }) {
           return (
             <div key={p} className="cx-card p-3" style={{ background: inC ? '#FFF6D8' : '#fff', boxShadow: `0 4px 0 ${INK}` }}>
               <div className="flex items-center gap-3">
-                <PartyEmblem p={p} size={50} label={S[p]} />
+                <Portrait who={p} size={56} badge mood={w >= 65 ? 'grin' : w >= 50 ? 'happy' : w >= 35 ? 'ok' : 'grr'} />
                 <div className="min-w-0 flex-1">
-                  <div className="cx-title text-lg leading-tight truncate">{p === 'KITI' ? tt('Independents', 'Nepriklausomi') : P.short}</div>
+                  <div className="cx-title text-lg leading-tight truncate">{p === 'KITI' ? tt('Independents', 'Nepriklausomi') : P.short} <span className="cx-num text-base t-muted">· {S[p]}</span></div>
                   {P.leader && <div className="text-xs font-bold t-muted truncate">{P.leader}</div>}
                   <div className="inline-flex items-center gap-1.5 text-sm font-extrabold"><Mood w={w} size={18} />{mood}</div>
                 </div>
@@ -3680,6 +4457,7 @@ function CoalitionTalks({ g, act }) {
               <div className="mt-2.5"><Bar value={w} color={w >= 50 ? '#4ADE80' : w >= 35 ? SUN : '#F87171'} mark={50} h={14} /></div>
               <div className="text-xs font-extrabold t-muted mt-1">{tt(`Happiness ${w}/100 · needs 50 to join`, `Noras ${w}/100 · reikia 50`)}</div>
               <div className="mt-2 text-sm font-semibold"><span className="font-black">{tt('They want:', 'Jie nori:')} </span>{L(DEMANDS[p].text)}</div>
+              {sizePenalty(g, p) > 0 && <div className="mt-1.5 text-sm font-extrabold flex items-center gap-1.5" style={{ color: AMBER }}><Crown size={15} className="shrink-0" />{tt(`They are bigger than you and want the PM job themselves (−${sizePenalty(g, p)})`, `Jie didesni už jus ir patys nori premjero posto (−${sizePenalty(g, p)})`)}</div>}
               {clashes.length > 0 && <div className="mt-1.5 text-sm font-extrabold inline-flex items-center gap-1.5" style={{ color: RED }}><AlertTriangle size={15} />{tt('Doesn’t get along with', 'Nesutaria su')} {clashes.map((q) => partyShort(q)).join(', ')}</div>}
               <div className="flex gap-2 mt-2.5">
                 <Btn kind={C.accepted[p] ? 'leaf' : 'white'} className="flex-1 h-11 text-sm" onClick={() => accept(p)}>{C.accepted[p] ? <><Check size={16} />{tt('Agreed', 'Sutarta')}</> : tt('Agree to it (+15)', 'Sutikti (+15)')}</Btn>
@@ -3726,6 +4504,9 @@ function VoteScreen({ g, onDone }) {
       <div className="pt-6">
         <div className="text-sm font-extrabold t-muted">{tt('Seimas plenary hall', 'Seimo plenarinių posėdžių salė')}</div>
         <h2 className="cx-title text-4xl leading-none">{tt('The confidence vote', 'Balsavimas dėl Premjero')}</h2>
+        <Scene kind="seimas" h={110} className="mt-3" caption={false}>
+          <div className="absolute right-2 bottom-2"><Portrait who={g.player} size={52} badge mood={done ? (V.passed ? 'grin' : 'sad') : 'ok'} /></div>
+        </Scene>
         <p className="font-semibold mt-2">{tt(`The President has nominated you, leader of ${P.short}, as Prime Minister. Now the Seimas votes.`, `Prezidentas pateikė jūsų, ${P.short} lyderio, kandidatūrą į Ministrus Pirmininkus. Dabar balsuoja Seimas.`)}</p>
       </div>
       <Card className="mt-4 p-4">
@@ -3782,11 +4563,14 @@ function ResultScreen({ g, onRestart }) {
   return (
     <div className="max-w-lg mx-auto min-h-screen" style={{ ...GUTTER, paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 32px)' }}>
       {['S', 'A', 'B'].includes(grade) && <Confetti />}
-      <div className="pt-8 flex flex-col items-center text-center">
-        <div className="relative sbl-pop">
-          <div className="grid place-items-center rounded-full" style={{ width: 124, height: 124, background: medal, border: `4px solid ${INK}`, boxShadow: `0 6px 0 ${INK}` }}><span className="cx-title" style={{ fontSize: 64, lineHeight: 1 }}>{grade}</span></div>
-          {['S', 'A', 'B'].includes(grade) && <Medal size={34} className="absolute -bottom-2 -right-2" style={{ fill: '#fff' }} strokeWidth={2.4} />}
-        </div>
+      <div className="pt-6 flex flex-col items-center text-center">
+        <Scene kind={['S', 'A', 'B', 'C'].includes(grade) ? 'palace' : 'seimas'} h={150} className="w-full" caption={false}>
+          <div className="absolute inset-x-0 bottom-2 flex justify-center"><Portrait who={me} size={92} badge mood={['S', 'A', 'B'].includes(grade) ? 'grin' : grade === 'C' || grade === 'D' ? 'ok' : 'sad'} /></div>
+          <div className="absolute right-2 top-2 sbl-pop">
+            <div className="grid place-items-center rounded-full" style={{ width: 70, height: 70, background: medal, border: `4px solid ${INK}`, boxShadow: `0 4px 0 ${INK}` }}><span className="cx-title" style={{ fontSize: 38, lineHeight: 1 }}>{grade}</span></div>
+            {['S', 'A', 'B'].includes(grade) && <Medal size={26} className="absolute -bottom-2 -right-2" style={{ fill: '#fff' }} strokeWidth={2.4} />}
+          </div>
+        </Scene>
         <div className="text-sm font-extrabold t-muted mt-4">{P.short} · {P.leader}</div>
         <h2 className="cx-title text-4xl leading-none mt-1">{title}</h2>
         <p className="font-semibold mt-3 leading-relaxed">{blurb}</p>
@@ -3855,6 +4639,7 @@ export default function SeimasGame({ hotData } = {}) {
   const [help, setHelp] = useState(false);
   const gameRef = useRef(game);
   gameRef.current = game;
+  ADVISOR = !game || game.advisor !== false;
   const toastTimer = useRef(null);
   useEffect(() => {
     if (!document.querySelector('link[href*="family=Fredoka"]')) {
@@ -3910,7 +4695,7 @@ export default function SeimasGame({ hotData } = {}) {
 
   let body;
   if (screen === 'select') {
-    body = <PartySelect onBack={() => setScreen('title')} onPick={(pid) => { const g = newGame(pid); gameRef.current = g; setGame(g); setTab('map'); setSel(null); setScreen('game'); }} />;
+    body = <PartySelect onBack={() => setScreen('title')} onPick={(pid, helper) => { const g = newGame(pid, helper); gameRef.current = g; setGame(g); setTab('map'); setSel(null); setScreen('game'); }} />;
   } else if (screen === 'title' || !game) {
     body = <TitleScreen lang={lang} setLang={setLang} saved={saved} onNew={() => setScreen('select')} onContinue={() => { gameRef.current = saved; setGame(saved); setScreen('game'); }} />;
   } else if (game.phase === 'campaign' && derived) {

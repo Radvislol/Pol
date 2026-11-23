@@ -2,29 +2,41 @@
 
 A friendly, cartoon-style strategy game about the **2028 Lithuanian Seimas election**, designed for phones and available in **Lithuanian and English** (switch with the LT/EN toggle). You lead a real party and its real leader through a twelve-week campaign, then try to build a 71-seat governing majority and survive the Seimas confidence vote.
 
-> Fictional simulation. Real parties and leaders appear for context; every event, quote and result is invented. Party emblems are original designs, not official logos. Starting polls roughly follow late-2026 averages, and party leaders were checked in November 2026.
+> Fictional simulation. Real parties and leaders appear for context; every event, quote and result is invented. Party emblems are original designs, not official logos, and leader portraits are cartoon drawings, not photos or likenesses. Starting polls roughly follow late-2026 averages, and party leaders were checked in November 2026.
 
 ## Playing
 
-- **Rūta, your campaign manager**, walks you through the first week and explains the rules. She never picks moves for you: every decision is yours.
+- **Rūta, your campaign manager (optional).** On the party screen, choose *With Rūta* or *Play solo*. With Rūta, she walks you through the first week, explains the rules and gives rough forecasts on region moves. She never picks moves, news answers or debate answers for you. In solo mode there is no tutorial, no tips and no forecasts.
+- **No hints on news and debates.** News choices and debate answers show only the words. You find out how they landed afterwards.
 - **The map** shows Lithuania's real county outlines, coloured by whoever leads in each region. Close races are striped, and each week a short briefing lists the tightest races with your lead or gap. Tap a region to see the race and every move you can make there.
 - **Plain-language moves.** Each move shows its cost (energy and euros) and its expected effect before you tap.
 
 ## Parties and leaders (as of November 2026)
 
-| Party | Leader |
-|---|---|
-| LSDP | Mindaugas Sinkevičius |
-| TS-LKD | Laurynas Kasčiūnas |
-| Nemuno aušra | Remigijus Žemaitaitis |
-| DSVL | Virginijus Sinkevičius |
-| Liberalų sąjūdis | Viktorija Čmilytė-Nielsen |
-| LVŽS | Aurelijus Veryga |
-| Laisvės partija | Vytautas Mitalas |
-| LLRA-KŠS | Valdemar Tomaševski |
+| Party | Leader | In the game |
+|---|---|---|
+| LSDP | Mindaugas Sinkevičius | In the Seimas |
+| TS-LKD | Laurynas Kasčiūnas | In the Seimas |
+| Nemuno aušra | Remigijus Žemaitaitis | In the Seimas |
+| DSVL | Virginijus Sinkevičius | In the Seimas |
+| Liberalų sąjūdis | Viktorija Čmilytė-Nielsen | In the Seimas |
+| LVŽS | Aurelijus Veryga | In the Seimas |
+| Laisvės partija | Vytautas Mitalas | In the Seimas |
+| LLRA-KŠS | Valdemar Tomaševski | In the Seimas |
+| Darbo partija | Gintaras Steponėnas | Outsider |
+| Laisvė ir teisingumas | Artūras Zuokas | Outsider |
+| Krikščionių sąjunga | Rimantas Jonas Dagys | Outsider |
+| Lietuvos žaliųjų partija | Ieva Budraitė | Outsider |
+
+The Labour Party (DP) leader comes from an undated party directory listing, so it may be out of date. The Lithuanian Regions Party is left out because its leadership was disputed at the time of checking.
+
+## Art
+
+Every leader and character has an original cartoon portrait whose expression reacts to the moment: debates, polls, coalition talks, results. Characters include Rūta, the LRT host, the news anchor, the croupier, the bookmaker, the private investigator and a face for each voter group. Regions, news stories and big moments use illustrations of real places: Gediminas Tower, Trakai Island Castle, Kaunas Castle, Klaipėda harbour with the Meridianas, the Hill of Crosses, Aukštaitija's lakes, farmland with a stork's nest, the Seimas and the Presidential Palace. Everything is drawn in SVG inside the component, so there are no image files.
 
 ## Systems
 
+- **31 news stories** with three answers each, and **LRT debates** that draw 3 of 5 questions per debate, so every campaign plays differently.
 - **Star candidates.** Recruit a famous local face to boost one single-mandate district. AI parties field some too.
 - **VRK spending limit.** Campaign spending is capped. Going over brings a fine and a scandal.
 - **Risky money.** A casino with real European roulette odds, and bets on Žalgiris games. Both lose money on average, and every bet has a 12% chance of leaking to the press.
@@ -38,10 +50,10 @@ A friendly, cartoon-style strategy game about the **2028 Lithuanian Seimas elect
 - **141 seats, mixed system.** There are 70 proportional list seats, split by Hare–Niemeyer largest remainder among parties with at least 5% of the national vote. The other 71 are single-mandate constituencies, decided by two rounds.
 - **Runoffs.** A candidate who wins more than 50% in round one takes the seat. Otherwise the top two go to a runoff. Voters of eliminated parties transfer by ideological distance across four policy axes, and some stay home. There is also anti-landslide tactical voting against a runaway national leader.
 - **13 regions.** Map outlines are simplified from the MIT-licensed `@react-map/lithuania` package (see `THIRD_PARTY_NOTICES.md`). Vilnius and Kaunas cities are split from their counties, and there is a seat for Lithuanians abroad. Each region has a population, an urban/rural split, local issues, ideal policy positions, and named constituencies with their own leans. For example, the Polish-minority vote is concentrated in Šalčininkai and Naujoji Vilnia.
-- **8 playable parties.** LSDP, TS-LKD, Nemuno aušra, DSVL, Liberalų sąjūdis, LVŽS, Laisvės partija and LLRA-KŠS. Each has its own funds, strongholds and passive trait. AI rivals run their own weekly campaigns.
+- **12 playable parties.** Eight are in the Seimas today: LSDP, TS-LKD, Nemuno aušra, DSVL, Liberalų sąjūdis, LVŽS, Laisvės partija and LLRA-KŠS. Four are outsiders below 5%: Darbo partija, Laisvė ir teisingumas, Krikščionių sąjunga and the Greens. Each has its own funds, strongholds and passive trait. AI rivals run their own weekly campaigns.
 - **Each week.** You get 6 energy plus donations. Region actions are rallies, online ads, TV/radio, door-to-door canvassing, star candidates and attack ads. You can also shift your promises, raise money, gamble, dig for dirt, and run national actions.
 - **Events.** LRT debates happen in weeks 4, 8 and 11. Breaking-news events arrive every one or two weeks, each with three choices, and scandals are triggered by risky fundraising.
-- **Election night and coalition talks.** Election night animates the live count, round one and the runoffs. Coalition talks cover willingness, policy demands, political-capital sweeteners, ministry allocation and a stability score.
+- **Election night and coalition talks.** Election night animates the live count, round one and the runoffs. Coalition talks cover willingness, policy demands, political-capital sweeteners, ministry allocation and a stability score. A partner much bigger than you wants the Prime Minister's job, so small parties usually have to grow first or join as junior partners.
 
 ## Files
 
