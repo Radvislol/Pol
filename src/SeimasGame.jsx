@@ -330,6 +330,235 @@ const WEEKS = 12;
 const MAJORITY = 71;
 const DEBATE_WEEKS = [4, 8, 11];
 const ENDORSE_WEEKS = [6, 10];
+// Campaign staff you can hire (max 3). Wages are paid every week.
+const STAFF = [
+  { id: 'strategist', look: 'strat', wage: 60, name: bi('Campaign strategist', 'Kampanijos strategas'), desc: bi('+1 energy every week.', '+1 energija kas savaitę.') },
+  { id: 'press', look: 'pressec', wage: 25, name: bi('Press secretary', 'Atstovė spaudai'), desc: bi('Scandal risk fades twice as fast; press conferences work 50% better.', 'Skandalo rizika blėsta dvigubai greičiau; spaudos konferencijos veikia 50 % geriau.') },
+  { id: 'digital', look: 'digi', wage: 30, name: bi('Digital director', 'Skaitmeninės kampanijos vadovas'), desc: bi('Online ads work 30% better.', 'Reklama internete veikia 30 % geriau.') },
+  { id: 'field', look: 'fieldorg', wage: 25, name: bi('Field organiser', 'Lauko kampanijos organizatorė'), desc: bi('Door-knocking builds ground teams 50% faster.', 'Agitacija nuo durų iki durų stiprina komandas 50 % greičiau.') },
+  { id: 'pollster', look: 'pollst', wage: 30, name: bi('In-house pollster', 'Štabo sociologas'), desc: bi('Micro-targeting: every regional move works 6% better.', 'Tikslinė auditorija: visi veiksmai regionuose 6 % stipresni.') },
+  { id: 'fundraiser', look: 'fundr', wage: 20, name: bi('Fundraiser', 'Lėšų rinkėja'), desc: bi('Weekly donations +35%, donor dinners +25%.', 'Savaitinės aukos +35 %, rėmėjų vakarienės +25 %.') },
+  { id: 'lawyer', look: 'lawyer', wage: 30, name: bi('Election lawyer', 'Rinkimų teisininkas'), desc: bi('Halves VRK fines and the risk of gambling or dirt-digging leaking.', 'Perpus sumažina VRK baudas ir riziką, kad nutekės lošimai ar kompromato paieškos.') },
+];
+const STAFF_MAX = 3;
+const hasStaff = (g, id) => (g.staff || []).includes(id);
+// The week's campaign message. It lifts moves in regions where its issues matter.
+const THEMES = [
+  { id: 'econ', icon: Wallet, name: bi('Cost of living', 'Pragyvenimas'), issues: ['col', 'tax', 'pensions', 'energy'], groups: { seniors: 1.2, public: 0.8, business: -0.4 } },
+  { id: 'security', icon: Shield, name: bi('Security', 'Saugumas'), issues: ['def'], groups: { seniors: 0.6, business: 0.6 } },
+  { id: 'regions', icon: Tractor, name: bi('Regions & jobs', 'Regionai'), issues: ['roads', 'health', 'jobs', 'agri', 'emig'], groups: { farmers: 1.2, public: 0.6 } },
+  { id: 'city', icon: Building2, name: bi('Cities & future', 'Miestai ir ateitis'), issues: ['housing', 'transit', 'port', 'diaspora'], groups: { youth: 1.2, business: 0.6 } },
+  { id: 'trust', icon: Scale, name: bi('Honest politics', 'Sąžininga politika'), issues: ['trust', 'minority'], groups: { seniors: 0.4, youth: 0.4 }, cred: 1 },
+];
+const THEME_MAP = Object.fromEntries(THEMES.map((t) => [t.id, t]));
+const SCENARIOS = [
+  { id: 'standard', name: bi('Standard election', 'Įprasti rinkimai'), desc: bi('The 2028 race as the polls see it today.', '2028 m. rinkimai, kaip juos šiandien mato apklausos.') },
+  { id: 'energy', name: bi('Energy shock', 'Energetikos šokas'), desc: bi('Heating bills explode. Governing parties start on the back foot and cost-of-living messages hit harder.', 'Sprogsta šildymo sąskaitos. Valdantieji startuoja silpniau, pragyvenimo tema veikia stipriau.') },
+  { id: 'security', name: bi('Security scare', 'Saugumo nerimas'), desc: bi('Incidents on the Belarus border. Hawks gain and security messages hit harder.', 'Incidentai pasienyje su Baltarusija. Kietos linijos šalininkai stiprėja, saugumo tema veikia stipriau.') },
+  { id: 'scandal', name: bi('Autumn of scandals', 'Skandalų ruduo'), desc: bi('Leaks everywhere: more rival scandals, low trust, and reputation matters even more.', 'Nutekinimai visur: daugiau varžovų skandalų, žemas pasitikėjimas, reputacija dar svarbesnė.') },
+];
+const DIFFS = {
+  easy: { name: bi('Easy', 'Lengvas'), desc: bi('Calmer rivals, more donations.', 'Ramesni varžovai, daugiau aukų.'), income: 1.25, ai: -1 },
+  normal: { name: bi('Normal', 'Įprastas'), desc: bi('The intended challenge.', 'Numatytas iššūkis.'), income: 1, ai: 0 },
+  hard: { name: bi('Hard', 'Sunkus'), desc: bi('Aggressive rivals, tighter money.', 'Agresyvūs varžovai, mažiau pinigų.'), income: 0.85, ai: 1 },
+};
+const ACHIEVEMENTS = [
+  { id: 'pm', name: bi('Prime Minister', 'Ministras Pirmininkas'), desc: bi('Win the confidence vote.', 'Laimėkite balsavimą dėl premjero.') },
+  { id: 'majority', name: bi('One-party rule', 'Vienos partijos valdžia'), desc: bi('Win 71 seats on your own.', 'Laimėkite 71 mandatą vieni.') },
+  { id: 'outsider', name: bi('Over the line', 'Per barjerą'), desc: bi('Get an outsider party over 5%.', 'Įveskite autsaiderių partiją per 5 % barjerą.') },
+  { id: 'outsider_gov', name: bi('From nowhere to power', 'Iš niekur – į valdžią'), desc: bi('Govern with an outsider party.', 'Patekite į valdžią su autsaiderių partija.') },
+  { id: 'debates', name: bi('Debate champion', 'Debatų čempionas'), desc: bi('Win all three LRT debates.', 'Laimėkite visus tris LRT debatus.') },
+  { id: 'clean', name: bi('Clean hands', 'Švarios rankos'), desc: bi('No scandals, no gambling, no dirt-digging.', 'Jokių skandalų, lošimų ar kompromato.') },
+  { id: 'gambler', name: bi('House loses', 'Kazino pralaimi'), desc: bi('Finish ahead at the casino and bookies.', 'Baikite pliuse kazino ir lažybose.') },
+  { id: 'trusted', name: bi('Word of honour', 'Garbės žodis'), desc: bi('Finish with reputation 80 or more.', 'Baikite su 80+ reputacija.') },
+  { id: 'unity', name: bi('One team', 'Viena komanda'), desc: bi('Finish with party unity 85 or more.', 'Baikite su 85+ partijos vienybe.') },
+  { id: 'tour', name: bi('Grand tour', 'Didysis turas'), desc: bi('Take your leader to all 13 regions.', 'Nuvežkite lyderį į visus 13 regionų.') },
+  { id: 'runoffs', name: bi('Runoff king', 'Antrojo turo karalius'), desc: bi('Win 8 or more runoffs.', 'Laimėkite 8 ar daugiau antrųjų turų.') },
+  { id: 'diaspora', name: bi('Voice of the diaspora', 'Diasporos balsas'), desc: bi('Win the Lithuanians-abroad seat.', 'Laimėkite užsienio lietuvių apygardą.') },
+  { id: 'boardroom', name: bi('Model member', 'Pavyzdingas narys'), desc: bi('Complete 8 party-board tasks.', 'Įvykdykite 8 partijos tarybos užduotis.') },
+  { id: 'hard', name: bi('Against the odds', 'Prieš visus'), desc: bi('Become PM on Hard.', 'Tapkite premjeru sunkiu lygiu.') },
+  { id: 'solo', name: bi('No hand-holding', 'Be pagalbos'), desc: bi('Become PM without Rūta.', 'Tapkite premjeru be Rūtos.') },
+];
+const ACH_KEY = 'seimas-bfl-ach';
+function loadAch() { try { return JSON.parse(window.localStorage.getItem(ACH_KEY) || '[]'); } catch (e) { return []; } }
+function saveAch(list) { try { window.localStorage.setItem(ACH_KEY, JSON.stringify(list)); } catch (e) { /* storage unavailable */ } }
+function earnedAchievements(g) {
+  const E = g.election, R = g.result || {};
+  const me = g.player;
+  const pm = R.kind === 'pm' || R.kind === 'majority';
+  const gov = pm || R.kind === 'junior';
+  const outsider = ['DP', 'LIT', 'KS', 'LZP'].includes(me);
+  const out = [];
+  if (pm) out.push('pm');
+  if (E && E.seats[me] >= MAJORITY) out.push('majority');
+  if (outsider && E && E.natShares[me] >= 5) out.push('outsider');
+  if (outsider && gov) out.push('outsider_gov');
+  if (g.stats.debates.length === 3 && g.stats.debates.every((d) => d.won)) out.push('debates');
+  if (!g.stats.gambles && !g.stats.kompro && !['scandal_mp', 'scandal_money', 'fu_donor'].some((id) => g.usedEvents.includes(id))) out.push('clean');
+  if (g.stats.gambles && g.stats.gambleNet > 0) out.push('gambler');
+  if (g.cred >= 80) out.push('trusted');
+  if (g.unity >= 85) out.push('unity');
+  if ((g.toured || []).length >= REGIONS.length) out.push('tour');
+  if (E && E.smd.filter((e) => e.round === 2 && e.winner === me).length >= 8) out.push('runoffs');
+  if (E && E.smd.some((e) => e.rid === 'ABR' && e.winner === me)) out.push('diaspora');
+  if ((g.stats.objectives || 0) >= 8) out.push('boardroom');
+  if (pm && g.diff === 'hard') out.push('hard');
+  if (pm && g.advisor === false) out.push('solo');
+  return out;
+}
+// Party-board tasks: one per week, judged when the week ends.
+function makeObjective(g) {
+  const me = g.player;
+  if (DEBATE_WEEKS.includes(g.week)) return { kind: 'debate', reward: 'pc' };
+  const kinds = ['region', 'money', 'visit', 'door', 'clean', 'national'].filter((k) => k !== (g.objective && g.objective.kind));
+  const kind = kinds[Math.floor(Math.random() * kinds.length)];
+  const reward = ['pc', 'money', 'unity'][g.week % 3];
+  if (kind === 'region') {
+    const cands = REGIONS.filter((r) => r.id !== 'ABR' && r.seats >= 5 && Math.abs(raceInfo(g, r).gap) < 9);
+    const r = (cands.length ? cands : REGIONS.filter((x) => x.seats >= 5))[Math.floor(Math.random() * (cands.length || 1))];
+    return { kind, rid: r.id, need: 0.8, reward };
+  }
+  if (kind === 'money') return { kind, need: Math.round((110 + g.week * 8) * Math.sqrt(FUND_MULT[me]) / 10) * 10, reward: reward === 'money' ? 'unity' : reward };
+  if (kind === 'visit') return { kind, need: 3, reward };
+  if (kind === 'door') return { kind, need: 2, reward };
+  if (kind === 'national') return { kind, need: 0.35, reward };
+  return { kind: 'clean', reward };
+}
+function objectiveText(o) {
+  switch (o.kind) {
+    case 'region': return bi(`Gain at least ${o.need} pts in ${L(REG[o.rid].short)} this week.`, `Šią savaitę pakelkite paramą: ${L(REG[o.rid].short)} bent +${String(o.need).replace('.', ',')} p.`);
+    case 'money': return bi(`Raise at least ${fmtEur(o.need)} this week.`, `Šią savaitę surinkite bent ${fmtEur(o.need)}.`);
+    case 'visit': return bi(`Campaign in ${o.need} different regions.`, `Agituokite ${o.need} skirtinguose regionuose.`);
+    case 'door': return bi(`Knock on doors at least ${o.need} times.`, `Bent ${o.need} kartus agituokite nuo durų iki durų.`);
+    case 'national': return bi(`Lift your national rating by ${o.need} pts.`, `Pakelkite reitingą šalyje bent ${String(o.need).replace('.', ',')} p.`);
+    case 'debate': return bi('Finish first or second in this week’s LRT debate.', 'Šios savaitės LRT debatuose užimkite 1 ar 2 vietą.');
+    default: return bi('Run a clean week: no attack ads, no gambling, no shady deals, no dirt-digging.', 'Švari savaitė: jokių puolimų, lošimų, abejotinų sandorių ar kompromato.');
+  }
+}
+const REWARD_TEXT = { pc: bi('+1 favour', '+1 ryšys'), money: bi('+€40k', '+40 tūkst. €'), unity: bi('+6 unity', '+6 vienybės') };
+function objectiveProgress(g) {
+  const o = g.objective;
+  const me = g.player;
+  if (!o) return { ok: false, now: 0 };
+  switch (o.kind) {
+    case 'region': { const d = regionShares(g, REG[o.rid])[me] - ((g.weekStart && g.weekStart[o.rid]) ? g.weekStart[o.rid][me] : 0); return { ok: d >= o.need, now: d, need: o.need }; }
+    case 'money': return { ok: (g.weekRaised || 0) >= o.need, now: g.weekRaised || 0, need: o.need };
+    case 'visit': { const n = new Set((g.weekMoves || []).map((m) => m.rid)).size; return { ok: n >= o.need, now: n, need: o.need }; }
+    case 'door': { const n = (g.weekMoves || []).filter((m) => m.type === 'door').length; return { ok: n >= o.need, now: n, need: o.need }; }
+    case 'national': { const d = nationalShares(g)[me] - (g.weekNatStart || 0); return { ok: d >= o.need, now: d, need: o.need }; }
+    case 'debate': { const d = g.stats.debates.find((x) => x.idx === DEBATE_WEEKS.indexOf(g.week)); return { ok: !!d && d.rank <= 2, now: d ? d.rank : 0 }; }
+    default: return { ok: !g.attacksThisWeek && !g.weekShady, now: 0 };
+  }
+}
+function judgeObjective(g) {
+  const o = g.objective;
+  if (!o) return;
+  const { ok } = objectiveProgress(g);
+  if (ok) {
+    g.stats.objectives = (g.stats.objectives || 0) + 1;
+    g.unity = clamp(g.unity + 4, 0, 100);
+    if (o.reward === 'pc') g.pc += 1;
+    else if (o.reward === 'money') g.money += 40;
+    else g.unity = clamp(g.unity + 6, 0, 100);
+    addCons(g, 'good', bi(`Party board task done: ${objectiveText(o).en} (${REWARD_TEXT[o.reward].en}, +4 unity)`, `Partijos tarybos užduotis įvykdyta: ${objectiveText(o).lt} (${REWARD_TEXT[o.reward].lt}, +4 vienybės)`));
+  } else {
+    g.unity = clamp(g.unity - 5, 0, 100);
+    addCons(g, 'bad', bi(`Party board task missed: ${objectiveText(o).en} Unity −5.`, `Partijos tarybos užduotis neįvykdyta: ${objectiveText(o).lt} Vienybė −5.`));
+  }
+}
+function themeMult(g, r) {
+  const T = g.theme && THEME_MAP[g.theme];
+  if (!T) return 1;
+  const match = r.issues.some((i) => T.issues.includes(i));
+  let m = match ? 1.12 : 0.97;
+  m += 0.02 * Math.min(g.themeStreak || 0, 3);
+  if ((g.scen === 'energy' && T.id === 'econ') || (g.scen === 'security' && T.id === 'security')) m += 0.08;
+  return m;
+}
+function setTheme(g, id) {
+  if (g.theme === id) return { ok: true };
+  if (g.themeLocked) return { ok: false, msg: tt('You already campaigned on this week’s message. Change it next week.', 'Šios savaitės žinutę jau skleidžiate. Pakeisti galėsite kitą savaitę.') };
+  if (g.theme && (g.themeStreak || 0) >= 2) {
+    g.momentum[g.player] = clamp(g.momentum[g.player] - 0.3, -10, 10);
+    addCons(g, 'warn', bi('You dropped a message you had pushed for weeks. Commentators call it confusing (buzz −0.3).', 'Atsisakėte kelias savaites kartotos žinutės. Komentatoriai tai vadina painiava (pagreitis −0,3).'));
+  }
+  g.theme = id;
+  return { ok: true, tone: 'good', msg: tt(`This week’s message: ${THEME_MAP[id].name.en}`, `Šios savaitės žinutė: ${THEME_MAP[id].name.lt}`) };
+}
+function hireStaff(g, id) {
+  const S = STAFF.find((x) => x.id === id);
+  if (hasStaff(g, id)) return { ok: false, msg: tt('Already on the team.', 'Jau komandoje.') };
+  if ((g.staff || []).length >= STAFF_MAX) return { ok: false, msg: tt('Your HQ is full: let someone go first.', 'Štabas pilnas: pirmiausia ką nors atleiskite.') };
+  const fee = S.wage * 2;
+  if (g.money < fee) return { ok: false, msg: tt(`Signing fee: ${fmtEur(fee)}.`, `Įstojimo išmoka: ${fmtEur(fee)}.`) };
+  spend(g, fee);
+  g.staff = [...(g.staff || []), id];
+  if (id === 'strategist') { g.apMax += 1; g.ap += 1; }
+  return { ok: true, tone: 'good', msg: tt(`${S.name.en} joins your HQ.`, `${S.name.lt} prisijungia prie štabo.`) };
+}
+function fireStaff(g, id) {
+  if (!hasStaff(g, id)) return { ok: false };
+  g.staff = g.staff.filter((x) => x !== id);
+  if (id === 'strategist') { g.apMax -= 1; g.ap = Math.min(g.ap, g.apMax); }
+  g.unity = clamp(g.unity - 1, 0, 100);
+  const S = STAFF.find((x) => x.id === id);
+  return { ok: true, tone: 'warn', msg: tt(`${S.name.en} leaves the campaign.`, `${S.name.lt} palieka kampaniją.`) };
+}
+// Runoff pacts: a partner's voters lean to you in your runoffs, yours to them in theirs.
+function pactCost(g, q) {
+  if (q === g.player || q === 'KITI') return null;
+  const c = compat(g, g.player, q);
+  return c >= 55 ? 1 : c >= 40 ? 2 : null;
+}
+function runoffTally(g, ctx, e, pacts, boosts, extraNoise) {
+  const me = g.player;
+  const A = e.runoff.a, B = e.runoff.b;
+  const tAff = (q, X) => {
+    let a = transferAff(g, q, X) * (X === ctx.lead0 ? ctx.damp : 1);
+    if (pacts && X === me && pacts[q]) a *= 2.4;
+    if (pacts && q === me && pacts[X]) a *= 2.4;
+    return a;
+  };
+  let va = e.sA * 0.9, vb = e.sB * 0.9;
+  const mine = A === me || B === me;
+  for (const x of e.cand) {
+    if (x.p === A || x.p === B) continue;
+    const da = tAff(x.p, A), db = tAff(x.p, B);
+    const turn = pacts && mine && pacts[x.p] ? 0.75 : 0.6;
+    va += (x.s * turn * da) / (da + db);
+    vb += (x.s * turn * db) / (da + db);
+  }
+  va *= e.nA * (1 + g.gg[e.rid][A] / 600);
+  vb *= e.nB * (1 + g.gg[e.rid][B] / 600);
+  const b = (boosts && boosts[e.cid]) || 0;
+  if (A === me) va *= 1 + 0.06 * b;
+  if (B === me) vb *= 1 + 0.06 * b;
+  if (extraNoise) { va *= Math.exp(gauss() * 0.03); vb *= Math.exp(gauss() * 0.03); }
+  const t = va + vb;
+  return { sa: (va / t) * 100, sb: (vb / t) * 100, winner: va >= vb ? A : B, margin: (Math.abs(va - vb) / t) * 100 };
+}
+function applyRunoffDeals(g, pacts, boosts) {
+  const E = g.election;
+  const me = g.player;
+  const chosen = Object.keys(pacts).filter((q) => pacts[q]);
+  g.pc = Math.max(0, g.pc - sum(chosen.map((q) => pactCost(g, q) || 0)));
+  g.pacts = chosen;
+  E.smd.forEach((e) => {
+    if (e.round !== 2) return;
+    const r = runoffTally(g, E, e, pacts, boosts, true);
+    e.runoff = { ...e.runoff, sa: r.sa, sb: r.sb };
+    e.winner = r.winner;
+    e.margin = r.margin;
+  });
+  const seats = Object.fromEntries(ALL_IDS.map((q) => [q, E.pr[q] || 0]));
+  const smdSeats = Object.fromEntries(ALL_IDS.map((q) => [q, 0]));
+  E.smd.forEach((e) => { seats[e.winner] += 1; smdSeats[e.winner] += 1; });
+  E.seats = seats;
+  E.smdSeats = smdSeats;
+  E.dealsDone = true;
+  if (chosen.length) addNews(g, { kind: 'pacts', list: chosen });
+}
+
 // Where each leader starts the campaign (party HQ or home turf).
 const HOME = { NA: 'TAU', LLRA: 'VLC', DP: 'KNC', KS: 'KNS' };
 // Land borders between the 13 campaign regions (cities sit inside their counties).
@@ -1065,6 +1294,56 @@ const EVENTS = [
     ],
   },
   {
+    id: 'rv_debts', rival: true, cat: bi('Rival scandal', 'Varžovų skandalas'), icon: Search, scene: 'seimas',
+    title: bi('A candidate on the {P} list hid €200,000 in debts', '{P} sąrašo kandidatas nuslėpė 200 000 eurų skolų'),
+    body: bi('Journalists find unpaid loans and a court case in {R}. The {P} campaign is scrambling.', 'Žurnalistai rado negrąžintų paskolų ir teismo bylą – {R}. {P} štabas blaškosi.'),
+    choices: [
+      { label: bi('Hit them hard on every channel', 'Smogti visais kanalais'), tag: 'populist', rivalHit: 1, risk: { chance: 0.7, ok: { mom: 1, reg: [['RV', 0.6]] }, okText: bi('The attack lands.', 'Smūgis pataikė.'), fail: { mom: -0.4, cred: -3 }, failText: bi('Voters find it petty.', 'Rinkėjams tai pasirodė smulkmeniška.') } },
+      { label: bi('Stay above it', 'Likti virš to'), tag: 'moderate', fx: { cred: 3, unity: 2 } },
+      { label: bi('Ask the VRK to check every list', 'Prašyti VRK patikrinti visus sąrašus'), tag: 'moderate', fx: { pc: 1, cred: 1 } },
+    ],
+  },
+  {
+    id: 'rv_posters', rival: true, cat: bi('Rival scandal', 'Varžovų skandalas'), icon: Eye, scene: 'town',
+    title: bi('Video: {P} activists tear down rivals’ posters in {R}', 'Vaizdo įrašas: {P} aktyvistai plėšia varžovų plakatus – {R}'),
+    body: bi('A night-time phone video spreads fast. Your posters are among those on the ground.', 'Naktį nufilmuotas įrašas sparčiai plinta. Tarp nuplėštų – ir jūsų plakatai.'),
+    choices: [
+      { label: bi('Share it everywhere', 'Dalintis visur'), tag: 'populist', rivalHit: 0.8, fx: { mom: 1, reg: [['RV', 0.5]], scandal: 2 } },
+      { label: bi('Call for a clean campaign', 'Kviesti švariai kampanijai'), tag: 'moderate', fx: { cred: 3, reg: [['RV', 0.3]] } },
+      { label: bi('File a complaint with the VRK', 'Skųstis VRK'), tag: 'moderate', fx: { pc: 1, reg: [['RV', 0.4]] } },
+    ],
+  },
+  {
+    id: 'rv_defect', rival: true, cat: bi('Defections', 'Perbėgėliai'), icon: Users, scene: 'town',
+    title: bi('Two {P} councillors in {R} want to join you', 'Du {P} tarybos nariai – {R} – nori prisijungti prie jūsų'),
+    body: bi('They bring local networks and a few thousand loyal voters. Your own members there are not thrilled.', 'Jie atsineša vietos ryšius ir kelis tūkstančius lojalių rinkėjų. Jūsų pačių nariai ten nesidžiaugia.'),
+    choices: [
+      { label: bi('Welcome both with a press event', 'Pasveikinti abu su spaudos renginiu'), tag: null, rivalHit: 0.6, fx: { reg: [['RV', 1.4]], unity: -4, mom: 0.4 } },
+      { label: bi('Take one, quietly', 'Priimti vieną, tyliai'), tag: null, fx: { reg: [['RV', 0.7]], unity: -1 } },
+      { label: bi('Turn them away: no turncoats', 'Atsisakyti: jokių perbėgėlių'), tag: null, fx: { unity: 4, cred: 2 } },
+    ],
+  },
+  {
+    id: 'rv_hotmic', rival: true, cat: bi('Rival gaffe', 'Varžovų gafa'), icon: Mic, scene: 'studio',
+    title: bi('Hot mic: {P}’s campaign chief mocks voters in {R}', 'Neišjungtas mikrofonas: {P} štabo vadovas tyčiojasi iš {R} rinkėjų'),
+    body: bi('“They’ll vote for anyone who promises them a road,” the recording says. It is on every news site by lunchtime.', '„Jie balsuos už bet ką, kas pažadės kelią“, – girdėti įraše. Iki pietų jis visuose portaluose.'),
+    choices: [
+      { label: bi('Go to {R} and promise the road', 'Nuvažiuoti į {R} ir pažadėti kelią'), tag: 'populist', rivalHit: 0.6, fx: { reg: [['RV', 1.2]], mom: 0.4 } },
+      { label: bi('Say voters deserve respect from everyone', 'Pasakyti, kad rinkėjai nusipelno visų pagarbos'), tag: 'moderate', fx: { cred: 2, reg: [['RV', 0.5]] } },
+      { label: bi('Turn it into an attack ad', 'Paversti tai puolamąja reklama'), tag: 'populist', rivalHit: 1.2, fx: { mom: 0.8, reg: [['RV', 0.6]], cred: -1 } },
+    ],
+  },
+  {
+    id: 'unity_revolt', followUp: true, cat: bi('Party', 'Partija'), icon: Users, scene: 'seimas',
+    title: bi('Revolt in your parliamentary group', 'Maištas jūsų frakcijoje'),
+    body: bi('A dozen party heavyweights sign a letter: the campaign has lost its way and broken too many promises. They want changes, now.', 'Keliolika partijos sunkiasvorių pasirašo laišką: kampanija paklydo ir sulaužė per daug pažadų. Jie reikalauja pokyčių – dabar.'),
+    choices: [
+      { label: bi('Give in: go back to the party programme', 'Nusileisti: grįžti prie partijos programos'), tag: null, fx: { unity: 14, restore: true, cred: -2 } },
+      { label: bi('Discipline the ringleaders', 'Nubausti kurstytojus'), tag: null, fx: { unity: 8, pc: -2, mom: -0.6 } },
+      { label: bi('Ignore the letter', 'Ignoruoti laišką'), tag: null, fx: { unity: -5, cred: -2 } },
+    ],
+  },
+  {
     id: 'scandal_mp', scandal: true, cat: bi('Scandal', 'Skandalas'), icon: Flame,
     title: bi('Your party’s MP filmed driving drunk in Kaunas', 'Jūsų partijos Seimo narys nufilmuotas vairuojantis neblaivus Kaune'),
     body: bi('The dashcam video has 400,000 views by breakfast. Every TV channel wants your reaction.', 'Iki pusryčių vaizdo registratoriaus įrašas surinko 400 000 peržiūrų. Visi kanalai laukia jūsų reakcijos.'),
@@ -1592,7 +1871,8 @@ function applyRegionDelta(g, rid, p, d) {
 }
 function addScandal(g, x) {
   g.scandal = clamp(g.scandal + (x > 0 && g.player === 'NA' ? x * 2 : x), 0, 100);
-  if (x > 0 && g.cred != null) g.cred = clamp(g.cred - x * 0.3, 0, 100);
+  if (x > 0 && g.cred != null) g.cred = clamp(g.cred - x * (g.scen === 'scandal' ? 0.45 : 0.3), 0, 100);
+  if (x > 0 && g.unity != null) g.unity = clamp(g.unity - x * 0.12, 0, 100);
 }
 // Consequences are collected through the week and shown in the weekly recap.
 function addCons(g, tone, text, rid) {
@@ -1611,6 +1891,8 @@ function pledge(g, ax, dir, source) {
   if (prev && prev.dir !== dir) {
     addCred(g, -10);
     g.momentum[g.player] = clamp(g.momentum[g.player] - 0.6, -10, 10);
+    if (g.unity != null) g.unity = clamp(g.unity - 5, 0, 100);
+    if (g.stats) g.stats.flips = (g.stats.flips || 0) + 1;
     addCons(g, 'bad', bi(`Flip-flop! In week ${prev.week} you promised “${side(prev.dir).en}” on ${axL.label.en.toLowerCase()}, now the opposite. Credibility −10.`,
       `Pozicijos keitimas! ${prev.week} sav. žadėjote „${side(prev.dir).lt}“ (${axL.label.lt.toLowerCase()}), o dabar – priešingai. Patikimumas −10.`));
     prev.dir = dir; prev.week = g.week; prev.n = 1; prev.source = source;
@@ -1629,7 +1911,7 @@ function spend(g, k) { g.money -= k; g.stats.spent += k; }
 function vrkCheck(g) {
   if (g.vrkHit || g.stats.spent <= VRK_LIMIT) return null;
   g.vrkHit = true;
-  const fine = Math.min(g.money, 150);
+  const fine = Math.min(g.money, hasStaff(g, 'lawyer') ? 75 : 150);
   g.money -= fine;
   g.momentum[g.player] = clamp(g.momentum[g.player] - 1.5, -10, 10);
   addScandal(g, 10);
@@ -1640,7 +1922,7 @@ function vrkCheck(g) {
 /* ============================================================
    New game
    ============================================================ */
-function newGame(pid, advisor = true) {
+function newGame(pid, advisor = true, diff = 'normal', scen = 'standard') {
   const seed = (Math.random() * 1e9) | 0;
   const rand = mulberry32(seed);
   const support = {}, undecided = {}, gg = {}, boost = {};
@@ -1670,7 +1952,7 @@ function newGame(pid, advisor = true) {
     }
   });
   const g = {
-    v: 5, seed, player: pid, week: 1, phase: 'campaign', tut: advisor ? 0 : 99, advisor,
+    v: 6, seed, player: pid, week: 1, phase: 'campaign', tut: advisor ? 0 : 99, advisor,
     ap: 6, apMax: 6, money: PARTIES[pid].funds, pc: 6, scandal: pid === 'NA' ? 10 : 4,
     stance: { ...PARTIES[pid].pos }, lastShift: {},
     momentum: Object.fromEntries(ALL_IDS.map((p) => [p, 0])),
@@ -1688,9 +1970,17 @@ function newGame(pid, advisor = true) {
     leaderAt: HOME[pid] || 'VNO', freeTrip: true, route: [HOME[pid] || 'VNO'], cred: 65, promises: [], followUps: [], consequences: [],
     provoked: {}, lastVisit: Object.fromEntries(REGIONS.map((r) => [r.id, 1])), neglected: {}, weekMoves: [], rivalMoves: [], rivalAt: {},
     newsPins: [], encWeek: 0, usedEnc: [], endorsements: [],
+    diff, scen, staff: [], theme: null, themeStreak: 0, unity: 70, objective: null, pacts: [], weekRaised: 0, weekShady: false,
+    toured: [HOME[pid] || 'VNO'],
   };
+  g.stats.objectives = 0; g.stats.flips = 0; g.stats.kompro = 0;
+  if (scen === 'energy') { ['LSDP', 'NA', 'LVZS'].forEach((q) => { g.momentum[q] -= 1.4; }); g.followUps.push({ id: 'energy', week: 2 }); }
+  if (scen === 'security') { g.momentum.TS += 1.4; g.momentum.LS += 0.6; g.momentum.NA -= 0.5; g.momentum.LLRA -= 0.5; g.followUps.push({ id: 'drones', week: 2 }); }
+  if (scen === 'scandal') { g.scandal += 8; g.cred = 55; PARTY_IDS.forEach((q) => { g.momentum[q] += gauss() * 0.8; }); }
+  g.objective = makeObjective(g);
   g.weekStart = Object.fromEntries(REGIONS.map((r) => [r.id, regionShares(g, r)]));
   g.prevStart = g.weekStart;
+  g.weekNatStart = nationalShares(g)[pid];
   g.history.push({ week: 0, shares: nationalShares(g) });
   addNews(g, { kind: 'launch' });
   return g;
@@ -1715,9 +2005,9 @@ function actionPreview(g, rid, type) {
   const r = REG[rid], p = g.player;
   const n = g.weekActs[rid] || 0;
   const sh = regionShares(g, r)[p];
-  const k = FATIGUE[Math.min(n, FATIGUE.length - 1)] * satOf(p, r, sh) * geoMult(p, r);
+  const k = FATIGUE[Math.min(n, FATIGUE.length - 1)] * satOf(p, r, sh) * geoMult(p, r) * themeMult(g, r) * (hasStaff(g, 'pollster') ? 1.06 : 1);
   if (type === 'rally') return POWER.rally * traitMult(p, 'rally', r) * k * (g.leaderAt === rid ? LEADER_RALLY : NO_LEADER_RALLY);
-  if (type === 'digital') return POWER.digital * (0.35 + r.urban) * traitMult(p, 'digital', r) * k;
+  if (type === 'digital') return POWER.digital * (0.35 + r.urban) * traitMult(p, 'digital', r) * k * (hasStaff(g, 'digital') ? 1.3 : 1);
   if (type === 'tv') return POWER.tv * (1.25 - 0.65 * r.urban) * traitMult(p, 'tv', r) * k;
   if (type === 'door') return POWER.door * k;
   return 0;
@@ -1755,6 +2045,7 @@ function travel(g, rid) {
   g.leaderAt = rid;
   g.route.push(rid);
   g.lastVisit[rid] = g.week;
+  if (!(g.toured || []).includes(rid)) g.toured = [...(g.toured || []), rid];
   return { ok: true, tone: 'good', msg: tt(`${leaderSurname(g.player)} is now in ${rs(rid)}. Rallies here get a boost.`, `${leaderSurname(g.player)} dabar – ${rs(rid)}. Mitingai čia stipresni.`) };
 }
 const LEADER_RALLY = 1.3, NO_LEADER_RALLY = 0.85;
@@ -1783,7 +2074,8 @@ function doRegionAction(g, rid, type) {
   const fat = FATIGUE[Math.min(n, FATIGUE.length - 1)];
   const here = g.leaderAt === rid;
   const early = g.week >= WEEKS ? 0.85 : 1;
-  const k = fat * satOf(p, r, before[p]) * geoMult(p, r) * (0.85 + Math.random() * 0.3) * early;
+  const k = fat * satOf(p, r, before[p]) * geoMult(p, r) * (0.85 + Math.random() * 0.3) * early * themeMult(g, r) * (hasStaff(g, 'pollster') ? 1.06 : 1);
+  g.themeLocked = true;
   g.weekMoves.push({ rid, type });
   g.lastVisit[rid] = g.week;
   let tone = 'good';
@@ -1793,13 +2085,13 @@ function doRegionAction(g, rid, type) {
     gainSupport(g, rid, p, POWER.rally * traitMult(p, 'rally', r) * k * (here ? LEADER_RALLY : NO_LEADER_RALLY), 0.5);
     g.boost[rid][p] = Math.min(0.25, g.boost[rid][p] + 0.03);
   } else if (type === 'digital') {
-    gainSupport(g, rid, p, POWER.digital * (0.35 + r.urban) * traitMult(p, 'digital', r) * k, 0.8);
+    gainSupport(g, rid, p, POWER.digital * (0.35 + r.urban) * traitMult(p, 'digital', r) * k * (hasStaff(g, 'digital') ? 1.3 : 1), 0.8);
     if (p === 'LS' || p === 'LP') g.boost[rid][p] = Math.min(0.25, g.boost[rid][p] + 0.015 * r.urban);
   } else if (type === 'tv') {
     gainSupport(g, rid, p, POWER.tv * (1.25 - 0.65 * r.urban) * traitMult(p, 'tv', r) * k, 0.8);
   } else if (type === 'door') {
     const gg0 = g.gg[rid][p];
-    g.gg[rid][p] = Math.min(100, gg0 + 14 * (1 - gg0 / 110) * geoMult(p, r) * (p === 'DP' ? 1.5 : 1) * (here ? 1.25 : 1));
+    g.gg[rid][p] = Math.min(100, gg0 + 14 * (1 - gg0 / 110) * geoMult(p, r) * (p === 'DP' ? 1.5 : 1) * (here ? 1.25 : 1) * (hasStaff(g, 'field') ? 1.5 : 1));
     g.boost[rid][p] = Math.min(0.25, g.boost[rid][p] + 0.02);
     gainSupport(g, rid, p, POWER.door * k, 0.6);
     msg = tt(`Volunteers knocked on doors in ${rs(r)}: ground team ${Math.round(gg0)}→${Math.round(g.gg[rid][p])}`, `Savanoriai agitavo – ${rs(r)}: komanda ${Math.round(gg0)}→${Math.round(g.gg[rid][p])}`);
@@ -1833,7 +2125,7 @@ function doRegionAction(g, rid, type) {
 }
 function galaAmount(g) {
   const share = nationalShares(g)[g.player];
-  return Math.round((80 + 3.5 * share) * FUND_MULT[g.player] * [1, 0.7, 0.5, 0.35][Math.min(g.natActs.gala || 0, 3)]);
+  return Math.round((80 + 3.5 * share) * FUND_MULT[g.player] * [1, 0.7, 0.5, 0.35][Math.min(g.natActs.gala || 0, 3)] * (hasStaff(g, 'fundraiser') ? 1.25 : 1));
 }
 function smallAmount(g) {
   const share = nationalShares(g)[g.player];
@@ -1854,17 +2146,18 @@ function doNational(g, id, target) {
   let tone = 'good';
   if (id === 'gala') {
     const amt = Math.round(galaAmount(g) * (0.9 + Math.random() * 0.2));
-    g.money += amt; addScandal(g, 1.5);
+    g.money += amt; addScandal(g, 1.5); g.weekRaised = (g.weekRaised || 0) + amt;
     msg = tt(`Donor dinner raised ${fmtEur(amt)}`, `Rėmėjų vakarienė surinko ${fmtEur(amt)}`);
   } else if (id === 'small') {
     const amt = Math.round(smallAmount(g) * (0.9 + Math.random() * 0.2));
-    g.money += amt;
+    g.money += amt; g.weekRaised = (g.weekRaised || 0) + amt;
     if (['NA', 'LVZS', 'LP', 'LLRA', 'DP', 'KS', 'LZP'].includes(p)) g.momentum[p] = clamp(g.momentum[p] + 0.4, -10, 10);
     msg = tt(`Small donors chipped in ${fmtEur(amt)}`, `Smulkūs aukotojai suaukojo ${fmtEur(amt)}`);
   } else if (id === 'lobby') {
     g.pc -= A.pc;
     const amt = lobbyAmount(g);
-    g.money += amt; addScandal(g, 12);
+    g.money += amt; addScandal(g, 12); g.weekRaised = (g.weekRaised || 0) + amt; g.weekShady = true;
+    g.unity = clamp(g.unity - 2, 0, 100);
     msg = tt(`Business deal: +${fmtEur(amt)}. Scandal risk is rising!`, `Verslo sandoris: +${fmtEur(amt)}. Skandalo rizika auga!`);
     tone = 'warn';
   } else if (id === 'tvspot') {
@@ -1872,7 +2165,7 @@ function doNational(g, id, target) {
     for (const r of REGIONS) gainSupport(g, r.id, p, 0.4 * (1.15 - 0.4 * r.urban) * geoMult(p, r) * satOf(p, r, regionShares(g, r)[p]), 0.7);
     msg = tt(`TV ad aired everywhere: ${fmtSignedPct(nationalShares(g)[p] - before)} nationally`, `TV reklama visoje šalyje: ${fmtSignedPct(nationalShares(g)[p] - before)}`);
   } else if (id === 'presser') {
-    const d = 0.9 * [1, 0.55, 0.3, 0.15][Math.min(n, 3)];
+    const d = 0.9 * [1, 0.55, 0.3, 0.15][Math.min(n, 3)] * (hasStaff(g, 'press') ? 1.5 : 1);
     g.momentum[p] = clamp(g.momentum[p] + d, -10, 10);
     msg = tt(`You lead the evening news: buzz ${fmtSigned(d)}`, `Jūs – vakaro žiniose: pagreitis ${fmtSigned(d)}`);
   } else if (id === 'backchannel') {
@@ -1881,13 +2174,15 @@ function doNational(g, id, target) {
     msg = d ? tt(`Coffee with rivals: +${d} favour${d > 1 ? 's' : ''}`, `Kava su varžovais: +${d} ${plur(d, '', '', 'ryšys', 'ryšiai', 'ryšių')}`) : tt('Nobody wants another coffee this week.', 'Šią savaitę niekas nebenori kavos.');
   } else if (id === 'kompro') {
     const roll = Math.random();
+    g.weekShady = true;
+    g.stats.kompro = (g.stats.kompro || 0) + 1;
     if (roll < 0.45) {
       g.momentum[target] = clamp(g.momentum[target] - 2.5, -10, 10);
       for (const r of REGIONS) loseSupport(g, r.id, target, 0.5 * (1 - g.gg[r.id][target] / 200), 0.6);
       REGIONS.forEach((r) => normalizeRegion(g, r.id));
       addNews(g, { kind: 'kompro', target, outcome: 'hit' });
       msg = tt(`Jackpot: leaked documents embarrass ${partyShort(target)}!`, `Pavyko: nutekinti dokumentai sukompromitavo ${partyShort(target)}!`);
-    } else if (roll < 0.8) {
+    } else if (roll < (hasStaff(g, 'lawyer') ? 0.9 : 0.8)) {
       msg = tt('Your investigators found nothing useful.', 'Tyrėjai nieko naudingo nerado.');
       tone = 'warn';
     } else {
@@ -1934,7 +2229,8 @@ function casinoSpin(g, stake, bet) {
   g.stats.gambleNet += payout - stake;
   g.stats.gambles += 1;
   addScandal(g, win ? 5 : 3);
-  const caught = Math.random() < 0.12;
+  const caught = Math.random() < (hasStaff(g, 'lawyer') ? 0.06 : 0.12);
+  g.weekShady = true;
   if (caught) gambleCaught(g, 'casino');
   return { ok: true, n, color, win, payout, caught };
 }
@@ -1956,7 +2252,8 @@ function sportsBet(g, stake, pick) {
   g.stats.gambleNet += payout - stake;
   g.stats.gambles += 1;
   addScandal(g, win ? 5 : 3);
-  const caught = Math.random() < 0.12;
+  const caught = Math.random() < (hasStaff(g, 'lawyer') ? 0.06 : 0.12);
+  g.weekShady = true;
   if (caught) gambleCaught(g, 'bet');
   return { ok: true, opp, zalg, other, win, payout, caught, odds };
 }
@@ -1985,6 +2282,10 @@ function announcePlatform(g, draft) {
   addNews(g, { kind: 'platform', changes: c.changes.map((a) => [a, draft[a]]), uturn: c.uturns.length > 0 });
   g.stance = { ...draft };
   g.momentum[g.player] = clamp(g.momentum[g.player] - c.mom, -10, 10);
+  if (driftSteps(draft, PARTIES[g.player].pos) > 2.5) {
+    g.unity = clamp(g.unity - 3, 0, 100);
+    addCons(g, 'bad', bi('Party veterans grumble that you have drifted far from the party programme (unity −3).', 'Partijos senbuviai burba, kad nutolote nuo partijos programos (vienybė −3).'));
+  }
   g.pc = Math.max(0, g.pc - c.pc);
   g.stats.shifts += c.steps;
   return { ok: true, tone: c.mom > 0 ? 'warn' : 'good', msg: tt('New promises announced', 'Nauji pažadai paskelbti') + (c.mom > 0 ? tt(` · buzz ${fmtSigned(-c.mom)}`, ` · pagreitis ${fmtSigned(-c.mom)}`) : '') };
@@ -2004,7 +2305,7 @@ function aiTurn(g) {
   for (const p of PARTY_IDS) {
     if (p === g.player) continue;
     const nat = nationalShares(g)[p];
-    const n = nat > 14 ? 4 : nat > 7 ? 3 : nat > 3 ? 2 : 1;
+    const n = Math.max(1, (nat > 14 ? 4 : nat > 7 ? 3 : nat > 3 ? 2 : 1) + (DIFFS[g.diff || 'normal'].ai > 0 && nat > 7 ? 1 : DIFFS[g.diff || 'normal'].ai < 0 ? -1 : 0));
     const size = clamp(Math.sqrt(nat / 12), 0.5, 1.15);
     const list = [];
     const prov = g.provoked && g.provoked[p];
@@ -2032,7 +2333,7 @@ function aiTurn(g) {
       const r = REGIONS[weightedPick(weights)];
       const sh = regionShares(g, r);
       const roll = Math.random();
-      const atk = (p === 'NA' ? 0.24 : 0.1) + (playerFront ? 0.08 : 0);
+      const atk = (p === 'NA' ? 0.24 : 0.1) + (playerFront ? 0.08 : 0) + (g.diff === 'hard' ? 0.06 : 0);
       let type = roll < atk ? 'attack' : roll < atk + 0.38 ? 'rally' : roll < atk + 0.76 ? (r.urban > 0.6 ? 'digital' : 'tv') : 'door';
       const k = 0.75 * size * geoMult(p, r) * satOf(p, r, sh[p]) * (0.8 + Math.random() * 0.4);
       let target = null;
@@ -2097,7 +2398,9 @@ function weeklyDrift(g) {
   for (const G of GROUPS) g.groupMood[G.id] *= 0.93;
 }
 function pickEvent(g) {
-  const pool = EVENTS.filter((e) => !e.scandal && !e.followUp && !g.usedEvents.includes(e.id));
+  const rivalPool = EVENTS.filter((e) => e.rival && !g.usedEvents.includes(e.id));
+  if (rivalPool.length && Math.random() < (g.scen === 'scandal' ? 0.6 : 0.3)) return rivalPool[Math.floor(Math.random() * rivalPool.length)].id;
+  const pool = EVENTS.filter((e) => !e.scandal && !e.followUp && !e.rival && !g.usedEvents.includes(e.id));
   if (!pool.length) return null;
   return pool[Math.floor(Math.random() * pool.length)].id;
 }
@@ -2111,9 +2414,25 @@ function startWeek(g) {
   g.weekStart = Object.fromEntries(REGIONS.map((r) => [r.id, regionShares(g, r)]));
   g.newsPins = (g.newsPins || []).filter((x) => g.week - x.week < 2);
   const share = nationalShares(g)[g.player];
-  const income = Math.round((40 + 5 * share) * FUND_MULT[g.player]);
+  const income = Math.round((40 + 5 * share) * FUND_MULT[g.player] * DIFFS[g.diff || 'normal'].income * (hasStaff(g, 'fundraiser') ? 1.35 : 1));
   g.money += income;
   g.lastIncome = income;
+  g.apMax = 6 + (hasStaff(g, 'strategist') ? 1 : 0);
+  g.ap = g.apMax;
+  const wages = sum((g.staff || []).map((id) => STAFF.find((x) => x.id === id).wage));
+  if (wages) {
+    if (g.money >= wages) { g.money -= wages; g.lastWages = wages; }
+    else {
+      const gone = g.staff[g.staff.length - 1];
+      fireStaff(g, gone);
+      g.money = Math.max(0, g.money - sum(g.staff.map((id) => STAFF.find((x) => x.id === id).wage)));
+      addCons(g, 'bad', bi(`You couldn’t pay wages: your ${STAFF.find((x) => x.id === gone).name.en.toLowerCase()} quit.`, `Neturėjote kuo sumokėti algų: išėjo ${STAFF.find((x) => x.id === gone).name.lt.toLowerCase()}.`));
+    }
+  }
+  g.weekRaised = 0; g.weekShady = false; g.themeLocked = false;
+  g.weekNatStart = nationalShares(g)[g.player];
+  g.objective = makeObjective(g);
+  if (g.unity < 40 && !g.usedEvents.includes('unity_revolt') && !(g.followUps || []).some((f) => f.id === 'unity_revolt')) g.followUps.push({ id: 'unity_revolt', week: g.week });
   g.weekActs = {}; g.natActs = {}; g.weekLog = {}; g.attacksThisWeek = 0;
   if (DEBATE_WEEKS.includes(g.week)) g.queue.push({ type: 'debate', id: DEBATE_WEEKS.indexOf(g.week) });
   let ev = null;
@@ -2125,10 +2444,18 @@ function startWeek(g) {
   if (!ev && due) { ev = due.id; g.followUps = g.followUps.filter((f) => f !== due); }
   if (!ev && (g.week - g.lastEventWeek >= 2 || Math.random() < 0.4)) ev = pickEvent(g);
   if (ev) {
-    g.queue.push({ type: 'event', id: ev });
+    const item = { type: 'event', id: ev };
+    if (EVENT_MAP[ev].rival) {
+      const nat = nationalShares(g);
+      const pool = PARTY_IDS.filter((q) => q !== g.player).sort((a, b) => nat[b] - nat[a]).slice(0, 6);
+      item.rv = pool[weightedPick(pool.map((q) => nat[q]))];
+      item.rr = REGIONS.filter((r) => r.id !== 'ABR').sort((a, b) => regionShares(g, b)[item.rv] - regionShares(g, a)[item.rv])[0].id;
+    }
+    g.queue.push(item);
     g.usedEvents.push(ev);
     g.lastEventWeek = g.week;
-    if (EVENT_MAP[ev].rid) g.newsPins.push({ rid: EVENT_MAP[ev].rid, id: ev, week: g.week });
+    const pinR = item.rr || EVENT_MAP[ev].rid;
+    if (pinR) g.newsPins.push({ rid: pinR, id: ev, week: g.week, rv: item.rv });
   }
 }
 function neglectCheck(g) {
@@ -2162,6 +2489,16 @@ function runEndorsements(g) {
   });
 }
 function endWeek(g) {
+  judgeObjective(g);
+  if (g.theme) {
+    const T = THEME_MAP[g.theme];
+    g.themeStreak = g.theme === g.lastTheme ? (g.themeStreak || 0) + 1 : 1;
+    g.lastTheme = g.theme;
+    Object.entries(T.groups).forEach(([id, d]) => { g.groupMood[id] = clamp((g.groupMood[id] || 0) + d, -20, 20); });
+    if (T.cred) addCred(g, T.cred);
+    g.momentum[g.player] = clamp(g.momentum[g.player] + 0.12 * Math.min(g.themeStreak, 3), -10, 10);
+  }
+  if (g.unity >= 75) g.momentum[g.player] = clamp(g.momentum[g.player] + 0.15, -10, 10);
   const before = nationalShares(g);
   if (Object.values(g.weekLog).some((n) => n > 0)) addNews(g, { kind: 'you', log: { ...g.weekLog } });
   const moves = aiTurn(g);
@@ -2170,7 +2507,7 @@ function endWeek(g) {
   runEndorsements(g);
   g.cred = clamp(g.cred + (62 - g.cred) * 0.06, 0, 100);
   for (const p of ALL_IDS) g.momentum[p] *= 0.8;
-  g.scandal = Math.max(0, g.scandal - 1.5);
+  g.scandal = Math.max(0, g.scandal - (hasStaff(g, 'press') ? 3 : 1.5));
   const mid = nationalShares(g);
   const ord = PARTY_IDS.slice().sort((a, b) => mid[b] - mid[a]);
   const lead = mid[ord[0]] - mid[ord[1]];
@@ -2247,6 +2584,12 @@ function applyFx(g, fx, tag, isScandal) {
   const p = g.player;
   const mult = ((TAG_BONUS[tag] && TAG_BONUS[tag][p]) || 1) * credMult(g);
   if (fx.cred) addCred(g, fx.cred);
+  if (fx.unity) g.unity = clamp((g.unity == null ? 70 : g.unity) + fx.unity, 0, 100);
+  if (fx.restore) {
+    const orig = PARTIES[p].pos;
+    const ax = AXIS_IDS.slice().sort((a, b) => Math.abs(g.stance[b] - orig[b]) - Math.abs(g.stance[a] - orig[a]))[0];
+    if (g.stance[ax] !== orig[ax]) g.stance = { ...g.stance, [ax]: g.stance[ax] + Math.sign(orig[ax] - g.stance[ax]) * 30 };
+  }
   if (fx.axis) pledge(g, fx.axis[0], fx.axis[1], 'event');
   if (fx.money) g.money = Math.max(0, g.money + fx.money);
   if (fx.pc) g.pc = Math.max(0, g.pc + fx.pc);
@@ -2266,14 +2609,21 @@ function resolveEvent(g, ci) {
   const before = { share: nationalShares(g)[p], money: g.money, pc: g.pc, mom: g.momentum[p], cred: g.cred };
   const c0 = (g.consequences || []).length;
   let note = null;
+  const here = (fx) => (item.rr ? { ...fx, reg: (fx.reg || []).map(([t, d]) => [t === 'RV' ? item.rr : t, d]) } : fx);
+  if (ev.rival && item.rv) {
+    g.momentum[item.rv] = clamp(g.momentum[item.rv] - 1.5, -10, 10);
+    loseSupport(g, item.rr, item.rv, 0.8, 0.6);
+    normalizeRegion(g, item.rr);
+  }
   if (ch.risk) {
     const ok = Math.random() < ch.risk.chance;
-    applyFx(g, ok ? ch.risk.ok : ch.risk.fail, ch.tag, ev.scandal);
+    applyFx(g, here(ok ? ch.risk.ok : ch.risk.fail), ch.tag, ev.scandal);
     note = ok ? ch.risk.okText : ch.risk.failText;
-  } else applyFx(g, ch.fx, ch.tag, ev.scandal);
+  } else applyFx(g, here(ch.fx), ch.tag, ev.scandal);
+  if (ch.rivalHit && item.rv) { g.momentum[item.rv] = clamp(g.momentum[item.rv] - ch.rivalHit, -10, 10); }
   const after = { share: nationalShares(g)[p], money: g.money, pc: g.pc, mom: g.momentum[p] };
   g.stats.events += 1;
-  addNews(g, { kind: 'event', ev: ev.id, ci, note });
+  addNews(g, { kind: 'event', ev: ev.id, ci, note, rv: item.rv, rr: item.rr });
   const fu = (FOLLOW_LINKS[ev.id] || {})[ci];
   if (fu && g.week < WEEKS - 1) {
     g.followUps.push({ id: fu, week: g.week + 2 + (Math.random() < 0.4 ? 1 : 0) });
@@ -2411,7 +2761,6 @@ function simulateElection(g, noisy) {
   const natOrd = PARTY_IDS.slice().sort((a, b) => natShares[b] - natShares[a]);
   const natLead = natShares[natOrd[0]] - natShares[natOrd[1]];
   const damp = natLead > 4 ? Math.max(0.45, 1 - (natLead - 4) * 0.09) : 1;
-  const tAff = (q, X) => transferAff(g, q, X) * (X === natOrd[0] ? damp : 1);
   const smd = [];
   for (const r of REGIONS) {
     r.cons.forEach((c, i) => {
@@ -2431,20 +2780,15 @@ function simulateElection(g, noisy) {
         e.round = 1; e.winner = ranked[0].p; e.margin = ranked[0].s - ranked[1].s;
       } else {
         const A = ranked[0], B = ranked[1];
-        let va = A.s * 0.9, vb = B.s * 0.9;
-        for (const x of cand) {
-          if (x.p === A.p || x.p === B.p) continue;
-          const da = tAff(x.p, A.p), db = tAff(x.p, B.p);
-          va += (x.s * 0.6 * da) / (da + db);
-          vb += (x.s * 0.6 * db) / (da + db);
-        }
-        va *= Math.exp(ng() * 0.05) * (1 + g.gg[r.id][A.p] / 600);
-        vb *= Math.exp(ng() * 0.05) * (1 + g.gg[r.id][B.p] / 600);
-        const tt2 = va + vb;
         e.round = 2;
-        e.runoff = { a: A.p, b: B.p, sa: (va / tt2) * 100, sb: (vb / tt2) * 100 };
-        e.winner = va >= vb ? A.p : B.p;
-        e.margin = (Math.abs(va - vb) / tt2) * 100;
+        e.cand = cand.map((x) => ({ p: x.p, s: x.s }));
+        e.sA = A.s; e.sB = B.s;
+        e.nA = Math.exp(ng() * 0.05); e.nB = Math.exp(ng() * 0.05);
+        e.runoff = { a: A.p, b: B.p };
+        const res = runoffTally(g, { damp, lead0: natOrd[0] }, e, null, null, false);
+        e.runoff.sa = res.sa; e.runoff.sb = res.sb;
+        e.winner = res.winner;
+        e.margin = res.margin;
       }
       smd.push(e);
     });
@@ -2452,7 +2796,7 @@ function simulateElection(g, noisy) {
   const seats = Object.fromEntries(ALL_IDS.map((p) => [p, pr[p] || 0]));
   const smdSeats = Object.fromEntries(ALL_IDS.map((p) => [p, 0]));
   smd.forEach((e) => { seats[e.winner] += 1; smdSeats[e.winner] += 1; });
-  return { regions, natShares, natVotes, total, eligible, pr, smd, seats, smdSeats, turnout: total / (TOTAL_VOTERS * 1000) };
+  return { regions, natShares, natVotes, total, eligible, pr, smd, seats, smdSeats, turnout: total / (TOTAL_VOTERS * 1000), damp, lead0: natOrd[0] };
 }
 
 /* ============================================================
@@ -2505,7 +2849,7 @@ const sizePenalty = (g, p) => (p === 'KITI' ? 0 : clamp(Math.round((g.election.s
 function willingness(g, p, coal) {
   const S = g.election.seats;
   const largest = ALL_IDS.slice().sort((a, b) => S[b] - S[a])[0];
-  let w = compat(g, g.player, p) + (coal.accepted[p] ? 15 : 0) + 7 * (coal.sweet[p] || 0) + (largest === g.player ? 8 : -5) - sizePenalty(g, p) + Math.round(((g.cred == null ? 65 : g.cred) - 60) / 5);
+  let w = compat(g, g.player, p) + (coal.accepted[p] ? 15 : 0) + 7 * (coal.sweet[p] || 0) + (largest === g.player ? 8 : -5) - sizePenalty(g, p) + Math.round(((g.cred == null ? 65 : g.cred) - 60) / 5) + ((g.pacts || []).includes(p) ? 6 : 0);
   coal.partners.forEach((q) => { if (q !== p && compat(g, p, q) < 25) w -= 18; });
   demandConflicts(g, coal.partners, coal.accepted).forEach(([, q]) => { if (q === p) w -= 10; });
   return clamp(Math.round(w), 0, 100);
@@ -2548,7 +2892,11 @@ function confidenceVote(g, members, stab) {
   const total = sum(members.map((p) => S[p]));
   const defectRate = clamp((72 - stab) / 380, 0, 0.13);
   let ayes = 0;
-  members.forEach((p) => { ayes += S[p] - Math.round(S[p] * defectRate * (0.4 + Math.random() * 1.2)); });
+  members.forEach((p) => {
+    let rebels = Math.round(S[p] * defectRate * (0.4 + Math.random() * 1.2));
+    if (p === g.player && g.unity != null && g.unity < 60) rebels += Math.round(S[p] * ((60 - g.unity) / 260) * (0.7 + Math.random() * 0.6));
+    ayes += S[p] - rebels;
+  });
   ayes += Math.round((141 - total) * (0.02 + Math.random() * 0.05));
   ayes = Math.min(141, ayes);
   const abst = Math.round((141 - ayes) * (0.06 + Math.random() * 0.08));
@@ -2659,13 +3007,13 @@ function groupApproval(g, G) {
 /* ============================================================
    Save / load (per-viewer convenience)
    ============================================================ */
-const SAVE_KEY = 'seimas-bfl-save-v5';
+const SAVE_KEY = 'seimas-bfl-save-v6';
 function loadSave() {
   try {
     const raw = window.localStorage.getItem(SAVE_KEY);
     if (!raw) return null;
     const g = JSON.parse(raw);
-    return g && g.v === 5 && g.phase !== 'result' ? g : null;
+    return g && g.v === 6 && g.phase !== 'result' ? g : null;
   } catch (e) { return null; }
 }
 function writeSave(g) {
@@ -2775,11 +3123,19 @@ const LOOKS = {
   business: { s: 0, hair: 'swept', hc: '#3A2A22', suit: '#1E293B', acc: '#0284C7', bg: '#BAE6FD' },
   public: { s: 1, hair: 'bob', hc: '#5A3A24', top: '#FFFFFF', fem: true, glasses: 'rect', steth: true, bg: '#BFDBFE' },
   minority: { s: 1, hair: 'long', hc: '#3A2A22', top: '#BE123C', fem: true, acc: '#FDB913', bg: '#FECDD3' },
+  strat: { s: 1, hair: 'swept', hc: '#3A2A22', suit: '#1F2937', glasses: 'rect', acc: '#F5A524', bg: '#FDE68A' },
+  pressec: { s: 0, hair: 'bob', hc: '#7A4A2E', top: '#6D28D9', fem: true, earring: true, acc: '#F5A524', bg: '#DDD6FE' },
+  digi: { s: 2, hair: 'messy', hc: '#1F1F1F', top: '#0EA5E9', hood: true, bg: '#BAE6FD' },
+  fieldorg: { s: 1, hair: 'long', hc: '#A0522D', top: '#15803D', fem: true, acc: '#FDE68A', bg: '#BBF7D0' },
+  pollst: { s: 0, hair: 'receding', hc: '#6B7280', suit: '#334155', glasses: 'round', acc: '#38BDF8', bg: '#CBD5E1' },
+  fundr: { s: 1, hair: 'bun', hc: '#1F1F1F', top: '#B91C1C', fem: true, acc: '#FDB913', bg: '#FECACA' },
+  lawyer: { s: 0, hair: 'side', hc: '#9CA3AF', suit: '#111827', acc: '#6B7280', mous: true, bg: '#E5E7EB' },
 };
 const CHAR_NAMES = {
   ruta: bi('Rūta, your campaign manager', 'Rūta, jūsų štabo vadovė'), host: bi('LRT debate host', 'LRT debatų vedėjas'),
   anchor: bi('News anchor', 'Žinių vedėja'), croupier: bi('Croupier', 'Krupjė'), detective: bi('Private investigator', 'Privatus detektyvas'),
   bookie: bi('Bookmaker', 'Lažybų agentas'),
+  ...Object.fromEntries(STAFF.map((x) => [x.look, x.name])),
 };
 function mixHex(a, b, k) {
   const pa = [1, 3, 5].map((i) => parseInt(a.slice(i, i + 2), 16));
@@ -2922,6 +3278,10 @@ function FaceArt({ who, mood = 'happy', ring, uid, shape = 'circle' }) {
       {shape === 'sq' && <rect x="2" y="2" width="60" height="60" rx="9" fill="none" stroke={ring || (P ? P.color : 'rgba(255,255,255,0.6)')} strokeWidth={ring ? 3 : 2.2} />}
     </g>
   );
+}
+// Fill {P} (rival party) and {R} (region) in rival-scandal stories.
+function evFill(text, it) {
+  return String(text).replace(/\{P\}/g, it && it.rv ? partyShort(it.rv) : '').replace(/\{R\}/g, it && it.rr ? L(REG[it.rr].short) : '');
 }
 function faceName(who) {
   const P = PARTIES[who];
@@ -4049,7 +4409,7 @@ function RegionIntel({ g, r }) {
   const rivals = (g.rivalMoves || []).map((m) => ({ p: m.p, list: m.list.filter((x) => x.rid === r.id) })).filter((m) => m.list.length);
   const away = g.week - (g.lastVisit[r.id] || 0);
   const items = [];
-  if (pin) items.push(<div key="pin" className="flex gap-2 items-start"><span className="grid place-items-center rounded-full text-white font-black shrink-0" style={{ width: 22, height: 22, background: '#E5484D', border: `1px solid ${LINE}` }}>!</span><span><span className="font-black">{tt('News here:', 'Naujiena čia:')}</span> {L(EVENT_MAP[pin.id].title)}</span></div>);
+  if (pin) items.push(<div key="pin" className="flex gap-2 items-start"><span className="grid place-items-center rounded-full text-white font-black shrink-0" style={{ width: 22, height: 22, background: '#E5484D', border: `1px solid ${LINE}` }}>!</span><span><span className="font-black">{tt('News here:', 'Naujiena čia:')}</span> {evFill(L(EVENT_MAP[pin.id].title), { rv: pin.rv, rr: pin.rid })}</span></div>);
   rivals.forEach((m) => items.push(<div key={m.p} className="flex gap-2 items-center"><Portrait who={m.p} size={28} mood={m.list.some((x) => x.target === me) ? 'grr' : 'ok'} /><span><span className="font-black">{partyShort(m.p)}</span> {tt('last week:', 'praėjusią sav.:')} {m.list.map((x) => moveWord(x, me)).join(', ')}</span></div>));
   if (away >= 3 && g.leaderAt !== r.id && r.id !== 'ABR' && r.seats >= 3 && raceInfo(g, r).status === 'safe') items.push(<div key="away" className="font-extrabold" style={{ color: AMBER }}>{tt(`A stronghold you haven’t visited for ${away} weeks. Ignore it for 4 and it starts to slip.`, `Tvirtovė, kurioje nebuvote jau ${away} sav. Apleista 4 sav., ji ima slysti.`)}</div>);
   if (!items.length) return null;
@@ -4225,9 +4585,10 @@ function NavRail({ tab, setTab }) {
     </nav>
   );
 }
-function SidePanel({ g, shares, onSelect }) {
+function SidePanel({ g, shares, onSelect, act }) {
   return (
     <div className="flex flex-col gap-4 sbl-scroll overflow-y-auto pr-1" style={{ position: 'sticky', top: 118, maxHeight: 'calc(100vh - 170px)' }}>
+      <WeekPlan g={g} act={act} />
       <TourCard g={g} onSelect={onSelect} />
       <Warnings g={g} />
       <RaceBriefing g={g} shares={shares} onOpen={onSelect} />
@@ -4306,7 +4667,8 @@ function newsView(g, n) {
     };
     case 'rival': return { icon: Target, p: n.p, title: tt(`${P(n.p)} on the campaign trail`, `${P(n.p)} kampanija`), text: describeMoves(n) };
     case 'front': return { icon: Eye, title: tt('All eyes on you', 'Visų akys – į jus'), text: tt(`A ${nf(n.lead)}-point lead means reporters dig into everything you do. Your buzz drops a little.`, `${nf(n.lead)} proc. punkto persvara reiškia, kad žurnalistai knisasi po viską. Pagreitis šiek tiek krenta.`) };
-    case 'event': { const ev = EVENT_MAP[n.ev]; return { icon: Newspaper, title: L(ev.title), text: `${tt('You chose:', 'Jūsų sprendimas:')} ${L(ev.choices[n.ci].label)}.${n.note ? ` ${L(n.note)}` : ''}` }; }
+    case 'event': { const ev = EVENT_MAP[n.ev]; return { icon: Newspaper, p: n.rv, title: evFill(L(ev.title), n), text: `${tt('You chose:', 'Jūsų sprendimas:')} ${evFill(L(ev.choices[n.ci].label), n)}.${n.note ? ` ${L(n.note)}` : ''}` }; }
+    case 'pacts': return { icon: Handshake, title: tt('Runoff pacts signed', 'Pasirašyti antrojo turo susitarimai'), text: n.list.map((q) => partyShort(q)).join(', ') };
     case 'debate': return { icon: Mic, title: tt(`LRT debate: ${L(DEBATES[n.d].title)}`, `LRT debatai: ${L(DEBATES[n.d].title)}`), text: tt(`Viewers say ${P(n.winner)} won (${fmtPct(n.pct, 0)}). You came #${n.rank}.`, `Žiūrovų nuomone, laimėjo ${P(n.winner)} (${fmtPct(n.pct, 0)}). Jūsų vieta – ${n.rank}.`) };
     case 'vrk': return { icon: Gavel, title: tt('VRK fines your party', 'VRK skyrė baudą jūsų partijai'), text: tt(`You broke the campaign spending limit. Fine: ${fmtEur(n.fine)}.`, `Viršijote rinkimų kampanijos išlaidų limitą. Bauda: ${fmtEur(n.fine)}.`) };
     case 'gamble': return n.game === 'casino'
@@ -4365,6 +4727,109 @@ function RaceBriefing({ g, shares, onOpen }) {
     </Card>
   );
 }
+function WeekPlan({ g, act }) {
+  const o = g.objective;
+  const pr = objectiveProgress(g);
+  const unity = Math.round(g.unity == null ? 70 : g.unity);
+  const prog = !o ? '' : o.kind === 'region' || o.kind === 'national' ? `${fmtSigned(pr.now)} / +${nf(pr.need)}` : o.kind === 'money' ? `${fmtEur(pr.now)} / ${fmtEur(pr.need)}` : o.kind === 'visit' || o.kind === 'door' ? `${pr.now} / ${pr.need}` : o.kind === 'debate' ? tt('Judged after the debate', 'Vertinama po debatų') : pr.ok ? tt('Clean so far', 'Kol kas švaru') : tt('Broken', 'Sulaužyta');
+  return (
+    <section className="cx-card p-3 flex flex-col gap-3" aria-label={tt('This week’s plan', 'Savaitės planas')}>
+      <div>
+        <div className="flex items-center justify-between gap-2">
+          <span className="cx-kicker text-xs">{tt('Message of the week', 'Savaitės žinutė')}</span>
+          {g.theme && (g.themeStreak || 0) > 0 && g.theme === g.lastTheme && <span className="text-xs t-muted font-semibold">{tt(`${g.themeStreak} wk in a row`, `${g.themeStreak} sav. iš eilės`)}</span>}
+        </div>
+        <div className="flex gap-1.5 mt-2 overflow-x-auto cx-layers pb-0.5" role="radiogroup" aria-label={tt('Message of the week', 'Savaitės žinutė')}>
+          {THEMES.map((T) => {
+            const on = g.theme === T.id;
+            return (
+              <button key={T.id} type="button" role="radio" aria-checked={on} disabled={!!g.themeLocked && !on} onClick={() => act((gg) => setTheme(gg, T.id))} className="cx-chip shrink-0 px-2.5 text-xs disabled:opacity-40" style={{ minHeight: 32, background: on ? SUN : 'rgba(255,255,255,.06)', color: on ? '#1B1204' : TEXT, borderColor: on ? SUN : LINE2 }}>
+                <T.icon size={13} strokeWidth={2.6} />{L(T.name)}
+              </button>
+            );
+          })}
+        </div>
+        <div className="text-xs t-muted mt-1.5 leading-snug">{g.theme ? tt('Moves where voters care about this: +12%. Elsewhere: −3%. Keeping it for weeks builds buzz.', 'Veiksmai ten, kur tai rūpi: +12 %. Kitur: −3 %. Kartojant kelias savaites auga pagreitis.') : tt('Pick a message before you campaign: it lifts moves where voters care about it.', 'Pasirinkite žinutę prieš agituodami: ji stiprina veiksmus ten, kur tai rūpi.')}{g.themeLocked ? tt(' Locked until next week.', ' Užfiksuota iki kitos savaitės.') : ''}</div>
+      </div>
+      {o && (
+        <div className="rounded-xl p-2.5" style={{ background: pr.ok ? GOOD_BG : 'rgba(255,255,255,.04)', border: `1px solid ${pr.ok ? 'rgba(74,222,128,.4)' : LINE}` }}>
+          <div className="flex items-center gap-2">
+            <span className="cx-kicker text-xs">{tt('Party board task', 'Partijos tarybos užduotis')}</span>
+            <span className="ml-auto cx-pill text-xs px-2 h-6">{L(REWARD_TEXT[o.reward])}</span>
+          </div>
+          <div className="text-sm font-semibold mt-1 leading-snug">{L(objectiveText(o))}</div>
+          <div className="text-xs font-bold mt-1" style={{ color: pr.ok ? GREEN : MUTED }}>{pr.ok ? `✓ ${tt('On track', 'Vykdoma')}` : prog}</div>
+        </div>
+      )}
+      <div className="flex items-center gap-2">
+        <Users size={16} className="shrink-0" />
+        <span className="text-xs font-bold shrink-0">{tt('Party unity', 'Partijos vienybė')}</span>
+        <div className="flex-1"><Bar value={unity} color={unity >= 60 ? '#4ADE80' : unity >= 40 ? SUN : '#F87171'} h={10} mark={40} /></div>
+        <span className="cx-num">{unity}</span>
+      </div>
+      {unity < 40 && <div className="text-xs font-bold" style={{ color: RED }}>{tt('Low unity: a revolt is brewing, and rebels may vote against you as PM.', 'Vienybė žema: bręsta maištas, maištininkai gali balsuoti prieš jus.')}</div>}
+    </section>
+  );
+}
+function StaffRoom({ g, act }) {
+  const staff = g.staff || [];
+  const wages = sum(staff.map((id) => STAFF.find((x) => x.id === id).wage));
+  return (
+    <Card className="p-4">
+      <CardTitle sub={tt(`Hire up to ${STAFF_MAX}. Wages are paid every week: ${fmtEur(wages)} now. If you can’t pay, someone quits.`, `Galite samdyti iki ${STAFF_MAX}. Algos mokamos kas savaitę: dabar ${fmtEur(wages)}. Nesumokėjus kas nors išeina.`)}>{tt('Campaign team', 'Štabo komanda')}</CardTitle>
+      <div className="flex flex-col gap-2">
+        {STAFF.map((S) => {
+          const on = staff.includes(S.id);
+          return (
+            <div key={S.id} className="rounded-xl p-2.5 flex items-center gap-3" style={{ background: on ? ACC_BG : 'rgba(255,255,255,.04)', border: `1px solid ${on ? 'rgba(245,165,36,.45)' : LINE}` }}>
+              <Portrait who={S.look} size={46} square mood={on ? 'grin' : 'ok'} title={L(S.name)} />
+              <div className="min-w-0 flex-1">
+                <div className="font-bold leading-tight">{L(S.name)}</div>
+                <div className="text-xs t-muted leading-snug">{L(S.desc)}</div>
+                <div className="text-xs font-semibold mt-0.5">{fmtEur(S.wage)} / {tt('week', 'sav.')}{on ? '' : ` · ${tt('signing', 'įstojimas')} ${fmtEur(S.wage * 2)}`}</div>
+              </div>
+              {on
+                ? <Btn kind="white" className="h-10 px-3 text-sm shrink-0" onClick={() => act((gg) => fireStaff(gg, S.id))}>{tt('Let go', 'Atleisti')}</Btn>
+                : <Btn className="h-10 px-3 text-sm shrink-0" disabled={staff.length >= STAFF_MAX || g.money < S.wage * 2} onClick={() => act((gg) => hireStaff(gg, S.id))}>{tt('Hire', 'Samdyti')}</Btn>}
+            </div>
+          );
+        })}
+      </div>
+    </Card>
+  );
+}
+function RivalsCard({ g, nat }) {
+  const me = g.player;
+  const H = g.history;
+  const prev = H.length > 1 ? H[H.length - 2].shares : H[0].shares;
+  const rivals = PARTY_IDS.filter((q) => q !== me).sort((a, b) => nat[b] - nat[a]).slice(0, 6);
+  return (
+    <Card className="p-4">
+      <CardTitle sub={tt('The six biggest rivals: their trend, last week’s moves and how close they are to you.', 'Šeši didžiausi varžovai: tendencija, praėjusios savaitės ėjimai ir kiek jie artimi jums.')}>{tt('Rival dossier', 'Varžovų dosjė')}</CardTitle>
+      <div className="flex flex-col">
+        {rivals.map((q) => {
+          const mv = (g.rivalMoves || []).find((m) => m.p === q);
+          const hits = mv ? mv.list.filter((x) => x.type === 'attack' && x.target === me).length : 0;
+          const c = compat(g, me, q);
+          const mom = g.momentum[q];
+          return (
+            <div key={q} className="flex items-center gap-3 py-2" style={{ borderTop: `1px solid ${LINE}` }}>
+              <Portrait who={q} size={42} square mood={hits ? 'grr' : mom > 0.5 ? 'grin' : 'ok'} />
+              <div className="min-w-0 flex-1">
+                <div className="flex items-baseline gap-2"><span className="cx-title text-lg leading-none">{partyShort(q)}</span><span className="cx-num">{fmtPct(nat[q])}</span><span className="text-xs"><Delta v={nat[q] - prev[q]} pct /></span></div>
+                <div className="text-xs t-muted truncate mt-0.5">{mv && mv.list.length ? mv.list.map((x) => `${moveWord(x, me)} – ${rs(x.rid)}`).join(' · ') : tt('Quiet week', 'Rami savaitė')}</div>
+              </div>
+              <div className="text-right shrink-0">
+                <div className="text-xs font-bold" style={{ color: c >= 55 ? GREEN : c >= 40 ? AMBER : RED }}>{c >= 55 ? tt('Possible ally', 'Galimas partneris') : c >= 40 ? tt('Maybe', 'Galbūt') : tt('Opponent', 'Priešininkas')}</div>
+                <div className="text-xs t-muted">{mom > 0.5 ? '▲' : mom < -0.5 ? '▼' : '•'} {tt('buzz', 'pagreitis')}{hits ? ` · ⚔ ${hits}` : ''}</div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </Card>
+  );
+}
 function TourCard({ g, onSelect }) {
   const route = (g.route || []).filter((x, i, arr) => i === 0 || arr[i - 1] !== x);
   return (
@@ -4380,7 +4845,7 @@ function TourCard({ g, onSelect }) {
   );
 }
 const LAYER_KEY = 'seimas-bfl-layer';
-function MapTab({ g, shares, proj, sel, onSelect, skipTips, wide }) {
+function MapTab({ g, shares, proj, sel, onSelect, skipTips, wide, act }) {
   const rows = REGIONS.slice().sort((a, b) => b.seats - a.seats);
   const p = g.player;
   const [layer, setLayer] = useState(() => { try { return window.localStorage.getItem(LAYER_KEY) || 'lead'; } catch (e) { return 'lead'; } });
@@ -4402,6 +4867,7 @@ function MapTab({ g, shares, proj, sel, onSelect, skipTips, wide }) {
           {tt('Tap the big yellow Next week button at the bottom. Your rivals will react to what you did, and a new poll comes out.', 'Spauskite didelį geltoną mygtuką „Kita savaitė“ apačioje. Varžovai sureaguos į jūsų veiksmus, o mes gausime naują apklausą.')}
         </Coach>
       )}
+      {!wide && <WeekPlan g={g} act={act} />}
       <div className="cx-card overflow-hidden" style={{ padding: 0, background: `radial-gradient(ellipse at 50% 40%, #13233A, ${MAP_SEA} 70%)` }}>
         <div className="flex items-center gap-2 px-3 py-2.5 cx-bar">
           <Layers size={18} strokeWidth={2.4} color={SUN} />
@@ -4455,6 +4921,7 @@ function PollsTab({ g, nat, proj }) {
         <PollBars shares={nat} highlight={p} threshold deltas={deltas} />
         {last.pol != null && <div className="text-xs font-bold t-muted mt-2">{tt('Last published poll:', 'Paskutinė paskelbta apklausa:')} {POLLSTERS[last.pol].name}, n={POLLSTERS[last.pol].n}, {tt('margin of error', 'paklaida')} ±{nf(moe(last.shares[p], POLLSTERS[last.pol].n))} {tt('pts for you', 'proc. p. jums')}. {tt('Pollsters are fictional and each leans a little.', 'Apklausų bendrovės išgalvotos, kiekviena šiek tiek „kreivoja“.')}</div>}
       </Card>
+      <RivalsCard g={g} nat={nat} />
       <Card className="p-4">
         <CardTitle sub={tt('How each voter group feels about you', 'Kaip jus vertina skirtingos rinkėjų grupės')} info={<InfoTip title={tt('Voter groups', 'Rinkėjų grupės')}>{tt('Groups react to your promises and to how you handle news and debates. A happy group lifts your vote where many of its members live, for example pensioners in villages and young people in cities.', 'Grupės reaguoja į jūsų pažadus ir į tai, kaip elgiatės su naujienomis bei debatuose. Patenkinta grupė kelia jūsų reitingą ten, kur jos daug: senjorai – kaimuose, jaunimas – miestuose.')}</InfoTip>}>{tt('Who likes you', 'Kas jus palaiko')}</CardTitle>
         <div className="flex flex-col gap-2.5">
@@ -4578,6 +5045,7 @@ function HQTab({ g, act, openSheet }) {
     <div className="flex flex-col gap-4 pt-4 lg:grid lg:grid-cols-2 lg:items-start">
       <h2 className="cx-title text-4xl lg:col-span-2">{tt('Campaign HQ', 'Rinkimų štabas')}</h2>
       <PromisesCard g={g} />
+      <StaffRoom g={g} act={act} />
       <div className="grid grid-cols-3 gap-2">
         <div className={statCard} style={{ boxShadow: SHADOW }}>
           <div className="flex items-center justify-between"><Handshake size={20} /><InfoTip title={tt('Favours', 'Ryšiai')}>{tt('Favours are political connections. Earn them in debates and over coffee with rivals. After the vote, spend them to win coalition partners.', 'Ryšiai – tai politinės pažintys. Juos užsitarnaujate debatuose ir per kavą su varžovais. Po rinkimų jie padeda prisivilioti koalicijos partnerius.')}</InfoTip></div>
@@ -5065,26 +5533,26 @@ function EventModal({ g, item, onChoose, onClose }) {
           <span className={`cx-chip px-3 py-1 text-xs text-white ${done ? '' : 'sbl-blink'}`} style={{ background: '#DC2626', borderColor: 'transparent' }}>{ev.scandal ? tt('SCANDAL!', 'SKANDALAS!') : tt('BREAKING NEWS', 'SKUBI NAUJIENA')}</span>
           <span className="cx-chip px-2.5 py-1 text-xs" style={{ background: 'rgba(7,9,13,.78)' }}><Icon size={13} strokeWidth={2.6} />{L(ev.cat)}</span>
         </div>
-        <div className="absolute right-3 top-3"><Portrait who="anchor" size={62} square mood={ev.scandal ? 'wow' : 'ok'} /></div>
+        <div className="absolute right-3 top-3 flex gap-2">{item.rv && <Portrait who={item.rv} size={62} square mood="sad" />}<Portrait who="anchor" size={62} square mood={ev.scandal || item.rv ? 'wow' : 'ok'} /></div>
         <div className="absolute left-0 bottom-0 cx-bar px-4 py-3 lg:px-6" style={{ maxWidth: '94%', borderTopRightRadius: 10 }}>
-          <h2 className="cx-title text-2xl lg:text-3xl leading-tight">{L(ev.title)}</h2>
+          <h2 className="cx-title text-2xl lg:text-3xl leading-tight">{evFill(L(ev.title), item)}</h2>
         </div>
       </Scene>
       <div style={GUTTER} className="pt-4 flex flex-col gap-4 lg:px-8">
-        <p className="font-medium leading-relaxed text-[15px] lg:text-base" style={{ color: '#D5DBE5' }}>{L(ev.body)}</p>
+        <p className="font-medium leading-relaxed text-[15px] lg:text-base" style={{ color: '#D5DBE5' }}>{evFill(L(ev.body), item)}</p>
         {!done ? (
           <div className="flex flex-col gap-3">
             <div className="cx-kicker text-sm">{tt('What do you say?', 'Ką atsakysite?')}</div>
             {ev.choices.map((ch, i) => (
               <button key={i} type="button" onClick={() => onChoose(i)} className="cx-btn cx-quote w-full items-center text-left px-4 py-3" style={{ gap: 12, minHeight: 58, justifyContent: 'flex-start' }}>
                 <span className="cx-num grid place-items-center rounded-full shrink-0" style={{ width: 28, height: 28, background: '#11141B', color: '#fff' }}>{String.fromCharCode(65 + i)}</span>
-                <span className="font-black text-base flex-1">{L(ch.label)}</span>
+                <span className="font-black text-base flex-1">{evFill(L(ch.label), item)}</span>
               </button>
             ))}
           </div>
         ) : (
           <div className="flex flex-col gap-3 sbl-fade">
-            <div className="cx-soft p-3 font-bold">{tt('You chose:', 'Jūsų sprendimas:')} <span className="font-black">{L(ev.choices[done.ci].label)}</span>{done.note && <div className="mt-1" style={{ color: AMBER }}>{L(done.note)}</div>}</div>
+            <div className="cx-soft p-3 font-bold">{tt('You chose:', 'Jūsų sprendimas:')} <span className="font-black">{evFill(L(ev.choices[done.ci].label), item)}</span>{done.note && <div className="mt-1" style={{ color: AMBER }}>{L(done.note)}</div>}</div>
             <OutcomeGrid before={done.before} after={done.after} />
             <ConsList items={done.cons} />
             <Btn className="h-14 text-lg" onClick={onClose}>{tt('Back to the campaign', 'Atgal į kampaniją')} <ArrowRight size={20} /></Btn>
@@ -5259,6 +5727,10 @@ function HelpSheet({ onClose }) {
     [Layers, tt('Map layers', 'Žemėlapio sluoksniai'), tt('Switch the map between who leads, your support, this week’s change, battlegrounds, your ground teams and rival moves. Pins show news stories, your moves and strongholds waiting for a visit.', 'Žemėlapį galite perjungti: kas pirmauja, jūsų parama, savaitės pokytis, kovos, jūsų komandos ir varžovų ėjimai. Ženkleliai rodo naujienas, jūsų veiksmus ir tvirtoves, laukiančias vizito.')],
     [ShieldCheck, tt('Promises & reputation', 'Pažadai ir reputacija'), tt('Every answer in the news, in debates and on the street becomes a promise. Saying the opposite later is a flip-flop and costs reputation. High reputation makes good news count for more and partners more willing.', 'Kiekvienas atsakymas naujienose, debatuose ir gatvėje tampa pažadu. Vėliau pasakius priešingai – tai pozicijos keitimas, ir krenta reputacija. Aukšta reputacija stiprina geras naujienas ir partnerių norą jungtis.')],
     [Clock, tt('Consequences', 'Pasekmės'), tt('Some decisions come back weeks later. Rivals hit back where you attacked them and defend where you surge. Strongholds you ignore for 4 weeks slip. Voters stop you after rallies with questions of their own.', 'Kai kurie sprendimai sugrįžta po kelių savaičių. Varžovai atsako ten, kur juos puolėte, ir ginasi ten, kur jūs augate. Tvirtovės, kurių nelankote 4 sav., ima slysti. Po mitingų jus sustabdo rinkėjai su savais klausimais.')],
+    [Megaphone, tt('Message of the week', 'Savaitės žinutė'), tt('Pick one of five messages each week. Moves in regions where voters care about it are 12% stronger, elsewhere 3% weaker. Sticking with a message builds buzz; dropping one you pushed for weeks looks confused.', 'Kas savaitę pasirinkite vieną iš penkių žinučių. Veiksmai regionuose, kur tai rūpi, 12 % stipresni, kitur – 3 % silpnesni. Laikantis žinutės auga pagreitis, o staiga jos atsisakius atrodote pasimetę.')],
+    [Users, tt('Party board & unity', 'Partijos taryba ir vienybė'), tt('The party board sets a task every week. Complete it for a reward; miss it and unity drops. Flip-flops, shady deals and drifting from the party programme hurt unity too. Below 40 a revolt breaks out, and rebels can vote against you as Prime Minister.', 'Partijos taryba kas savaitę skiria užduotį. Įvykdę gausite atlygį, neįvykdę – krenta vienybė. Ją mažina ir pozicijų keitimas, abejotini sandoriai bei nutolimas nuo programos. Nukritus žemiau 40 kyla maištas, o maištininkai gali balsuoti prieš jus.')],
+    [Building2, tt('Campaign team', 'Štabo komanda'), tt('Hire up to three specialists in HQ: a strategist, a press secretary, a digital director, a field organiser, a pollster, a fundraiser or a lawyer. Each has a weekly wage.', 'Štabe galite samdyti iki trijų specialistų: strategą, atstovę spaudai, skaitmeninės kampanijos vadovą, lauko organizatorę, sociologą, lėšų rinkėją ar teisininką. Kiekvienas gauna savaitinę algą.')],
+    [Handshake, tt('Between the rounds', 'Tarp turų'), tt('After round one you can sign up to two runoff pacts and send three volunteer teams to your closest runoffs. Projections update as you choose.', 'Po pirmojo turo galite pasirašyti iki dviejų antrojo turo susitarimų ir pasiųsti tris savanorių komandas į lygiausias apygardas. Prognozės keičiasi jums renkantis.')],
     [Star, tt('Star candidates', 'Žinomi kandidatai'), tt('A famous local candidate makes you much stronger in one district. Rivals have some too: look for coloured stars in the district list.', 'Žinomas vietos kandidatas gerokai sustiprina jus vienoje apygardoje. Jų turi ir varžovai – ieškokite spalvotų žvaigždučių apygardų sąraše.')],
     [BarChart3, tt('How seats work', 'Kaip skirstomi mandatai'), tt('70 seats are shared by the national vote (5% minimum). 71 go to local winners; if nobody gets 50%, the top two face a runoff two weeks later.', '70 vietų paskirstoma pagal balsus visoje šalyje (būtina bent 5 %). 71 tenka apygardų nugalėtojams; jei niekas negauna 50 %, po dviejų savaičių vyksta antrasis turas.')],
     [Gavel, tt('VRK spending limit', 'VRK išlaidų limitas'), tt(`The electoral commission lets you spend ${fmtEur(VRK_LIMIT)} in total. Spend more and you are fined.`, `Rinkimų komisija leidžia išleisti iš viso ${fmtEur(VRK_LIMIT)}. Išleidus daugiau – bauda.`)],
@@ -5301,6 +5773,8 @@ function ConfirmEnd({ g, onCancel, onConfirm }) {
    Title & party picker
    ============================================================ */
 function TitleScreen({ saved, onNew, onContinue, lang, setLang }) {
+  const [ach, setAch] = useState(false);
+  const achN = useMemo(() => loadAch().length, []);
   return (
     <div className="relative min-h-screen overflow-hidden">
       <div className="absolute inset-0" aria-hidden="true">
@@ -5321,6 +5795,7 @@ function TitleScreen({ saved, onNew, onContinue, lang, setLang }) {
           <p className="mt-4 text-base lg:text-lg font-medium leading-relaxed" style={{ color: '#C9D1DE' }}>{tt('Lead a real Lithuanian party through a 12-week campaign, win LRT debates and runoffs, then build a coalition of 71 out of 141 seats.', 'Veskite tikrą Lietuvos partiją per 12 savaičių kampaniją, laimėkite LRT debatus ir antruosius turus, o tada suburkite 71 iš 141 Seimo narių koaliciją.')}</p>
           <div className="flex flex-col sm:flex-row gap-3 mt-7">
             <Btn className="h-16 px-10 text-2xl" onClick={onNew}><Play size={24} style={{ fill: '#1B1204' }} />{tt('Play', 'Žaisti')}</Btn>
+            <Btn kind="white" className="h-16 px-5 text-lg" onClick={() => setAch(true)}><Trophy size={20} color={SUN} />{achN}/{ACHIEVEMENTS.length}</Btn>
             {saved && <Btn kind="white" className="h-16 px-6 text-lg" onClick={onContinue}>{tt('Continue', 'Tęsti')} · {PARTIES[saved.player].short}, {saved.phase === 'campaign' ? tt(`week ${saved.week}`, `${saved.week} sav.`) : tt('after the vote', 'po rinkimų')}</Btn>}
           </div>
           <div className="flex gap-6 mt-8">
@@ -5332,6 +5807,7 @@ function TitleScreen({ saved, onNew, onContinue, lang, setLang }) {
         <div className="mt-auto pt-10">
           <div className="cx-kicker text-xs mb-2">{tt('12 parties · 12 real leaders', '12 partijų · 12 tikrų lyderių')}</div>
           <div className="flex gap-2.5 overflow-x-auto cx-layers pb-2">{PARTY_IDS.map((p) => <CandidateCard key={p} p={p} w={92} />)}</div>
+          {ach && <AchievementsSheet onClose={() => setAch(false)} />}
           <p className="text-xs t-muted mt-3 max-w-3xl leading-relaxed">{tt('A fictional simulation. Real parties and leaders appear for context; all events, quotes and results are invented. Emblems are not official logos and portraits are drawings, not photos.', 'Išgalvota simuliacija. Tikros partijos ir lyderiai naudojami kontekstui; visi įvykiai, citatos ir rezultatai išgalvoti. Ženkliukai – ne oficialūs logotipai, portretai – piešti, ne nuotraukos.')}</p>
         </div>
       </div>
@@ -5345,6 +5821,27 @@ function PartyStats({ p, startNat }) {
       <StatPill icon={BarChart3} iconStyle={{ color: '#1D4ED8' }} label={tt('Starting poll', 'Pradinis reitingas')}>{fmtPct(startNat[p])}</StatPill>
       <StatPill icon={Wallet} iconStyle={{ color: '#15803D' }} label={tt('Campaign funds', 'Kampanijos lėšos')}>{fmtEurShort(P.funds)}</StatPill>
       <StatPill icon={Star} iconStyle={{ fill: SUN, color: '#7A4E00' }} label={L(DIFF_LABEL[P.difficulty])}>{L(DIFF_LABEL[P.difficulty])}</StatPill>
+    </div>
+  );
+}
+function SettingsCard({ diff, setDiff, scen, setScen }) {
+  return (
+    <div className="cx-card p-3">
+      <div className="cx-title text-lg leading-tight">{tt('Game settings', 'Žaidimo nustatymai')}</div>
+      <div className="text-xs font-bold t-muted mt-2 mb-1">{tt('Difficulty', 'Sudėtingumas')}</div>
+      <div className="grid grid-cols-3 gap-1.5" role="radiogroup" aria-label={tt('Difficulty', 'Sudėtingumas')}>
+        {Object.entries(DIFFS).map(([id, D]) => <button key={id} type="button" role="radio" aria-checked={diff === id} onClick={() => setDiff(id)} className={`cx-btn cx-cta h-10 text-base ${diff === id ? 'cx-sun' : 'cx-white'}`}>{L(D.name)}</button>)}
+      </div>
+      <div className="text-xs t-muted mt-1">{L(DIFFS[diff].desc)}</div>
+      <div className="text-xs font-bold t-muted mt-3 mb-1">{tt('Scenario', 'Scenarijus')}</div>
+      <div className="grid grid-cols-2 gap-1.5" role="radiogroup" aria-label={tt('Scenario', 'Scenarijus')}>
+        {SCENARIOS.map((S) => (
+          <button key={S.id} type="button" role="radio" aria-checked={scen === S.id} onClick={() => setScen(S.id)} className="rounded-xl p-2 text-left cx-tap" style={{ background: scen === S.id ? ACC_BG : 'rgba(255,255,255,.04)', border: `1px solid ${scen === S.id ? 'rgba(245,165,36,.6)' : LINE}` }}>
+            <div className="font-bold text-sm leading-tight">{L(S.name)}</div>
+            <div className="text-[11px] t-muted leading-snug mt-0.5">{L(S.desc)}</div>
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
@@ -5369,10 +5866,12 @@ function RutaSwitch({ helper, setHelper }) {
 function PartySelect({ onPick, onBack }) {
   const [sel, setSel] = useState(null);
   const [helper, setHelper] = useState(true);
+  const [diff, setDiff] = useState('normal');
+  const [scen, setScen] = useState('standard');
   const wide = useWide();
   const startNat = useMemo(() => nationalShares(newGame('LSDP')), []);
   const groups = [[tt('In the Seimas now', 'Dabar Seime'), tt('Parties with seats today.', 'Partijos, šiandien turinčios vietų.'), PARTY_IDS.slice(0, 8)], [tt('Outsiders', 'Autsaideriai'), tt('Under 5% today. Can you get them over the line?', 'Šiandien žemiau 5 %. Ar pavyks peržengti barjerą?'), PARTY_IDS.slice(8)]];
-  const startBtn = <Btn className="h-14 w-full text-xl" disabled={!sel} onClick={() => onPick(sel, helper)}>{sel ? <>{tt(`Play as ${PARTIES[sel].short}`, `Žaisti už ${PARTIES[sel].short}`)} <ArrowRight size={20} /></> : tt('Tap a party to choose it', 'Paspauskite partiją')}</Btn>;
+  const startBtn = <Btn className="h-14 w-full text-xl" disabled={!sel} onClick={() => onPick(sel, helper, diff, scen)}>{sel ? <>{tt(`Play as ${PARTIES[sel].short}`, `Žaisti už ${PARTIES[sel].short}`)} <ArrowRight size={20} /></> : tt('Tap a party to choose it', 'Paspauskite partiją')}</Btn>;
   const head = (
     <div className="pt-6 flex items-center gap-3">
       <button type="button" onClick={onBack} aria-label={tt('Back', 'Atgal')} className="cx-btn shrink-0" style={{ width: 44, height: 44, borderRadius: 999, background: 'rgba(255,255,255,.07)' }}><ArrowRight size={20} className="rotate-180" /></button>
@@ -5422,7 +5921,7 @@ function PartySelect({ onPick, onBack }) {
                 <div className="grid grid-cols-4 gap-3">{ids.map((p) => <CandidateCard key={p} p={p} w={'100%'} active={sel === p} onClick={() => setSel(p)} />)}</div>
               </div>
             ))}
-            <RutaSwitch helper={helper} setHelper={setHelper} />
+            <div className="grid grid-cols-2 gap-3 items-start"><RutaSwitch helper={helper} setHelper={setHelper} /><SettingsCard diff={diff} setDiff={setDiff} scen={scen} setScen={setScen} /></div>
             {startBtn}
             <p className="text-xs t-muted">{tt('Starting polls roughly follow late-2026 averages. Portraits are drawings, not photos.', 'Pradiniai reitingai apytiksliai atitinka 2026 m. pabaigos vidurkius. Portretai – piešti, ne nuotraukos.')}</p>
           </div>
@@ -5470,7 +5969,7 @@ function PartySelect({ onPick, onBack }) {
         ))}
       </div>
       <p className="text-xs t-muted mt-4">{tt('Starting polls roughly follow late-2026 averages. Portraits are drawings, not photos.', 'Pradiniai reitingai apytiksliai atitinka 2026 m. pabaigos vidurkius. Portretai – piešti, ne nuotraukos.')}</p>
-      <div className="mt-4"><RutaSwitch helper={helper} setHelper={setHelper} /></div>
+      <div className="mt-4 flex flex-col gap-3"><RutaSwitch helper={helper} setHelper={setHelper} /><SettingsCard diff={diff} setDiff={setDiff} scen={scen} setScen={setScen} /></div>
       <div className="fixed bottom-0 inset-x-0 z-20" style={{ background: 'rgba(8,10,15,.96)', borderTop: `1px solid ${LINE}`, paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 14px)', backdropFilter: 'blur(8px)' }}>
         <div className="max-w-lg mx-auto pt-3" style={GUTTER}>{startBtn}</div>
       </div>
@@ -5500,7 +5999,85 @@ function RunoffRow({ e, me }) {
     </li>
   );
 }
-function ElectionNight({ g, onFinish }) {
+function RunoffDeals({ g, onConfirm }) {
+  const E = g.election;
+  const me = g.player;
+  const mine = E.smd.filter((e) => e.round === 2 && (e.runoff.a === me || e.runoff.b === me));
+  const [pacts, setPacts] = useState({});
+  const [boosts, setBoosts] = useState({});
+  const BOOSTS = 3;
+  const used = sum(Object.values(boosts));
+  const chosen = Object.keys(pacts).filter((q) => pacts[q]);
+  const cost = sum(chosen.map((q) => pactCost(g, q) || 0));
+  const potential = (q) => sum(mine.map((e) => (e.runoff.a === q || e.runoff.b === q ? 0 : ((e.cand.find((c) => c.p === q) || {}).s || 0))));
+  const cands = PARTY_IDS.filter((q) => q !== me).map((q) => ({ q, pot: potential(q), c: pactCost(g, q) })).filter((x) => x.pot > 3).sort((a, b) => b.pot - a.pot).slice(0, 6);
+  const proj = mine.map((e) => ({ e, r: runoffTally(g, E, e, pacts, boosts, false) }));
+  const wins = proj.filter((x) => x.r.winner === me).length;
+  // The eight closest races, in a fixed order so rows don't jump while you plan.
+  const focus = useMemo(() => mine.map((e) => { const r = runoffTally(g, E, e, null, null, false); return { cid: e.cid, d: Math.abs((e.runoff.a === me ? r.sa : r.sb) - 50) }; }).sort((a, b) => a.d - b.d).slice(0, 8).map((x) => x.cid), []);
+  const rest = proj.filter((x) => !focus.includes(x.e.cid));
+  const restWins = rest.filter((x) => x.r.winner === me).length;
+  const toggle = (q, c) => {
+    if (pacts[q]) { const n = { ...pacts }; delete n[q]; setPacts(n); return; }
+    if (c == null || chosen.length >= 2 || g.pc - cost < c) return;
+    setPacts({ ...pacts, [q]: true });
+  };
+  const bump = (cid, d) => {
+    const v = (boosts[cid] || 0) + d;
+    if (v < 0 || v > 2 || (d > 0 && used >= BOOSTS)) return;
+    setBoosts({ ...boosts, [cid]: v });
+  };
+  return (
+    <div className="flex flex-col gap-4 mt-3">
+      <div className="flex items-center gap-3">
+        <div className="cx-num text-4xl leading-none" style={{ color: SUN }}>{wins}<span className="t-muted text-xl">/{mine.length}</span></div>
+        <div className="text-sm font-semibold leading-snug">{tt('runoffs you would win if the vote were today. Sign pacts and send your last volunteers to change that.', 'antrųjų turų laimėtumėte, jei balsuotų šiandien. Pasirašykite susitarimus ir pasiųskite paskutinius savanorius.')}</div>
+      </div>
+      <div>
+        <div className="flex items-baseline justify-between"><span className="cx-kicker text-xs">{tt('Runoff pacts (max 2)', 'Antrojo turo susitarimai (iki 2)')}</span><span className="text-xs font-semibold t-muted">{tt(`Favours: ${g.pc - cost}`, `Ryšiai: ${g.pc - cost}`)}</span></div>
+        <div className="text-xs t-muted mt-0.5 mb-2">{tt('Their voters back you where they are out of the race; yours back them in their runoffs. Partners also remember it in coalition talks.', 'Jų rinkėjai remia jus ten, kur jie iškrito; jūsiškiai remia juos jų antruosiuose turuose. Partneriai tai prisimins ir koalicijos derybose.')}</div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          {cands.map(({ q, pot, c }) => {
+            const on = !!pacts[q];
+            return (
+              <button key={q} type="button" onClick={() => toggle(q, c)} aria-pressed={on} disabled={!on && (c == null || chosen.length >= 2 || g.pc - cost < c)} className="rounded-xl p-2 flex items-center gap-2.5 text-left cx-tap disabled:opacity-45" style={{ background: on ? ACC_BG : 'rgba(255,255,255,.04)', border: `1px solid ${on ? 'rgba(245,165,36,.6)' : LINE}` }}>
+                <Portrait who={q} size={38} square mood={on ? 'grin' : c == null ? 'grr' : 'ok'} />
+                <div className="min-w-0 flex-1">
+                  <div className="font-bold leading-tight">{partyShort(q)}</div>
+                  <div className="text-xs t-muted">{tt(`${nf(pot, 0)} pts of voters in your races`, `${nf(pot, 0)} p. rinkėjų jūsų apygardose`)}</div>
+                </div>
+                <span className="text-xs font-bold shrink-0" style={{ color: c == null ? RED : on ? SUN : TEXT }}>{c == null ? tt('Refuses', 'Atsisako') : on ? tt('Signed', 'Pasirašyta') : tt(`${c} favour${c > 1 ? 's' : ''}`, `${c} ${plur(c, '', '', 'ryšys', 'ryšiai', 'ryšių')}`)}</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+      <div>
+        <div className="flex items-baseline justify-between"><span className="cx-kicker text-xs">{tt('Final push', 'Paskutinis spurtas')}</span><span className="text-xs font-semibold t-muted">{tt(`${BOOSTS - used} of ${BOOSTS} teams left`, `Liko ${BOOSTS - used} iš ${BOOSTS} komandų`)}</span></div>
+        <div className="flex flex-col gap-1.5 mt-2">
+          {focus.map((cid) => proj.find((x) => x.e.cid === cid)).map(({ e, r }) => {
+            const mineA = e.runoff.a === me;
+            const myS = mineA ? r.sa : r.sb;
+            const opp = mineA ? e.runoff.b : e.runoff.a;
+            return (
+              <div key={e.cid} className="flex items-center gap-2 rounded-lg px-2.5 py-1.5" style={{ background: 'rgba(255,255,255,.04)', border: `1px solid ${LINE}` }}>
+                <div className="min-w-0 flex-1"><div className="text-sm font-bold truncate">{consName(e.name)}</div><div className="text-xs t-muted">{tt('vs', 'prieš')} {partyShort(opp)}</div></div>
+                <span className="cx-num text-lg w-14 text-right" style={{ color: myS >= 50 ? GREEN : RED }}>{nf(myS, 0)}%</span>
+                <button type="button" aria-label="−" onClick={() => bump(e.cid, -1)} className="cx-btn h-8 w-8" style={{ borderRadius: 999 }}>−</button>
+                <span className="cx-num w-4 text-center">{boosts[e.cid] || 0}</span>
+                <button type="button" aria-label="+" onClick={() => bump(e.cid, 1)} className="cx-btn h-8 w-8" style={{ borderRadius: 999 }}>+</button>
+              </div>
+            );
+          })}
+        </div>
+        {rest.length > 0 && <div className="text-xs font-semibold mt-1.5">{tt(`Your other ${rest.length} runoffs: winning ${restWins}, losing ${rest.length - restWins}.`, `Kiti ${rest.length} jūsų antrieji turai: laimite ${restWins}, pralaimite ${rest.length - restWins}.`)}</div>}
+        <div className="text-xs t-muted mt-1">{tt('Projections are close but not certain: the real count can swing a few points.', 'Prognozės artimos, bet ne tikslios: tikri rezultatai gali svyruoti keliais punktais.')}</div>
+      </div>
+      <Btn className="h-14 w-full text-lg" onClick={() => onConfirm(pacts, boosts)}>{tt('Run the runoffs', 'Vykdyti antrąjį turą')} <ArrowRight size={20} /></Btn>
+    </div>
+  );
+}
+function ElectionNight({ g, onFinish, onDeals }) {
   const E = g.election;
   const me = g.player;
   const P = PARTIES[me];
@@ -5549,7 +6126,8 @@ function ElectionNight({ g, onFinish }) {
     const tot = sum(ALL_IDS.map((q) => R.votes[q])) || 1;
     return [r.id, Object.fromEntries(ALL_IDS.map((q) => [q, (R.votes[q] / tot) * 100]))];
   })), [E]);
-  const skip = () => { setProg(1); setRo(runoffs.length); setStage('final'); };
+  const dealsPending = !E.dealsDone && E.smd.some((e) => e.round === 2 && (e.runoff.a === me || e.runoff.b === me));
+  const skip = () => { setProg(1); if (dealsPending && (stage === 'count' || stage === 'intro')) { setStage('r1'); return; } setRo(runoffs.length); setStage('final'); };
   const shown = stage === 'final' ? runoffs.length : stage === 'runoff' ? ro : 0;
   const smdNow = Object.fromEntries(ALL_IDS.map((p) => [p, 0]));
   r1.forEach((e) => { if (live.fr[e.rid] >= 1) smdNow[e.winner] += 1; });
@@ -5610,9 +6188,11 @@ function ElectionNight({ g, onFinish }) {
       </Card>
       {stage === 'r1' && (
         <Card className="mt-4 p-4 sbl-pop cx-cream">
-          <div className="cx-title text-2xl leading-tight">{tt('Round one done!', 'Pirmasis turas baigtas!')}</div>
+          <div className="cx-title text-2xl leading-tight">{dealsPending ? tt('Between the rounds', 'Tarp turų') : tt('Round one done!', 'Pirmasis turas baigtas!')}</div>
           <p className="font-semibold mt-1">{tt(`Only ${r1.length} of 71 local districts picked a winner outright. The other ${runoffs.length} go to a runoff between the top two. You’re in ${myRunoffs.length} of them.`, `Tik ${r1.length} iš 71 apygardos išrinko nugalėtoją iš karto. Likusiose ${runoffs.length} vyks antrasis turas tarp dviejų lyderių. Jūsų kandidatai – ${myRunoffs.length} iš jų.`)}</p>
-          <Btn className="h-14 w-full text-lg mt-3" onClick={() => setStage('runoff')}>{tt('Run the runoffs', 'Vykdyti antrąjį turą')} <ArrowRight size={20} /></Btn>
+          {dealsPending
+            ? <RunoffDeals g={g} onConfirm={(pacts, boosts) => { onDeals(pacts, boosts); setStage('runoff'); }} />
+            : <Btn className="h-14 w-full text-lg mt-3" onClick={() => setStage('runoff')}>{tt('Run the runoffs', 'Vykdyti antrąjį turą')} <ArrowRight size={20} /></Btn>}
         </Card>
       )}
       {stage === 'runoff' && (
@@ -5835,6 +6415,50 @@ function gradeOf(g) {
   if (seats > 0) return ['E', tt('Hanging on', 'Išsilaikėte'), tt('Under 5% nationally, but your local candidates kept you in the Seimas.', 'Mažiau nei 5 % šalyje, bet apygardų kandidatai išlaikė jus Seime.')];
   return ['F', tt('Wiped out', 'Visiškas pralaimėjimas'), tt('No seats at all. Time for a new party leader…', 'Nė vieno mandato. Laikas ieškoti naujo lyderio…')];
 }
+function AchievementsWon({ g }) {
+  const [res] = useState(() => {
+    const prev = loadAch();
+    const got = earnedAchievements(g);
+    saveAch([...new Set([...prev, ...got])]);
+    return { got, fresh: got.filter((x) => !prev.includes(x)) };
+  });
+  if (!res.got.length) return null;
+  return (
+    <section className="cx-card p-4 mt-4">
+      <CardTitle sub={tt(`${res.got.length} earned this campaign · ${loadAch().length} of ${ACHIEVEMENTS.length} overall`, `Šioje kampanijoje: ${res.got.length} · iš viso ${loadAch().length} iš ${ACHIEVEMENTS.length}`)}>{tt('Achievements', 'Pasiekimai')}</CardTitle>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        {res.got.map((id) => {
+          const A = ACHIEVEMENTS.find((x) => x.id === id);
+          return (
+            <div key={id} className="rounded-xl p-2.5 flex items-center gap-2.5" style={{ background: ACC_BG, border: '1px solid rgba(245,165,36,.4)' }}>
+              <Trophy size={22} color={SUN} className="shrink-0" />
+              <div className="min-w-0"><div className="font-bold leading-tight">{L(A.name)}{res.fresh.includes(id) && <span className="ml-1.5 cx-pill text-[10px] px-1.5 align-middle">{tt('NEW', 'NAUJA')}</span>}</div><div className="text-xs t-muted">{L(A.desc)}</div></div>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+function AchievementsSheet({ onClose }) {
+  const got = loadAch();
+  return (
+    <Sheet onClose={onClose} label={tt('Achievements', 'Pasiekimai')}>
+      <SheetHead kicker={tt(`${got.length} of ${ACHIEVEMENTS.length}`, `${got.length} iš ${ACHIEVEMENTS.length}`)} title={tt('Achievements', 'Pasiekimai')} onClose={onClose} />
+      <div style={GUTTER} className="pt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
+        {ACHIEVEMENTS.map((A) => {
+          const on = got.includes(A.id);
+          return (
+            <div key={A.id} className="rounded-xl p-2.5 flex items-center gap-2.5" style={{ background: on ? ACC_BG : 'rgba(255,255,255,.04)', border: `1px solid ${on ? 'rgba(245,165,36,.4)' : LINE}`, opacity: on ? 1 : 0.6 }}>
+              <Trophy size={22} color={on ? SUN : MUTED} className="shrink-0" />
+              <div className="min-w-0"><div className="font-bold leading-tight">{L(A.name)}</div><div className="text-xs t-muted">{L(A.desc)}</div></div>
+            </div>
+          );
+        })}
+      </div>
+    </Sheet>
+  );
+}
 function ResultScreen({ g, onRestart }) {
   const E = g.election;
   const R = g.result;
@@ -5859,6 +6483,7 @@ function ResultScreen({ g, onRestart }) {
         <h2 className="cx-title text-4xl leading-none mt-1">{title}</h2>
         <p className="font-semibold mt-3 leading-relaxed">{blurb}</p>
       </div>
+      <AchievementsWon g={g} />
       {g.vote && (
         <div className="mt-4 cx-soft p-3 text-sm font-bold text-center">{tt('Seimas vote:', 'Seimo balsavimas:')} <span className="cx-num">{g.vote.ayes}</span> {tt('for', 'už')} · <span className="cx-num">{g.vote.noes}</span> {tt('against', 'prieš')} · <span className="cx-num">{g.vote.abst}</span> {tt('abstained', 'susilaikė')}</div>
       )}
@@ -5981,7 +6606,7 @@ export default function SeimasGame({ hotData } = {}) {
 
   let body;
   if (screen === 'select') {
-    body = <PartySelect onBack={() => setScreen('title')} onPick={(pid, helper) => { const g = newGame(pid, helper); gameRef.current = g; setGame(g); setTab('map'); setSel(null); setScreen('game'); try { window.scrollTo({ top: 0 }); } catch (e) { /* ignore */ } }} />;
+    body = <PartySelect onBack={() => setScreen('title')} onPick={(pid, helper, diff, scen) => { const g = newGame(pid, helper, diff, scen); gameRef.current = g; setGame(g); setTab('map'); setSel(null); setScreen('game'); try { window.scrollTo({ top: 0 }); } catch (e) { /* ignore */ } }} />;
   } else if (screen === 'title' || !game) {
     body = <TitleScreen lang={lang} setLang={setLang} saved={saved} onNew={() => { setScreen('select'); try { window.scrollTo({ top: 0 }); } catch (e) { /* ignore */ } }} onContinue={() => { gameRef.current = saved; setGame(saved); setScreen('game'); try { window.scrollTo({ top: 0 }); } catch (e) { /* ignore */ } }} />;
   } else if (game.phase === 'campaign' && derived) {
@@ -5990,7 +6615,7 @@ export default function SeimasGame({ hotData } = {}) {
     const onEnd = () => (game.ap > 0 ? setConfirmEnd(true) : doEnd());
     const tabBody = (
       <>
-        {tab === 'map' && <MapTab g={game} shares={shares} proj={proj} sel={sel} onSelect={openRegion} skipTips={skipTips} wide={wide} />}
+        {tab === 'map' && <MapTab g={game} shares={shares} proj={proj} sel={sel} onSelect={openRegion} skipTips={skipTips} wide={wide} act={act} />}
         {tab === 'polls' && <PollsTab g={game} nat={nat} proj={proj} />}
         {tab === 'hq' && <HQTab g={game} act={act} openSheet={openSheet} />}
         {tab === 'news' && <NewsTab g={game} />}
@@ -6003,7 +6628,7 @@ export default function SeimasGame({ hotData } = {}) {
         <div className="grid gap-5 px-5 pt-1" style={{ gridTemplateColumns: '84px minmax(0, 1fr) 410px', paddingBottom: 56 }}>
           <div className="pt-4"><NavRail tab={tab} setTab={goTab} /></div>
           <main className="min-w-0 pb-4">{tabBody}</main>
-          <aside className="min-w-0 pt-4">{drawer || <SidePanel g={game} shares={shares} onSelect={openRegion} />}</aside>
+          <aside className="min-w-0 pt-4">{drawer || <SidePanel g={game} shares={shares} onSelect={openRegion} act={act} />}</aside>
         </div>
         <div className="fixed bottom-0 inset-x-0 z-30"><NewsTicker g={game} /></div>
         {sheet === 'casino' && <CasinoSheet g={game} act={act} onClose={() => setSheet(null)} />}
@@ -6032,6 +6657,7 @@ export default function SeimasGame({ hotData } = {}) {
       <ElectionNight
         key={`night-${game.seed}`}
         g={game}
+        onDeals={(pacts, boosts) => act((g) => { applyRunoffDeals(g, pacts, boosts); return null; })}
         onFinish={(kind) => act((g) => {
           if (kind === 'majority') {
             g.vote = { ...confidenceVote(g, [g.player], 82), members: [g.player], stability: 82 };

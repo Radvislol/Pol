@@ -41,6 +41,17 @@ The Labour Party (DP) leader comes from an undated party directory listing, so i
 
 Every leader and character has an original cartoon portrait whose expression reacts to the moment: debates, polls, coalition talks, results. Characters include Rūta, the LRT host, the news anchor, the croupier, the bookmaker, the private investigator and a face for each voter group. Regions, news stories and big moments use illustrations of real places: Gediminas Tower, Trakai Island Castle, Kaunas Castle, Klaipėda harbour with the Meridianas, the Hill of Crosses, Aukštaitija's lakes, farmland with a stork's nest, the Seimas and the Presidential Palace. Everything is drawn in SVG inside the component, so there are no image files.
 
+## Strategy layers
+
+- **Game settings.** Three difficulty levels (rival aggression, donations) and four scenarios: Standard election, Energy shock (governing parties start weaker, cost-of-living messages hit harder), Security scare (hawks gain), and Autumn of scandals (more rival scandals, low trust).
+- **Message of the week.** Pick one of five messages (cost of living, security, regions, cities and the future, honest politics). Moves in regions where voters care about it are 12% stronger, elsewhere 3% weaker. Sticking with a message builds buzz; dropping one you pushed for weeks looks confused. The choice locks once you campaign that week.
+- **Campaign team.** Hire up to three of seven specialists: a strategist (+1 energy), a press secretary, a digital director, a field organiser, a pollster, a fundraiser and an election lawyer. Each has a signing fee and a weekly wage; if you can't pay, someone quits.
+- **Party board and unity.** Every week the party board sets a task: gain in a region, raise money, campaign widely, knock on doors, run a clean week, lift the national rating, or place in the debate. Success brings a reward; failure costs unity. Flip-flops, shady deals and drifting from the programme also cost unity. Below 40, a revolt breaks out, and low unity means your own MPs may vote against you as Prime Minister.
+- **Rival scandals.** Rivals get into trouble too: hidden debts, poster vandalism, defecting councillors, hot-mic gaffes. You choose whether to attack, stay above it or go through the VRK.
+- **Between the rounds.** After round one you see your closest runoffs, sign up to two runoff pacts (their voters back you, yours back them; partners remember it in coalition talks), and send three volunteer teams to the tightest races. Projections update as you plan.
+- **Rival dossier.** The polls tab tracks the six biggest rivals: trend, momentum, last week's moves, attacks on you, and how close they are to you politically.
+- **Achievements.** Fifteen achievements, saved in the browser across campaigns.
+
 ## Consequences
 
 - **Promises and reputation.** Every answer in the news, in debates and on the street becomes a promise. Saying the opposite later is a flip-flop that costs reputation. Reputation (0–100) scales how much good news helps you and how willingly partners join a coalition.
