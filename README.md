@@ -8,7 +8,8 @@ A friendly, cartoon-style strategy game about the **2028 Lithuanian Seimas elect
 
 - **Rūta, your campaign manager (optional).** On the party screen, choose *With Rūta* or *Play solo*. With Rūta, she walks you through the first week, explains the rules and gives rough forecasts on region moves. She never picks moves, news answers or debate answers for you. In solo mode there is no tutorial, no tips and no forecasts.
 - **No hints on news and debates.** News choices and debate answers show only the words. You find out how they landed afterwards.
-- **The map** shows Lithuania's real county outlines, coloured by whoever leads in each region. Close races are striped, and each week a short briefing lists the tightest races with your lead or gap. Tap a region to see the race and every move you can make there.
+- **The campaign map** shows Lithuania's real county outlines. Switch between six layers: who leads, your support, this week's change, battlegrounds, your ground teams and rival moves. Dots around each region show the projected winner of every local district. Markers show your leader, your moves this week, news stories, rivals' attacks and strongholds waiting for a visit. Tap a region to see the race, local intel and every move you can make there.
+- **Your leader tours the country.** Rallies are 30% stronger where the leader is and 15% weaker elsewhere. Each week brings one free bus ride to a neighbouring region; longer trips (and flights to the diaspora) cost energy. The week's route is drawn on the map.
 - **Plain-language moves.** Each move shows its cost (energy and euros) and its expected effect before you tap.
 
 ## Parties and leaders (as of November 2026)
@@ -34,9 +35,21 @@ The Labour Party (DP) leader comes from an undated party directory listing, so i
 
 Every leader and character has an original cartoon portrait whose expression reacts to the moment: debates, polls, coalition talks, results. Characters include Rūta, the LRT host, the news anchor, the croupier, the bookmaker, the private investigator and a face for each voter group. Regions, news stories and big moments use illustrations of real places: Gediminas Tower, Trakai Island Castle, Kaunas Castle, Klaipėda harbour with the Meridianas, the Hill of Crosses, Aukštaitija's lakes, farmland with a stork's nest, the Seimas and the Presidential Palace. Everything is drawn in SVG inside the component, so there are no image files.
 
+## Consequences
+
+- **Promises and reputation.** Every answer in the news, in debates and on the street becomes a promise. Saying the opposite later is a flip-flop that costs reputation. Reputation (0–100) scales how much good news helps you and how willingly partners join a coalition.
+- **Follow-up stories.** Ten decisions come back two or three weeks later: the farmers' petition, the donor behind your silence, landlords' billboards, a fact-check of your pension promise and more.
+- **Rivals react.** Parties you hit with attack ads hit back in the same region the next week, and region leaders rush to defend places where you surged.
+- **Neglected strongholds slip.** A safe region you ignore for four weeks starts to drift away.
+- **Voters stop you.** After rallies and door-knocking, a voter may ask you something directly: a pensioner about heating bills, a farmer about milk prices, a minority parent about schools. Your answer has effects.
+- **The weekly recap** lists what your choices led to.
+
 ## Systems
 
-- **31 news stories** with three answers each, and **LRT debates** that draw 3 of 5 questions per debate, so every campaign plays differently.
+- **47 news stories** (including 10 follow-ups, many of them pinned to a place on the map) with three answers each, and **LRT debates** that draw 3 of 5 questions per debate. Midway through every debate a rival attacks you and you choose how to respond. A low reputation invites the "flip-flopper" attack.
+- **Polls with margins of error.** Each week's poll comes from one of four fictional polling firms, each with a small house effect, a sample size and a margin of error.
+- **Endorsements.** In weeks 6 and 10, trade unions, farmers', business, youth, seniors' and minority organisations back the party their members like most. Winning one gives a boost wherever that group lives.
+- **Early voting.** In the final week many people have already voted, so moves are 15% weaker.
 - **Star candidates.** Recruit a famous local face to boost one single-mandate district. AI parties field some too.
 - **VRK spending limit.** Campaign spending is capped. Going over brings a fine and a scandal.
 - **Risky money.** A casino with real European roulette odds, and bets on Žalgiris games. Both lose money on average, and every bet has a 12% chance of leaking to the press.
