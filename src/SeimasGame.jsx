@@ -17,7 +17,7 @@ import {
   Languages, PiggyBank, Trophy, Music, Mail, SkipForward, Check, Tv, Target, Briefcase, Play, Sparkles,
   ShieldAlert, Siren, Flag, Star, Smile, Meh, Frown, Lightbulb, Medal, Landmark, Heart, Sprout,
   Wheat, LockOpen, Rocket, Hammer, Church, Bus, MessageCircle, ShieldCheck, TrendingUp, Route, Layers, Clock, Dices, Search, Cloud, CloudRain, Sun, Gavel, Ticket, Eye,
-  ThumbsUp, ThumbsDown, Volume2, VolumeX, Plus, Minus, Maximize2, LocateFixed, Menu, Repeat2, MessageSquare, Hash, Camera, BadgeCheck, Clapperboard, Share2, Calendar, ListOrdered, ArrowUp, ArrowDown, FileCheck, UserCheck,
+  ThumbsUp, ThumbsDown, Volume2, VolumeX, Plus, Minus, Maximize2, LocateFixed, Menu, Repeat2, MessageSquare, Hash, Camera, BadgeCheck, Clapperboard, Share2, Calendar, History, ListOrdered, ArrowUp, ArrowDown, FileCheck, UserCheck,
 } from 'lucide-react';
 
 /* ============================================================
@@ -5469,6 +5469,7 @@ const POLL_SUBS = () => [
 ];
 // Everything you can do, and where it lives.
 const FINDER = [
+  { id: 'dpoll', icon: BarChart3, label: bi('Order a district poll', 'Užsakyti apygardos apklausą'), where: bi('Map › Districts › a district', 'Žemėlapis › Apygardos › apygarda'), kw: 'apklaus poll apygard district tiksl', go: { tab: 'map', sub: 'districts' } },
   { id: 'cscan', icon: AlertTriangle, label: bi('Candidate scandals in the news', 'Kandidatų skandalai naujienose'), where: bi('News', 'Naujienos'), kw: 'skandal scandal kandidat candidate', go: { tab: 'news' } },
   { id: 'plist', icon: ListOrdered, label: bi('Party list (order your candidates)', 'Partijos sąrašas (kandidatų eilė)'), where: bi('HQ › List', 'Štabas › Sąrašas'), kw: 'sarasas list reiting pirmumo preference vrk', go: { tab: 'hq', sub: 'list' } },
   { id: 'ldeb', icon: Mic, label: bi('Local TV debates in a district', 'Vietos TV debatai apygardoje'), where: bi('Map › Districts › a district', 'Žemėlapis › Apygardos › apygarda'), kw: 'debat apygard local vietos tv', go: { tab: 'map', sub: 'districts' } },
@@ -6423,7 +6424,8 @@ function profText(c) {
 }
 function DistrictRow({ g, cid, e, onOpen }) {
   const me = g.player;
-  const view = districtView(g, cid);
+  const view = districtSeen(g, cid);
+  const known = distKnown(g, cid);
   const mine = view.find((x) => x.c.p === me);
   const lead = view[0];
   const second = view[1];
@@ -6434,12 +6436,12 @@ function DistrictRow({ g, cid, e, onOpen }) {
       <span className="min-w-0 flex-1">
         <span className="block font-bold leading-tight truncate">{cnm(cid)}</span>
         <span className="flex items-center gap-1.5 mt-0.5 text-[11px] font-bold t-muted min-w-0">
-          <CandFace c={lead.c} size={18} /><span className="truncate">{lead.c.name}</span><span className="shrink-0">{fmtPct(lead.s, 0)}</span>
+          <CandFace c={lead.c} size={18} /><span className="truncate">{lead.c.name}</span><span className="shrink-0">{known ? '' : '~'}{fmtPct(lead.s, 0)}</span>{known && g.phase === 'campaign' && <BarChart3 size={11} className="shrink-0" style={{ color: GREEN }} />}
         </span>
       </span>
       <span className="flex flex-col items-end gap-1 shrink-0">
         <StatusPill status={status} />
-        <span className="text-[11px] font-bold t-muted">{mine ? tt(`you ${fmtPct(mine.s, 0)}`, `jūs ${fmtPct(mine.s, 0)}`) : tt('no candidate', 'be kandidato')}</span>
+        <span className="text-[11px] font-bold t-muted">{mine ? tt(`you ${known ? '' : '~'}${fmtPct(mine.s, 0)}`, `jūs ${known ? '' : '~'}${fmtPct(mine.s, 0)}`) : tt('no candidate', 'be kandidato')}</span>
       </span>
     </button>
   );
@@ -6454,17 +6456,18 @@ function DistrictList({ g, proj, compact }) {
   const rows = useMemo(() => ALL_CIDS.map((cid) => {
     const e = proj.smd.find((x) => x.cid === cid);
     const cs = candidatesOf(g, cid);
-    return { cid, e, text: fold(`${cnum(cid)} ${consById(cid)[0]} ${consById(cid)[4]} ${consById(cid)[5]} ${cs.map((c) => c.name).join(' ')}`) };
+    const sv = districtSeen(g, cid);
+    return { cid, e, lead: sv[0] ? sv[0].c.p : null, text: fold(`${cnum(cid)} ${consById(cid)[0]} ${consById(cid)[4]} ${consById(cid)[5]} ${cs.map((c) => c.name).join(' ')}`) };
   }), [g, proj]);
-  const list = rows.filter((x) => (rf === 'all' || x.cid.startsWith(`${rf}-`)) && (!f || x.text.includes(f)) && (sf === 'all' || (sf === 'win' ? x.e && x.e.winner === me : sf === 'run' ? x.e && x.e.round === 2 && (x.e.runoff.a === me || x.e.runoff.b === me) : !(x.e && x.e.winner === me))))
+  const list = rows.filter((x) => (rf === 'all' || x.cid.startsWith(`${rf}-`)) && (!f || x.text.includes(f)) && (sf === 'all' || (sf === 'win' ? x.lead === me : sf === 'run' ? x.e && x.e.round === 2 && (x.e.runoff.a === me || x.e.runoff.b === me) : x.lead !== me)))
     .sort((a, b) => cnum(a.cid) - cnum(b.cid));
-  const wins = rows.filter((x) => x.e && x.e.winner === me).length;
+  const wins = rows.filter((x) => x.lead === me).length;
   const chip = (on, onClick, label, key) => <button key={key} type="button" aria-pressed={on} onClick={onClick} className="cx-chip shrink-0 px-2.5 py-1 text-xs" style={{ background: on ? '#F3F4F6' : 'rgba(255,255,255,.06)', color: on ? INK : TEXT, borderColor: on ? '#F3F4F6' : LINE2, minHeight: 30 }}>{label}</button>;
   return (
     <section className="flex flex-col gap-2.5" aria-label={tt('All 71 districts', 'Visos 71 apygardos')}>
       <div className="flex items-baseline justify-between gap-2">
         <h3 className="cx-title text-2xl">{tt('71 local districts', '71 vienmandatė apygarda')}</h3>
-        <span className="text-sm font-bold">{tt(`You’d win ${wins}`, `Laimėtumėte ${wins}`)}</span>
+        <span className="text-sm font-bold">{tt(`You lead ~${wins}`, `Pirmaujate ~${wins}`)}</span>
       </div>
       <label className="flex items-center gap-2 rounded-xl px-3" style={{ background: 'rgba(255,255,255,.06)', border: `1px solid ${LINE2}`, minHeight: 44 }}>
         <Search size={16} className="t-muted shrink-0" />
@@ -6472,7 +6475,7 @@ function DistrictList({ g, proj, compact }) {
       </label>
       <div className="cx-layers flex gap-1.5 overflow-x-auto pb-0.5">
         {chip(sf === 'all', () => setSf('all'), tt('All', 'Visos'), 'a')}
-        {chip(sf === 'win', () => setSf('win'), tt('You win', 'Laimite'), 'w')}
+        {chip(sf === 'win', () => setSf('win'), tt('You lead', 'Pirmaujate'), 'w')}
         {chip(sf === 'run', () => setSf('run'), tt('Your runoffs', 'Jūsų II turai'), 'r')}
         {chip(sf === 'lose', () => setSf('lose'), tt('Not yours', 'Ne jūsų'), 'l')}
       </div>
@@ -6516,7 +6519,8 @@ function DistrictSheet({ g, cid, act, onClose }) {
   const r = REG[cid.split('-')[0]];
   const E = g.election;
   const result = E ? E.smd.find((x) => x.cid === cid) : null;
-  const view = districtView(g, cid);
+  const view = districtSeen(g, cid);
+  const known = distKnown(g, cid);
   const proj = useMemo(() => (E ? null : simulateElection(g, false)), [g]);
   const pe = proj ? proj.smd.find((x) => x.cid === cid) : null;
   const mine = view.find((x) => x.c.p === me);
@@ -6552,7 +6556,17 @@ function DistrictSheet({ g, cid, act, onClose }) {
           </div>
         )}
         <div>
-          <div className="cx-kicker text-xs mb-2">{result ? tt('Election result', 'Rinkimų rezultatas') : tt('First-round projection', 'I turo prognozė')}</div>
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <div className="cx-kicker text-xs">{result ? tt('Election result', 'Rinkimų rezultatas') : known ? tt('First-round poll', 'I turo apklausa') : tt('Rough estimate', 'Apytikslis vertinimas')}</div>
+            {!result && (known ? <span className="text-[11px] font-bold" style={{ color: GREEN }}>{tt(`Polled in week ${g.dpoll[cid]}`, `Apklausa ${g.dpoll[cid]} sav.`)}</span> : <span className="text-[11px] font-bold" style={{ color: AMBER }}>±{distErr(g)} {tt('pts', 'p.')}</span>)}
+          </div>
+          {!result && !known && g.phase === 'campaign' && (
+            <div className="cx-soft p-2.5 mb-2 flex items-center gap-3">
+              <BarChart3 size={18} className="shrink-0" style={{ color: AMBER }} />
+              <span className="text-xs font-semibold flex-1">{tt('Without a local poll you only see a rough estimate. A poll gives exact numbers for two weeks.', 'Be vietos apklausos matote tik apytikslį vertinimą. Apklausa duoda tikslius skaičius dviem savaitėms.')}</span>
+              <Btn kind="white" className="h-10 px-3 text-sm shrink-0" disabled={g.money < distPollCost(g)} onClick={() => act((gg) => orderDistPoll(gg, cid))}>{tt('Poll', 'Apklausa')} · {fmtEur(distPollCost(g))}</Btn>
+            </div>
+          )}
           <div className="flex flex-col gap-1.5">
             {view.map(({ c, s }, i) => {
               const won = result ? result.winner === c.p : null;
@@ -6564,7 +6578,7 @@ function DistrictSheet({ g, cid, act, onClose }) {
                     <span className="flex items-center gap-1.5 text-[11px] font-bold t-muted"><PartyDot p={c.p} size={9} />{partyLabel(c)} · {profText(c)}</span>
                     <span className="cx-track block mt-1" style={{ height: 6 }}><span className="block h-full" style={{ width: `${clamp(s * 2, 2, 100)}%`, background: (PARTIES[c.p] || PARTIES.KITI).color }} /></span>
                   </span>
-                  <span className="cx-num text-right">{fmtPct(s, 1)}</span>
+                  <span className="cx-num text-right">{known || result ? fmtPct(s, 1) : <span className="text-xs">{Math.round(view[i].lo)}–{fmtPct(view[i].hi, 0)}</span>}</span>
                 </button>
               );
             })}
@@ -6572,7 +6586,7 @@ function DistrictSheet({ g, cid, act, onClose }) {
           {view.some((x) => x.c.aiN) && <div className="text-xs font-bold mt-1.5" style={{ color: AMBER }}>{tt('Rival spending here:', 'Varžovų investicijos čia:')} {view.filter((x) => x.c.aiN).map((x) => `${partyShort(x.c.p)} ×${x.c.aiN}`).join(', ')}</div>}
           <div className="text-[11px] t-muted mt-1.5">{tt('Projection = regional poll × local lean × candidate strength. Tap a candidate for the profile.', 'Prognozė = regiono reitingas × vietos polinkis × kandidato stiprumas. Paspauskite kandidatą – pamatysite profilį.')}</div>
         </div>
-        {(pe || result) && (
+        {(pe || result) && (known || result) && (
           <div className="cx-soft p-3 text-sm font-semibold">
             {(() => {
               const e = result || pe;
@@ -7573,6 +7587,73 @@ function aiDistrictTick(g) {
   });
   if (n) addCons(g, 'warn', bi(`Rival parties poured money into their candidates in ${n} close districts.`, `Varžovai investavo į savo kandidatus ${n} artimose apygardose.`));
 }
+/* ============================================================
+   District polls (fog of war) and campaign career
+   ============================================================ */
+const distKnown = (g, cid) => g.phase !== 'campaign' || (g.dpoll && g.dpoll[cid] != null && g.week - g.dpoll[cid] <= 2);
+const distErr = (g) => (hasStaff(g, 'pollster') ? 4 : 6);
+const distPollCost = (g) => (hasStaff(g, 'pollster') ? 5 : 8);
+// What you can see of a district: exact numbers after a fresh poll, otherwise a fuzzy estimate.
+function districtSeen(g, cid, regShares) {
+  const v = districtView(g, cid, regShares);
+  if (distKnown(g, cid)) return v.map((x) => ({ ...x, lo: x.s, hi: x.s, exact: true }));
+  const e = distErr(g);
+  return v.map((x) => {
+    const r = mulberry32(hashStr(`${g.seed}|fz|${cid}|${x.c.p}|${g.week}`))();
+    const mid = clamp(x.s + (r * 2 - 1) * e * 0.6, 0.5, 95);
+    return { ...x, s: mid, lo: Math.max(0, mid - e), hi: mid + e, exact: false };
+  }).sort((a, b) => b.s - a.s);
+}
+function orderDistPoll(g, cid) {
+  const cost = distPollCost(g);
+  if (g.money < cost) return { ok: false, msg: tt(`Not enough money: ${fmtEur(cost)} needed.`, `Trūksta pinigų: reikia ${fmtEur(cost)}.`) };
+  spend(g, cost);
+  g.dpoll = { ...(g.dpoll || {}), [cid]: g.week };
+  g.stats.dpolls = (g.stats.dpolls || 0) + 1;
+  return { ok: true, tone: 'good', msg: tt(`District poll ready: ${cnm(cid)}`, `Apygardos apklausa paruošta: ${cnm(cid)}`) + (vrkCheck(g) || '') };
+}
+const CAREER_KEY = 'seimas-bfl-career';
+function loadCareer() { try { return JSON.parse(window.localStorage.getItem(CAREER_KEY) || '[]'); } catch (e) { return []; } }
+function saveCareer(g) {
+  try {
+    const list = loadCareer();
+    if (list.some((x) => x.seed === g.seed)) return list;
+    const [grade, title] = gradeOf(g);
+    const rec = { seed: g.seed, at: Date.now(), p: g.player, grade, title, seats: g.election.seats[g.player], share: Math.round(g.election.natShares[g.player] * 10) / 10, kind: g.result.kind, diff: g.diff || 'normal', scen: g.scen || 'standard', laws: g.gov ? g.gov.laws.filter((l) => l.res === 'passed').length : null };
+    const next = [rec, ...list].slice(0, 40);
+    window.localStorage.setItem(CAREER_KEY, JSON.stringify(next));
+    return next;
+  } catch (e) { return []; }
+}
+function CareerSheet({ onClose }) {
+  const list = useMemo(() => loadCareer(), []);
+  const pm = list.filter((x) => x.kind === 'pm' || x.kind === 'majority').length;
+  const best = list.reduce((b, x) => (!b || x.seats > b.seats ? x : b), null);
+  const parties = new Set(list.map((x) => x.p)).size;
+  return (
+    <Sheet label={tt('Your career', 'Jūsų karjera')} onClose={onClose}>
+      <SheetHead kicker={tt('Every campaign you finished', 'Visos jūsų baigtos kampanijos')} title={tt('Your career', 'Jūsų karjera')} onClose={onClose} />
+      <div style={GUTTER} className="flex flex-col gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          {[[tt('Campaigns', 'Kampanijos'), list.length], [tt('Times in government', 'Kartų valdžioje'), pm], [tt('Parties led', 'Vadovautos partijos'), `${parties}/12`], [tt('Best result', 'Geriausias rezultatas'), best ? `${best.seats} · ${partyShort(best.p)}` : '–']].map(([l, v]) => <div key={l} className="cx-soft p-2.5"><div className="text-[11px] font-bold t-muted">{l}</div><div className="cx-num text-xl">{v}</div></div>)}
+        </div>
+        {list.length === 0 && <div className="text-sm t-muted py-4 text-center">{tt('No finished campaigns yet. Play one to the end!', 'Dar nebaigta nė viena kampanija. Sužaiskite iki galo!')}</div>}
+        <div className="flex flex-col gap-1.5">
+          {list.map((x) => (
+            <div key={x.seed} className="flex items-center gap-3 rounded-xl px-3 py-2" style={{ background: 'rgba(255,255,255,.04)', border: `1px solid ${LINE}`, borderLeft: `4px solid ${PARTIES[x.p].color}` }}>
+              <span className="grid place-items-center rounded-full cx-title text-lg shrink-0" style={{ width: 36, height: 36, background: ['S', 'A'].includes(x.grade) ? SUN : x.grade === 'B' ? '#CBD5E1' : 'rgba(255,255,255,.1)', color: ['S', 'A', 'B'].includes(x.grade) ? INK : TEXT }}>{x.grade}</span>
+              <span className="min-w-0 flex-1">
+                <span className="block font-bold truncate">{partyShort(x.p)} · {x.title}</span>
+                <span className="block text-xs t-muted">{new Date(x.at).toLocaleDateString(LANG === 'lt' ? 'lt-LT' : 'en-GB')} · {fmtPct(x.share)} · {x.seats} {seatsWord(x.seats)}{x.laws != null ? tt(` · ${x.laws} laws`, ` · ${x.laws} įst.`) : ''} · {L((DIFFS[x.diff] || DIFFS.normal).name)}</span>
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </Sheet>
+  );
+}
+function CareerSaver({ g }) { useState(() => saveCareer(g)); return null; }
 function HQTab({ g, act, openSheet, sub = 'media', setSub = () => {} }) {
   const P = PARTIES[g.player];
   const orig = P.pos;
@@ -8632,7 +8713,9 @@ function ConfirmEnd({ g, onCancel, onConfirm }) {
    ============================================================ */
 function TitleScreen({ saved, onNew, onContinue, lang, setLang }) {
   const [ach, setAch] = useState(false);
+  const [career, setCareer] = useState(false);
   const achN = useMemo(() => loadAch().length, []);
+  const careerN = useMemo(() => loadCareer().length, []);
   return (
     <div className="relative min-h-screen overflow-hidden">
       <div className="absolute inset-0" aria-hidden="true">
@@ -8654,6 +8737,7 @@ function TitleScreen({ saved, onNew, onContinue, lang, setLang }) {
           <div className="flex flex-col sm:flex-row gap-3 mt-7">
             <Btn className="h-16 px-10 text-2xl" onClick={onNew}><Play size={24} style={{ fill: '#1B1204' }} />{tt('Play', 'Žaisti')}</Btn>
             <Btn kind="white" className="h-16 px-5 text-lg" onClick={() => setAch(true)}><Trophy size={20} color={SUN} />{achN}/{ACHIEVEMENTS.length}</Btn>
+            <Btn kind="white" className="h-16 px-5 text-lg" onClick={() => setCareer(true)} aria-label={tt('Your career', 'Jūsų karjera')}><History size={20} color={SUN} />{careerN}</Btn>
             {saved && <Btn kind="white" className="h-16 px-6 text-lg" onClick={onContinue}>{tt('Continue', 'Tęsti')} · {PARTIES[saved.player].short}, {saved.phase === 'campaign' ? tt(`week ${saved.week}`, `${saved.week} sav.`) : tt('after the vote', 'po rinkimų')}</Btn>}
           </div>
           <div className="flex gap-6 mt-8">
@@ -8666,6 +8750,7 @@ function TitleScreen({ saved, onNew, onContinue, lang, setLang }) {
           <div className="cx-kicker text-xs mb-2">{tt('12 parties · 12 real leaders', '12 partijų · 12 tikrų lyderių')}</div>
           <div className="flex gap-2.5 overflow-x-auto cx-layers pb-2">{PARTY_IDS.map((p) => <CandidateCard key={p} p={p} w={92} />)}</div>
           {ach && <AchievementsSheet onClose={() => setAch(false)} />}
+          {career && <CareerSheet onClose={() => setCareer(false)} />}
           <p className="text-xs t-muted mt-3 max-w-3xl leading-relaxed">{tt('A fictional simulation. Real parties and leaders appear for context; all events, quotes and results are invented. Emblems are not official logos and portraits are drawings, not photos.', 'Išgalvota simuliacija. Tikros partijos ir lyderiai naudojami kontekstui; visi įvykiai, citatos ir rezultatai išgalvoti. Ženkliukai – ne oficialūs logotipai, portretai – piešti, ne nuotraukos.')}</p>
         </div>
       </div>
@@ -8841,10 +8926,11 @@ function PartySelect({ onPick, onBack }) {
 const COUNT_SPAN = 0.55;
 const countedFrac = (r, prog) => clamp((prog - r.count) / COUNT_SPAN, 0, 1);
 function RunoffRow({ e, me }) {
+  const nav = React.useContext(NavCtx);
   const { a, b, sa, sb } = e.runoff;
   const mine = a === me || b === me;
   return (
-    <li className="rounded-2xl px-3 py-2 sbl-fade" style={{ border: `1px solid ${LINE}`, background: mine ? ACC_BG : PANEL2 }}>
+    <li role="button" tabIndex={0} onClick={() => nav.openDistrict(e.cid)} className="cx-tap rounded-2xl px-3 py-2 sbl-fade" style={{ border: `1px solid ${LINE}`, background: mine ? ACC_BG : PANEL2 }}>
       <div className="flex items-center justify-between gap-2">
         <span className="font-black truncate">{cnm(e.cid)}</span>
         <span className="text-sm font-extrabold inline-flex items-center gap-1 shrink-0"><PartyDot p={e.winner} size={11} />{tt(`${partyShort(e.winner)} wins`, `laimi ${partyShort(e.winner)}`)}</span>
@@ -8936,6 +9022,7 @@ function RunoffDeals({ g, onConfirm }) {
   );
 }
 function ElectionNight({ g, onFinish, onDeals }) {
+  const nav = React.useContext(NavCtx);
   const E = g.election;
   const me = g.player;
   const P = PARTIES[me];
@@ -9072,7 +9159,7 @@ function ElectionNight({ g, onFinish, onDeals }) {
           {showAll && (
             <ul className="flex flex-col gap-2">
               {E.smd.map((e) => (e.round === 2 ? <RunoffRow key={e.cid} e={e} me={me} /> : (
-                <li key={e.cid} className="rounded-2xl px-3 py-2 flex items-center gap-2 cx-panel2" style={{ border: `1px solid ${LINE}` }}>
+                <li key={e.cid} role="button" tabIndex={0} onClick={() => nav.openDistrict(e.cid)} className="cx-tap rounded-2xl px-3 py-2 flex items-center gap-2 cx-panel2" style={{ border: `1px solid ${LINE}` }}>
                   <PartyDot p={e.winner} size={12} /><span className="font-black flex-1 min-w-0 truncate">{cnum(e.cid)}. {cnm(e.cid)} <span className="font-semibold t-muted">· {(candOf(g, e.cid, e.winner) || {}).name || ''}</span></span>
                   <span className="text-xs font-extrabold t-muted">{tt(`${partyShort(e.winner)} won outright`, `${partyShort(e.winner)} laimėjo I ture`)}</span>
                 </li>
@@ -9344,6 +9431,7 @@ function ResultScreen({ g, onRestart }) {
         <h2 className="cx-title text-4xl leading-none mt-1">{title}</h2>
         <p className="font-semibold mt-3 leading-relaxed">{blurb}</p>
       </div>
+      <CareerSaver g={g} />
       <AchievementsWon g={g} />
       {g.vote && (
         <div className="mt-4 cx-soft p-3 text-sm font-bold text-center lg:col-span-2">{tt('Seimas vote:', 'Seimo balsavimas:')} <span className="cx-num">{g.vote.ayes}</span> {tt('for', 'už')} · <span className="cx-num">{g.vote.noes}</span> {tt('against', 'prieš')} · <span className="cx-num">{g.vote.abst}</span> {tt('abstained', 'susilaikė')}</div>

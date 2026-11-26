@@ -51,6 +51,12 @@ A political-drama strategy game about the **2028 Lithuanian Seimas election**, p
 
   Your final stability decides the Prime Minister grade, and the result screen shows a 100-day summary.
 
+## District polls and your career
+
+- **District polls (fog of war).** During the campaign you only see a rough estimate for each district: ±6 points, shown as a range and marked "~" in the district list. The list filters and counts use what you can see. To get exact numbers, order a local poll on the district card for €8k (€5k with an in-house pollster); it stays valid for two weeks. Runoff predictions appear only for polled districts. After the election everything is exact.
+- **Clickable election night.** Every district in the full results list on election night opens its district card.
+- **Your career.** Every finished campaign is saved in this browser: party, grade, title, vote share, seats, laws passed and difficulty. The history button on the title screen shows the list, with campaigns played, times in government, parties led and your best result.
+
 ## The President and rival district campaigns
 
 - **The President** (shown by title only, as a generic cartoon) appoints your ministers and signs your laws:
