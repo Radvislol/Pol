@@ -129,6 +129,7 @@ const GLOBAL_CSS = `
 .cx-pill { display: inline-flex; align-items: center; gap: 6px; background: #F3F4F6; color: #11141B; border-radius: 999px;
   font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif; font-weight: 700; font-variant-numeric: tabular-nums; box-shadow: 0 3px 10px rgba(0,0,0,.3); }
 .cx-title { font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif; font-style: italic; font-weight: 700; letter-spacing: .005em; text-wrap: balance; }
+.truncate { text-wrap: nowrap; }
 .cx-num { font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif; font-variant-numeric: tabular-nums; font-weight: 700; }
 .cx-kicker { font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif; font-style: italic; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--acc); }
 .cx-bar { background: #07090D; color: #fff; }
@@ -2210,6 +2211,7 @@ function doNational(g, id, target) {
       for (const r of REGIONS) loseSupport(g, r.id, target, 0.5 * (1 - g.gg[r.id][target] / 200), 0.6);
       REGIONS.forEach((r) => normalizeRegion(g, r.id));
       addNews(g, { kind: 'kompro', target, outcome: 'hit' });
+      chron(g, 'kompro', bi(`Leaked documents hurt ${partyShort(target)}`, `Nutekinti dokumentai pakenkė ${partyShort(target)}`));
       msg = tt(`Jackpot: leaked documents embarrass ${partyShort(target)}!`, `Pavyko: nutekinti dokumentai sukompromitavo ${partyShort(target)}!`);
     } else if (roll < (hasStaff(g, 'lawyer') ? 0.9 : 0.8)) {
       msg = tt('Your investigators found nothing useful.', 'Tyrėjai nieko naudingo nerado.');
@@ -2218,6 +2220,7 @@ function doNational(g, id, target) {
       g.momentum[p] = clamp(g.momentum[p] - 1.5, -10, 10);
       addScandal(g, 10);
       addNews(g, { kind: 'kompro', target, outcome: 'exposed' });
+      chron(g, 'kompro', bi('Caught digging for dirt', 'Įkliuvote renkant kompromatą'), 'bad');
       msg = tt('Exposed! The press found out you were digging for dirt.', 'Įkliuvote! Žiniasklaida sužinojo, kad rinkote kompromatą.');
       tone = 'bad';
     }
@@ -2654,6 +2657,8 @@ function resolveEvent(g, ci) {
   const after = { share: nationalShares(g)[p], money: g.money, pc: g.pc, mom: g.momentum[p] };
   g.stats.events += 1;
   addNews(g, { kind: 'event', ev: ev.id, ci, note, rv: item.rv, rr: item.rr });
+  const fillT = (t, k) => String(t).replace(/\{P\}/g, item.rv ? partyShort(item.rv) : '').replace(/\{R\}/g, item.rr ? REG[item.rr].short[k] : '');
+  chron(g, 'event', bi(fillT(ev.title.en, 'en'), fillT(ev.title.lt, 'lt')), after.share >= before.share ? 'good' : 'bad');
   const fu = (FOLLOW_LINKS[ev.id] || {})[ci];
   if (fu && g.week < WEEKS - 1) {
     g.followUps.push({ id: fu, week: g.week + 2 + (Math.random() < 0.4 ? 1 : 0) });
@@ -2718,6 +2723,7 @@ function resolveDebate(g, idx, picks) {
   REGIONS.forEach((r) => normalizeRegion(g, r.id));
   const after = nationalShares(g)[p];
   g.stats.debates.push({ idx, avg, rank, won });
+  chron(g, 'debate', won ? bi(`Won LRT debate ${idx + 1}`, `Laimėti ${idx + 1}-ieji LRT debatai`) : bi(`LRT debate ${idx + 1}: finished #${rank}`, `${idx + 1}-ieji LRT debatai: ${rank} vieta`), won ? 'good' : rank <= 2 ? 'warn' : 'bad');
   addNews(g, { kind: 'debate', d: idx, winner: poll[0].p, pct: poll[0].pct, rank });
   return { poll, avg, rank, won, delta: after - before, cons: (g.consequences || []).slice(c0) };
 }
@@ -4264,6 +4270,19 @@ function CartoonMap({ shares, sel, onSelect, g, proj, layer = 'lead', live, fx, 
       })}
       {/* markers */}
       <g pointerEvents="none">
+        {g && !live && (() => {
+          const F = festivalNow(g);
+          if (!F || (g.fest && g.fest[F.id] != null)) return null;
+          const [x, y] = anchorOf(F.rid);
+          const [bx, by] = TOKENS[F.rid] ? [x, y - TOKENS[F.rid].r - 30] : [x, y - 58];
+          return (
+            <g key="fest">
+              <circle className="cx-ping" cx={bx} cy={by} r="20" fill={SUN} opacity="0.5" />
+              <circle cx={bx} cy={by} r="20" fill={SUN} stroke={INK} strokeWidth="3.5" />
+              <Sparkles x={bx - 11} y={by - 11} width={22} height={22} strokeWidth={2.6} color={INK} />
+            </g>
+          );
+        })()}
         {g && !live && (lay === 'lead' || lay === 'battle') && REGIONS.filter((r) => raceInfo(g, r, shares[r.id]).status === 'close').map((r) => {
           const [x, y] = anchorOf(r.id);
           const rr = TOKENS[r.id] ? TOKENS[r.id].r + 6 : 26;
@@ -4582,7 +4601,7 @@ function Header({ g, proj, onHelp, lang, setLang, onFind }) {
         <div className="flex items-center gap-2.5">
           <Portrait who={g.player} size={48} square badge />
           <div className="min-w-0 flex-1">
-            <div className="cx-title text-xl leading-none truncate">{P.leader}</div>
+            <div className="cx-title leading-none truncate" style={{ fontSize: P.leader.length > 18 ? 18 : 20 }}>{P.leader}</div>
             <div className="flex items-center gap-1.5 mt-1 min-w-0">
               <span className="shrink-0 rounded px-1.5 text-xs font-extrabold" style={{ background: P.color, color: '#fff', lineHeight: '18px' }}>{P.short}</span>
               <span className="shrink-0 cx-title text-sm" style={{ color: SUN }}>{tt(`Week ${g.week}/12`, `${g.week}/12 sav.`)}</span>
@@ -4649,6 +4668,7 @@ function SidePanel({ g, shares, onSelect, act }) {
   return (
     <div className="flex flex-col gap-4 sbl-scroll overflow-y-auto pr-1" style={{ position: 'sticky', top: 118, maxHeight: 'calc(100vh - 170px)' }}>
       <SubTabs value={pane} onChange={setPane} label={tt('Side panel', 'Šoninis skydelis')} items={[['week', Calendar, tt('This week', 'Ši savaitė')], ['news', Newspaper, tt('News', 'Žinios'), g.news.filter((n) => n.week === g.week).length || null]]} />
+      {pane === 'week' && <FestivalCard g={g} act={act} />}
       {pane === 'week' && <WeekPlan g={g} act={act} />}
       {pane === 'week' && <TourCard g={g} onSelect={onSelect} />}
       {pane === 'week' && <Warnings g={g} />}
@@ -5292,6 +5312,7 @@ function resolvePresser(g, picks) {
   g.momentum[p] = clamp(g.momentum[p] + d, -10, 10);
   if (cr) addCred(g, cr);
   g.natActs.presser = n + 1;
+  chron(g, 'presser', bi(`Press conference: buzz ${fmtSigned(d)}`, `Spaudos konferencija: pagreitis ${fmtSigned(d)}`), m >= 1 ? 'good' : 'warn');
   addCons(g, m >= 1 ? 'good' : 'warn', bi(`Press conference: buzz ${fmtSigned(d)}${cr ? `, credibility ${fmtSigned(cr)}` : ''}.`, `Spaudos konferencija: pagreitis ${fmtSigned(d)}${cr ? `, patikimumas ${fmtSigned(cr)}` : ''}.`));
   return { ok: true, tone: m >= 1 ? 'good' : 'warn', msg: tt(`Press conference: buzz ${fmtSigned(d)}${cr ? ` · credibility ${fmtSigned(cr)}` : ''}`, `Spaudos konferencija: pagreitis ${fmtSigned(d)}${cr ? ` · patikimumas ${fmtSigned(cr)}` : ''}`) + (vrkCheck(g) || '') };
 }
@@ -5385,6 +5406,7 @@ const POLL_SUBS = () => [
 ];
 // Everything you can do, and where it lives.
 const FINDER = [
+  { id: 'festival', icon: Sparkles, label: bi('This week’s public event', 'Šios savaitės renginys'), where: bi('Map › This week', 'Žemėlapis › Ši savaitė'), kw: 'renginys event festival svente maraton zoline krepsin', go: { tab: 'map', sub: 'week' } },
   { id: 'region', icon: MapIcon, label: bi('Rallies, ads and door-knocking in a region', 'Mitingai, reklama ir agitacija regione'), where: bi('Map › tap a region', 'Žemėlapis › paspauskite regioną'), kw: 'rally miting reklama durys door ads tv region regionas star kandidat attack puolim', go: { tab: 'map', sub: 'regions' } },
   { id: 'travel', icon: Bus, label: bi('Move your leader (bus tour)', 'Perkelti lyderį (autobuso turas)'), where: bi('Map › region › Travel', 'Žemėlapis › regionas › Važiuoti'), kw: 'travel kelion autobus bus leader lyder', go: { tab: 'map', sub: 'regions' } },
   { id: 'theme', icon: Megaphone, label: bi('Message of the week', 'Savaitės žinutė'), where: bi('Map › This week', 'Žemėlapis › Ši savaitė'), kw: 'theme tema zinute message week savait', go: { tab: 'map', sub: 'week' } },
@@ -5473,6 +5495,7 @@ function MapTab({ g, shares, proj, sel, onSelect, skipTips, wide, act, fx, sub =
       )}
       <MapBoard g={g} shares={shares} proj={proj} sel={sel} onSelect={onSelect} fx={fx} wide={wide} />
       {!wide && <SubTabs value={sub} onChange={setSub} label={tt('Map sections', 'Žemėlapio skiltys')} items={[['week', Calendar, tt('This week', 'Ši savaitė'), g.ap > 0 ? `${g.ap}⚡` : null], ['regions', MapIcon, tt('Regions', 'Regionai')]]} />}
+      {!wide && sub === 'week' && <FestivalCard g={g} act={act} />}
       {!wide && sub === 'week' && <WeekPlan g={g} act={act} />}
       {!wide && sub === 'week' && <TourCard g={g} onSelect={onSelect} />}
       {!wide && sub === 'week' && (g.tut === 0 || g.tut >= 5) && <Warnings g={g} />}
@@ -5691,6 +5714,7 @@ function launchAd(g, spec) {
   ad.left -= 1;
   g.ads = [...(g.ads || []).filter((a) => a.left > 0 || g.week - a.week < 2), ad];
   g.stats.ads = (g.stats.ads || 0) + 1;
+  chron(g, 'ad', bi(`Ad: “${ad.slogan}”`, `Reklama: „${ad.slogan}“`), ad.backfired ? 'bad' : 'good');
   const msg = ad.backfired
     ? tt(`Backfire! The ad hurt you more than ${partyShort(spec.target)}.`, `Atsisuko prieš jus! Reklama pakenkė jums labiau nei ${partyShort(spec.target)}.`)
     : spec.tone === 'attack' ? tt(`Ad is live: ${partyShort(spec.target)} ${fmtSignedPct(ad.lastHit)} nationally`, `Reklama paleista: ${partyShort(spec.target)} ${fmtSignedPct(ad.lastHit)} šalyje`)
@@ -5950,6 +5974,207 @@ function CoalitionCalc({ g, seats }) {
         </span>
       </div>
       {worst && members.length > 1 && <div className="text-xs t-muted mt-1">{tt(`Weakest link: ${partyShort(worst[0])} and ${partyShort(worst[1])} (${minC}/100).`, `Silpniausia grandis: ${partyShort(worst[0])} ir ${partyShort(worst[1])} (${minC}/100).`)}</div>}
+    </Card>
+  );
+}
+/* ============================================================
+   Real-calendar events, election-day turnout drive, campaign chronicle
+   ============================================================ */
+const SKIP_CHOICE = { t: bi('Skip it', 'Praleisti'), skip: true };
+const FESTIVALS = [
+  { id: 'sea', week: 2, rid: 'KLP', scene: 'klaipeda', icon: Anchor, name: bi('Klaipėda Sea Festival', 'Klaipėdos jūros šventė'), text: bi('Half a million people at the harbour. The main stage is yours for ten minutes, if you want it.', 'Pusė milijono žmonių uoste. Jei norite, pagrindinė scena jūsų dešimčiai minučių.'), choices: [
+    { t: bi('Give a speech from the main stage', 'Sakyti kalbą iš pagrindinės scenos'), ap: 1, cost: 20, reg: 1.4, mom: 0.3, risk: { chance: 0.22, text: bi('A heckler steals the moment on camera.', 'Švilpikas prieš kameras pavagia jūsų akimirką.'), mom: -0.7 } },
+    { t: bi('Walk the waterfront: selfies and fish soup', 'Vaikščioti krantine: asmenukės ir žuvienė'), ap: 1, cost: 5, reg: 0.9, groups: { youth: 1 } },
+    SKIP_CHOICE] },
+  { id: 'hoops', week: 3, rid: 'KNS', scene: 'kaunas', icon: Trophy, name: bi('Lithuania vs Latvia basketball friendly', 'Lietuva – Latvija: draugiškos krepšinio rungtynės'), text: bi('Žalgiris Arena is sold out. Cameras love politicians in team scarves.', '„Žalgirio“ arena pilnutėlė. Kameros mėgsta politikus su sirgalių šalikais.'), choices: [
+    { t: bi('Sit courtside in a national team jersey', 'Sėdėti prie aikštelės su rinktinės marškinėliais'), ap: 1, cost: 15, reg: 1.1, mom: 0.2, groups: { youth: 1 } },
+    { t: bi('Buy tickets for a youth club and go with them', 'Nupirkti bilietus jaunimo klubui ir eiti kartu'), ap: 1, cost: 40, reg: 0.8, cred: 2, groups: { youth: 2, public: 1 } },
+    SKIP_CHOICE] },
+  { id: 'zoline', week: 5, rid: 'ALY', scene: 'town', icon: Church, name: bi('Žolinė at Pivašiūnai', 'Žolinė Pivašiūnuose'), text: bi('Thousands of pilgrims and a big rural fair on the Feast of the Assumption.', 'Tūkstančiai piligrimų ir didelė kaimo mugė per Žolinę.'), choices: [
+    { t: bi('Join the procession quietly', 'Tyliai dalyvauti procesijoje'), ap: 1, reg: 1.0, cred: 1, groups: { seniors: 2, farmers: 1 } },
+    { t: bi('Hand out leaflets at the fair', 'Dalinti lankstinukus mugėje'), ap: 1, cost: 10, reg: 1.25, groups: { seniors: -1 }, risk: { chance: 0.3, text: bi('Locals are angry about campaigning on a holy day.', 'Vietiniai piktinasi agitacija per šventę.'), cred: -3 } },
+    SKIP_CHOICE] },
+  { id: 'balticway', week: 6, rid: 'VNO', scene: 'vilnius', icon: Users, name: bi('Baltic Way anniversary', 'Baltijos kelio metinės'), text: bi('23 August: people hold hands again along the old route. A day of unity and memory.', 'Rugpjūčio 23-ioji: žmonės vėl susikimba rankomis senuoju maršrutu. Vienybės ir atminties diena.'), choices: [
+    { t: bi('Stand in the chain, no party symbols', 'Stovėti grandinėje be partijos simbolių'), ap: 1, nat: 0.22, cred: 3, groups: { seniors: 1 } },
+    { t: bi('Give a speech on defence and freedom', 'Kalbėti apie gynybą ir laisvę'), ap: 1, nat: 0.32, mom: 0.3, groups: { business: 1, seniors: 1, minority: -1 } },
+    SKIP_CHOICE] },
+  { id: 'school', week: 7, rid: 'PAN', scene: 'town', icon: GraduationCap, name: bi('1 September: back to school', 'Rugsėjo 1-oji: mokslo metų pradžia'), text: bi('Schools reopen. Teachers are short of staff and parents are short of money.', 'Atsidaro mokyklos. Trūksta mokytojų, o tėvams – pinigų.'), choices: [
+    { t: bi('Visit a rural school and promise teachers a pay rise', 'Aplankyti kaimo mokyklą ir pažadėti mokytojams didesnes algas'), ap: 1, reg: 0.9, nat: 0.12, groups: { public: 3 } },
+    { t: bi('Announce free school meals', 'Paskelbti nemokamą maitinimą mokyklose'), ap: 1, cost: 25, nat: 0.24, groups: { seniors: 1, public: 1, business: -1 } },
+    SKIP_CHOICE] },
+  { id: 'marathon', week: 9, rid: 'VNO', scene: 'vilnius', icon: Route, name: bi('Vilnius Marathon', 'Vilniaus maratonas'), text: bi('Ten thousand runners through the Old Town. Will you run?', 'Dešimt tūkstančių bėgikų senamiestyje. Ar bėgsite?'), choices: [
+    { t: bi('Run the 10 km in party colours', 'Bėgti 10 km su partijos spalvomis'), ap: 1, reg: 1.05, groups: { youth: 2 }, risk: { chance: 0.25, text: bi('You finish last, and the video goes viral.', 'Finišuojate paskutinis, o vaizdo įrašas plinta internete.'), mom: -0.5 } },
+    { t: bi('Hand out water at the finish line', 'Dalinti vandenį finiše'), ap: 1, cost: 5, reg: 0.8, cred: 1, groups: { youth: 1 } },
+    SKIP_CHOICE] },
+  { id: 'harvest', week: 10, rid: 'MAR', scene: 'fields', icon: Wheat, name: bi('Suvalkija harvest fair', 'Suvalkijos derliaus šventė'), text: bi('Farmers show off the harvest in Marijampolė. They also brought a list of complaints.', 'Ūkininkai Marijampolėje rodo derlių. Atsivežė ir nusiskundimų sąrašą.'), choices: [
+    { t: bi('Listen to the farmers for two hours', 'Dvi valandas klausytis ūkininkų'), ap: 1, reg: 1.1, groups: { farmers: 3 } },
+    { t: bi('Promise cheaper fuel for farm machinery', 'Pažadėti pigesnį kurą žemės ūkio technikai'), ap: 1, reg: 1.35, cred: -1, groups: { farmers: 2, youth: -1 } },
+    SKIP_CHOICE] },
+];
+const festivalNow = (g) => FESTIVALS.find((f) => f.week === g.week) || null;
+const festivalNext = (g) => FESTIVALS.find((f) => f.week > g.week) || null;
+function chron(g, kind, text, tone = 'good') {
+  if (!g.chron) g.chron = [];
+  g.chron.push({ week: g.week, kind, text, tone });
+  if (g.chron.length > 80) g.chron.shift();
+}
+function resolveFestival(g, ci) {
+  const F = festivalNow(g);
+  if (!F || (g.fest && g.fest[F.id] != null)) return { ok: false, msg: tt('Nothing on this week.', 'Šią savaitę renginių nėra.') };
+  const C = F.choices[ci];
+  const p = g.player;
+  const r = REG[F.rid];
+  if (C.skip) {
+    const sh = regionShares(g, r);
+    const rv = PARTY_IDS.filter((q) => q !== p).sort((a, b) => sh[b] - sh[a])[0];
+    gainSupport(g, F.rid, rv, 0.6, 0.6); normalizeRegion(g, F.rid);
+    g.fest = { ...(g.fest || {}), [F.id]: ci };
+    g.festRes = { id: F.id, d: 0, rv };
+    addCons(g, 'warn', bi(`You skipped the ${F.name.en}. ${partyShort(rv)} took the stage instead.`, `Praleidote renginį „${F.name.lt}“. Sceną vietoj jūsų užėmė ${partyShort(rv)}.`), F.rid);
+    chron(g, 'festival', bi(`Skipped the ${F.name.en}`, `Praleistas renginys „${F.name.lt}“`), 'warn');
+    return { ok: true, tone: 'warn', msg: tt(`${partyShort(rv)} took the stage instead of you.`, `Sceną vietoj jūsų užėmė ${partyShort(rv)}.`) };
+  }
+  if (g.ap < (C.ap || 0)) return { ok: false, msg: tt('Out of energy!', 'Baigėsi energija!') };
+  if (C.cost && g.money < C.cost) return { ok: false, msg: tt(`Not enough money: ${fmtEur(C.cost)} needed.`, `Trūksta pinigų: reikia ${fmtEur(C.cost)}.`) };
+  g.ap -= C.ap || 0;
+  if (C.cost) spend(g, C.cost);
+  g.stats.actions += 1;
+  const before = nationalShares(g)[p];
+  const here = g.leaderAt === F.rid ? 1.3 : 1;
+  if (C.reg) { gainSupport(g, F.rid, p, C.reg * here * satOf(p, r, regionShares(g, r)[p]) * credMult(g), 0.6); normalizeRegion(g, F.rid); }
+  if (C.nat) REGIONS.forEach((rr) => { gainSupport(g, rr.id, p, C.nat * satOf(p, rr, regionShares(g, rr)[p]), 0.6); normalizeRegion(g, rr.id); });
+  if (C.groups) Object.entries(C.groups).forEach(([id, d]) => { g.groupMood[id] = clamp((g.groupMood[id] || 0) + d, -20, 20); });
+  if (C.mom) g.momentum[p] = clamp(g.momentum[p] + C.mom, -10, 10);
+  if (C.cred) addCred(g, C.cred);
+  let note = null;
+  if (C.risk && Math.random() < C.risk.chance) {
+    if (C.risk.mom) g.momentum[p] = clamp(g.momentum[p] + C.risk.mom, -10, 10);
+    if (C.risk.cred) addCred(g, C.risk.cred);
+    note = C.risk.text;
+    addCons(g, 'bad', bi(`${F.name.en}: ${C.risk.text.en}`, `${F.name.lt}: ${C.risk.text.lt}`), F.rid);
+  }
+  const d = nationalShares(g)[p] - before;
+  g.fest = { ...(g.fest || {}), [F.id]: ci };
+  g.festRes = { id: F.id, d, note };
+  g.weekMoves = [...(g.weekMoves || []), { rid: F.rid, type: 'rally' }];
+  chron(g, 'festival', bi(`${F.name.en}: ${C.t.en.toLowerCase()}`, `${F.name.lt}: ${C.t.lt.toLowerCase()}`), note ? 'bad' : 'good');
+  return { ok: true, tone: note ? 'bad' : 'good', msg: note ? L(note) : tt(`${L(F.name)}: ${fmtSignedPct(d)} nationally${here > 1 ? ' (leader bonus!)' : ''}`, `${L(F.name)}: ${fmtSignedPct(d)} šalyje${here > 1 ? ' (lyderio premija!)' : ''}`) };
+}
+function FestivalCard({ g, act }) {
+  const F = festivalNow(g);
+  const next = festivalNext(g);
+  if (!F) {
+    if (!next) return null;
+    return (
+      <div className="cx-soft p-3 flex items-center gap-3">
+        <span className="grid place-items-center rounded-lg shrink-0" style={{ width: 38, height: 38, background: ACC_BG }}><next.icon size={18} /></span>
+        <div className="min-w-0 text-sm"><div className="font-bold leading-snug">{tt('Coming up:', 'Netrukus:')} {L(next.name)}</div><div className="text-xs t-muted">{tt(`Week ${next.week} · ${rs(next.rid)} · move your leader there in time`, `${next.week} sav. · ${rs(next.rid)} · laiku nuvežkite ten lyderį`)}</div></div>
+      </div>
+    );
+  }
+  const done = g.fest && g.fest[F.id] != null ? g.fest[F.id] : null;
+  const res = g.festRes && g.festRes.id === F.id ? g.festRes : null;
+  const here = g.leaderAt === F.rid;
+  return (
+    <section className="cx-card overflow-hidden" style={{ padding: 0, borderColor: done == null ? 'rgba(245,165,36,.5)' : LINE }} aria-label={L(F.name)}>
+      <Scene kind={F.scene} h={null} caption={false} flush kb className="h-[110px]">
+        <span className="absolute left-3 top-3 inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-extrabold" style={{ background: SUN, color: INK }}><Sparkles size={12} />{tt('EVENT THIS WEEK', 'ŠIOS SAVAITĖS RENGINYS')}</span>
+        <div className="absolute left-3 right-3 bottom-2 cx-title text-xl leading-tight text-white" style={{ textShadow: '0 2px 10px rgba(0,0,0,.8)' }}>{L(F.name)}</div>
+      </Scene>
+      <div className="p-3 flex flex-col gap-2">
+        <div className="text-xs font-bold t-muted">{fmtDay(weekStartDate(g.week))} · {rl(F.rid)}{here ? <span style={{ color: GREEN }}> · {tt('your leader is here: +30%', 'lyderis čia: +30 %')}</span> : <span> · {tt('leader elsewhere', 'lyderis kitur')}</span>}</div>
+        <p className="text-sm font-semibold leading-snug">{L(F.text)}</p>
+        {done == null ? F.choices.map((C, i) => (
+          <button key={i} type="button" disabled={!C.skip && (g.ap < (C.ap || 0) || (C.cost && g.money < C.cost))} onClick={() => act((gg) => resolveFestival(gg, i))} className={`cx-btn ${C.skip ? '' : 'cx-quote'} w-full items-center text-left px-3 py-2`} style={{ gap: 10, minHeight: 44, justifyContent: 'flex-start', background: C.skip ? 'rgba(255,255,255,.05)' : undefined }}>
+            <span className="font-bold text-sm leading-snug flex-1">{L(C.t)}</span>
+            {!C.skip && <span className="text-xs font-extrabold shrink-0 inline-flex items-center gap-1">{C.ap ? <><Zap size={12} style={{ fill: SUN }} />{C.ap}</> : null}{C.cost ? ` · ${fmtEur(C.cost)}` : ''}</span>}
+          </button>
+        )) : (
+          <div className="cx-soft p-2.5 text-sm font-semibold flex items-start gap-2">
+            {F.choices[done].skip ? <Clock size={16} className="shrink-0 mt-0.5" style={{ color: AMBER }} /> : <Check size={16} className="shrink-0 mt-0.5" style={{ color: GREEN }} />}
+            <span>{F.choices[done].skip ? tt(`You stayed away. ${res && res.rv ? partyShort(res.rv) : 'A rival'} took the stage.`, `Nedalyvavote. Sceną užėmė ${res && res.rv ? partyShort(res.rv) : 'varžovas'}.`) : <>{L(F.choices[done].t)}{res ? <> · <b>{fmtSignedPct(res.d)}</b></> : null}{res && res.note ? <span style={{ color: RED }}> · {L(res.note)}</span> : null}</>}</span>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+// Election day: send volunteers to get your voters out.
+function applyGotv(g, rids) {
+  const p = g.player;
+  rids.forEach((rid) => {
+    const team = (g.gg[rid] && g.gg[rid][p]) || 0;
+    gainSupport(g, rid, p, 0.45 + (team / 100) * 1.25, 0.95);
+    normalizeRegion(g, rid);
+  });
+  g.gotv = rids;
+  if (rids.length) chron(g, 'gotv', bi(`Election day: volunteers sent to ${rids.map((r) => REG[r].short.en).join(', ')}`, `Rinkimų diena: savanoriai išsiųsti į ${rids.map((r) => REG[r].short.lt).join(', ')}`));
+}
+function GotvSheet({ g, onDone, onClose }) {
+  const me = g.player;
+  const rows = REGIONS.map((r) => ({ r, info: raceInfo(g, r) })).sort((a, b) => Math.abs(a.info.gap) - Math.abs(b.info.gap));
+  const [picks, setPicks] = useState([]);
+  const toggle = (id) => { setPicks((p) => (p.includes(id) ? p.filter((x) => x !== id) : p.length >= 3 ? p : [...p, id])); SFX.play('tap'); };
+  return (
+    <Sheet label={tt('Election day', 'Rinkimų diena')} onClose={onClose} z="z-50">
+      <div className="relative">
+        <Scene kind="night" h={null} caption={false} flush kb className="h-[140px]">
+          <div className="absolute inset-x-4 bottom-3">
+            <div className="cx-kicker text-xs" style={{ color: '#fff' }}>{tt('Your last decision', 'Paskutinis jūsų sprendimas')}</div>
+            <div className="cx-title text-3xl leading-none text-white">{tt('Get out the vote!', 'Mobilizuokite rinkėjus!')}</div>
+          </div>
+        </Scene>
+        <button type="button" onClick={onClose} aria-label={tt('Close', 'Uždaryti')} className="cx-btn absolute right-3 top-3 grid place-items-center" style={{ width: 36, height: 36, borderRadius: 999, background: 'rgba(7,9,13,.8)' }}><X size={18} /></button>
+      </div>
+      <div style={GUTTER} className="pt-4 flex flex-col gap-3">
+        <p className="text-sm font-semibold">{tt('Polls open at 7:00. Send your volunteers to up to three regions to drive voters to the polls. Bigger ground teams bring out more people. Close races matter most.', 'Apylinkės atsidaro 7:00. Nusiųskite savanorius į iki trijų regionų, kad jie atvežtų rinkėjus balsuoti. Kuo didesnė vietos komanda, tuo daugiau žmonių ateis. Svarbiausios – artimos kovos.')}</p>
+        <div className="flex flex-col gap-1.5">
+          {rows.map(({ r, info }) => {
+            const on = picks.includes(r.id);
+            const team = Math.round(g.gg[r.id][me]);
+            return (
+              <button key={r.id} type="button" aria-pressed={on} onClick={() => toggle(r.id)} className="cx-tap w-full flex items-center gap-3 rounded-xl px-3 py-2 text-left" style={{ background: on ? ACC_BG : 'rgba(255,255,255,.04)', border: `1px solid ${on ? SUN : LINE}` }}>
+                <span className="grid place-items-center rounded-full shrink-0" style={{ width: 26, height: 26, border: `2px solid ${on ? SUN : LINE2}`, background: on ? SUN : 'transparent' }}>{on && <Check size={15} color={INK} />}</span>
+                <span className="min-w-0 flex-1">
+                  <span className="flex items-center gap-2"><span className="font-bold truncate">{rs(r)}</span><StatusPill status={info.status} /></span>
+                  <span className="flex items-center gap-2 mt-1 text-[11px] font-bold t-muted"><Users size={12} />{tt('Team', 'Komanda')} {team}<span className="flex-1 cx-track" style={{ height: 5 }}><span className="block h-full" style={{ width: `${team}%`, background: '#3B82F6' }} /></span></span>
+                </span>
+                <span className="text-right shrink-0"><span className="block cx-num">{r.seats}</span><span className="block text-[10px] t-muted">{seatsWord(r.seats)}</span></span>
+              </button>
+            );
+          })}
+        </div>
+        <Btn className="h-14 text-lg" onClick={() => onDone(picks)}><Vote size={20} />{picks.length ? tt(`Send volunteers (${picks.length}/3) and vote`, `Siųsti savanorius (${picks.length}/3) ir balsuoti`) : tt('Vote without a turnout drive', 'Balsuoti be mobilizacijos')}</Btn>
+      </div>
+    </Sheet>
+  );
+}
+const CHRON_ICON = { debate: Tv, festival: Sparkles, ad: Clapperboard, presser: Mic, event: Newspaper, kompro: Search, gotv: Users };
+function Chronicle({ g }) {
+  const me = g.player;
+  const hist = g.history.map((h) => h.shares[me]);
+  const items = g.chron || [];
+  const weeks = [...new Set(items.map((x) => x.week))].sort((a, b) => a - b);
+  return (
+    <Card className="mt-4 p-4 lg:col-span-2">
+      <CardTitle sub={tt('Your poll through the campaign, and the moments that shaped it.', 'Jūsų reitingas per kampaniją ir svarbiausios akimirkos.')}>{tt('Campaign chronicle', 'Kampanijos kronika')}</CardTitle>
+      <div className="flex items-baseline justify-between text-sm font-bold mb-1"><span className="t-muted">{tt('Start', 'Pradžia')} {fmtPct(hist[0])}</span><span>{tt('Final poll', 'Paskutinė apklausa')} {fmtPct(hist[hist.length - 1])}</span></div>
+      <Spark data={hist} color={PARTIES[me].color} h={60} />
+      {weeks.length === 0 ? <p className="text-sm t-muted mt-3">{tt('A quiet campaign.', 'Rami kampanija.')}</p> : (
+        <ol className="mt-3 flex flex-col gap-2 lg:grid lg:grid-cols-2 lg:gap-x-6">
+          {weeks.map((w) => (
+            <li key={w} className="flex gap-3">
+              <span className="cx-num shrink-0 grid place-items-center rounded-lg text-sm" style={{ width: 40, height: 28, background: 'rgba(255,255,255,.07)' }}>{tt(`W${w}`, `${w} s.`)}</span>
+              <div className="flex flex-col gap-1 min-w-0 flex-1">
+                {items.filter((x) => x.week === w).map((x, i) => {
+                  const Icon = CHRON_ICON[x.kind] || Star;
+                  return <div key={i} className="flex items-start gap-1.5 text-sm font-semibold leading-snug"><Icon size={14} className="shrink-0 mt-0.5" style={{ color: x.tone === 'bad' ? RED : x.tone === 'warn' ? AMBER : GREEN }} /><span>{L(x.text)}</span></div>;
+                })}
+              </div>
+            </li>
+          ))}
+        </ol>
+      )}
     </Card>
   );
 }
@@ -7741,6 +7966,7 @@ function ResultScreen({ g, onRestart }) {
           [tt('Gambling', 'Lošimai'), g.stats.gambles ? `${g.stats.gambleNet >= 0 ? '+' : '−'}${fmtEur(Math.abs(g.stats.gambleNet))}` : tt('Stayed clean', 'Nelošta')],
         ].map(([l, v]) => <div key={l} className="cx-card p-3" style={{ boxShadow: SHADOW }}><div className="text-xs font-extrabold t-muted">{l}</div><div className="cx-num text-2xl">{v}</div></div>)}
       </div>
+      <Chronicle g={g} />
       <Card className="mt-4 p-4"><CardTitle>{tt('Final Seimas', 'Naujasis Seimas')}</CardTitle><SeatTable seats={E.seats} pr={E.pr} smd={E.smdSeats} highlight={me} /></Card>
       <Btn className="h-16 text-xl w-full mt-5 lg:col-span-2" onClick={onRestart}><RotateCcw size={22} />{tt('Play again', 'Žaisti dar kartą')}</Btn>
     </div>
@@ -7788,6 +8014,7 @@ export default function SeimasGame({ hotData } = {}) {
   const [subs, setSubs] = useState({ map: 'week', hq: 'media', polls: 'seats' });
   const setSubFor = (k) => (v) => setSubs((s) => ({ ...s, [k]: v }));
   const [finder, setFinder] = useState(false);
+  const [gotvOpen, setGotvOpen] = useState(false);
   const fxTimer = useRef(null);
   const wide = useWide();
   const gameRef = useRef(game);
@@ -7847,11 +8074,14 @@ export default function SeimasGame({ hotData } = {}) {
     if (d.sub) setSubs((s) => ({ ...s, [d.tab]: d.sub }));
     goTab(d.tab);
   };
-  const doEnd = () => {
-    setConfirmEnd(false); setSel(null); setSheet(null);
-    act((g) => { endWeek(g); return null; });
+  const doEnd = (arg) => {
+    const picks = Array.isArray(arg) ? arg : null;
+    if (gameRef.current && gameRef.current.week >= WEEKS && !picks) { setConfirmEnd(false); setGotvOpen(true); return; }
+    setConfirmEnd(false); setSel(null); setSheet(null); setGotvOpen(false);
+    act((g) => { if (picks && picks.length) applyGotv(g, picks); endWeek(g); return null; });
     goTab('map');
   };
+
   const restart = () => { writeSave(null); setGame(null); gameRef.current = null; setSaved(null); setSel(null); setTab('map'); setScreen('select'); };
 
   let body;
@@ -7888,6 +8118,7 @@ export default function SeimasGame({ hotData } = {}) {
         {sheet === 'presser' && <PressSheet g={game} onDone={(picks) => { setSheet(null); act((g) => resolvePresser(g, picks)); }} onClose={() => setSheet(null)} />}
         {confirmEnd && <ConfirmEnd g={game} onCancel={() => setConfirmEnd(false)} onConfirm={doEnd} />}
         {help && <HelpSheet onClose={() => setHelp(false)} />}
+        {gotvOpen && <GotvSheet g={game} onDone={(p) => doEnd(p)} onClose={() => setGotvOpen(false)} />}
         {finder && <FinderSheet wide={wide} onClose={() => setFinder(false)} onGo={goFind} />}
         {game.queue.length > 0 && <QueueModal g={game} item={game.queue[0]} act={act} nat={nat} proj={proj} />}
       </>
@@ -7904,6 +8135,7 @@ export default function SeimasGame({ hotData } = {}) {
         {sheet === 'presser' && <PressSheet g={game} onDone={(picks) => { setSheet(null); act((g) => resolvePresser(g, picks)); }} onClose={() => setSheet(null)} />}
         {confirmEnd && <ConfirmEnd g={game} onCancel={() => setConfirmEnd(false)} onConfirm={doEnd} />}
         {help && <HelpSheet onClose={() => setHelp(false)} />}
+        {gotvOpen && <GotvSheet g={game} onDone={(p) => doEnd(p)} onClose={() => setGotvOpen(false)} />}
         {finder && <FinderSheet wide={wide} onClose={() => setFinder(false)} onGo={goFind} />}
         {game.queue.length > 0 && <QueueModal g={game} item={game.queue[0]} act={act} nat={nat} proj={proj} />}
       </>

@@ -29,6 +29,18 @@ A political-drama strategy game about the **2028 Lithuanian Seimas election**, p
 
 ## More to do
 
+- **Real-calendar events.** Seven public events land on their real dates during the campaign, each in its own region and pulsing on the map that week:
+  - the Klaipėda Sea Festival;
+  - a Lithuania–Latvia basketball friendly in Kaunas;
+  - Žolinė at Pivašiūnai;
+  - the Baltic Way anniversary;
+  - 1 September;
+  - the Vilnius Marathon;
+  - the Suvalkija harvest fair.
+
+  Each offers two ways to take part, with their own costs, voter-group effects and sometimes risks, or you can skip it, and a rival takes the stage instead. Bringing your leader to the region first gives +30%. The *This week* panel shows the current event, or the next one so you can plan the bus tour.
+- **Election-day turnout drive.** Pressing *Vote!* in week 12 opens a last decision: send volunteers to up to three regions. The closest races are listed first, and bigger ground teams bring out more voters.
+- **Campaign chronicle.** The final screen shows your poll line through the campaign and a week-by-week list of the moments that shaped it: debates, news decisions, events, ads, press conferences, opposition research and the turnout drive.
 - **Press conferences.** In HQ, take two questions live from reporters at fictional outlets. Answers change buzz, credibility, voter-group moods and sometimes the scandal meter. The effect gets smaller each time you hold one in the same week.
 - **Social media.** The News section has a feed of posts reacting to your rallies, ads, door-knocking, polls, reputation, scandals and the latest news, with trending hashtags and an overall mood score.
 - **Ad studio.** In HQ, design your own ad:
