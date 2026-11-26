@@ -408,6 +408,13 @@ const ACHIEVEMENTS = [
   { id: 'boardroom', name: bi('Model member', 'Pavyzdingas narys'), desc: bi('Complete 8 party-board tasks.', 'Įvykdykite 8 partijos tarybos užduotis.') },
   { id: 'hard', name: bi('Against the odds', 'Prieš visus'), desc: bi('Become PM on Hard.', 'Tapkite premjeru sunkiu lygiu.') },
   { id: 'solo', name: bi('No hand-holding', 'Be pagalbos'), desc: bi('Become PM without Rūta.', 'Tapkite premjeru be Rūtos.') },
+  { id: 'local', name: bi('Local hero', 'Vietos herojus'), desc: bi('Win 3 local TV debates.', 'Laimėkite 3 vietos TV debatus.') },
+  { id: 'veto', name: bi('Veto buster', 'Veto griovėjas'), desc: bi('Override a presidential veto.', 'Atmeskite Prezidento veto.') },
+  { id: 'lawmaker', name: bi('Lawmaker', 'Įstatymų leidėjas'), desc: bi('Pass all six bills in your first 100 days.', 'Per pirmąsias 100 dienų priimkite visus šešis įstatymus.') },
+  { id: 'kingslayer', name: bi('Kingmaker, kingslayer', 'Vyriausybės griovėjas'), desc: bi('Bring a government down from opposition or as a partner.', 'Nuverskite Vyriausybę iš opozicijos arba kaip partneris.') },
+  { id: 'polls', name: bi('Data-driven', 'Pagal duomenis'), desc: bi('Order 8 district polls.', 'Užsakykite 8 apygardų apklausas.') },
+  { id: 'events', name: bi('Everywhere at once', 'Visur spėjote'), desc: bi('Take part in all 7 public events.', 'Dalyvaukite visuose 7 renginiuose.') },
+  { id: 'admen', name: bi('Mad men', 'Reklamos meistras'), desc: bi('Run 5 ad campaigns.', 'Paleiskite 5 reklamos kampanijas.') },
 ];
 const ACH_KEY = 'seimas-bfl-ach';
 function loadAch() { try { return JSON.parse(window.localStorage.getItem(ACH_KEY) || '[]'); } catch (e) { return []; } }
@@ -434,6 +441,13 @@ function earnedAchievements(g) {
   if ((g.stats.objectives || 0) >= 8) out.push('boardroom');
   if (pm && g.diff === 'hard') out.push('hard');
   if (pm && g.advisor === false) out.push('solo');
+  if (Object.values(g.candDeb || {}).filter((d) => d.won).length >= 3) out.push('local');
+  if (g.gov && (g.gov.overrides || 0) > 0) out.push('veto');
+  if (g.gov && g.gov.laws.filter((l) => l.res === 'passed').length >= 6) out.push('lawmaker');
+  if (g.term && g.term.fallen) out.push('kingslayer');
+  if ((g.stats.dpolls || 0) >= 8) out.push('polls');
+  if (typeof FESTIVALS !== 'undefined' && FESTIVALS.every((f) => g.fest && g.fest[f.id] != null && !f.choices[g.fest[f.id]].skip)) out.push('events');
+  if ((g.stats.ads || 0) >= 5) out.push('admen');
   return out;
 }
 // Party-board tasks: one per week, judged when the week ends.
@@ -1462,6 +1476,86 @@ const EVENTS = [
       { label: bi('Return the money and order an audit', 'Grąžinti pinigus ir užsakyti auditą'), tag: null, fx: { money: -200, scandal: -20, mom: -0.8 } },
       { label: bi('Deny everything', 'Viską neigti'), tag: null, risk: { chance: 0.5, ok: { scandal: -5 }, okText: bi('The story fizzles out.', 'Istorija nuslūgo.'), fail: { mom: -3, pc: -2 }, failText: bi('Then the bank statements leak.', 'Tada nutekėjo banko išrašai.') } },
       { label: bi('Blame a rogue treasurer', 'Kaltinti nesąžiningą iždininką'), tag: null, fx: { mom: -1.5, scandal: -8 } },
+    ],
+  },
+  {
+    id: 'ignalina', cat: bi('Jobs', 'Darbo vietos'), icon: Factory, scene: 'lakes',
+    title: bi('Last Ignalina decommissioning contracts end: 600 jobs at risk in Visaginas', 'Baigiasi paskutinės Ignalinos AE uždarymo sutartys: Visagine gresia netekti 600 darbo vietų'),
+    body: bi('Engineers who have dismantled the old nuclear plant for 20 years face the end of the work. Visaginas asks Vilnius for a plan.', 'Inžinieriai, 20 metų ardę senąją elektrinę, lieka be darbo. Visaginas prašo Vilniaus plano.'),
+    choices: [
+      { label: bi('Build a small modular reactor research centre there', 'Ten įkurti mažųjų modulinių reaktorių tyrimų centrą'), tag: 'business', fx: { reg: [['UTE', 1.6], ['VLC', 0.6]], axis: ['green', -1, 0.3], money: -10 } },
+      { label: bi('A special economic zone with tax breaks', 'Specialioji ekonominė zona su mokesčių lengvatomis'), tag: 'moderate', fx: { reg: [['UTE', 1.2]], pc: 1, groups: { business: 1 } } },
+      { label: bi('Retraining grants and relocation help', 'Perkvalifikavimo stipendijos ir pagalba persikelti'), tag: 'welfare', fx: { reg: [['UTE', 0.6]], groups: { minority: 2, public: 1 }, mom: 0.2 } },
+    ],
+  },
+  {
+    id: 'drought', cat: bi('Farming', 'Žemės ūkis'), icon: Sun, scene: 'fields',
+    title: bi('Worst drought in 30 years: farmers lose a third of the harvest', 'Didžiausia per 30 metų sausra: ūkininkai netenka trečdalio derliaus'),
+    body: bi('Fields in Suvalkija and Aukštaitija are scorched. Farmers block a road near Marijampolė with tractors and demand emergency aid.', 'Suvalkijos ir Aukštaitijos laukai išdegę. Ūkininkai traktoriais užtvėrė kelią prie Marijampolės ir reikalauja skubios pagalbos.'),
+    choices: [
+      { label: bi('Emergency aid and a tax holiday for farmers', 'Skubi parama ir mokesčių atostogos ūkininkams'), tag: 'agri', fx: { reg: [['agri', 1.4]], money: -15, groups: { farmers: 3, business: -1 } } },
+      { label: bi('Push crop insurance instead of handouts', 'Skatinti pasėlių draudimą vietoj išmokų'), tag: 'business', fx: { reg: [['urban', 0.6], ['agri', -0.6]], cred: 2, groups: { farmers: -2 } } },
+      { label: bi('Visit the blockade and stand with the farmers', 'Nuvykti prie blokados ir palaikyti ūkininkus'), tag: 'populist', fx: { reg: [['MAR', 1.4], ['agri', 0.8]], mom: 0.6, groups: { farmers: 2 } } },
+    ],
+  },
+  {
+    id: 'busstrike', cat: bi('Transport', 'Transportas'), icon: Bus, scene: 'vilnius',
+    title: bi('Vilnius bus and trolleybus drivers go on strike', 'Vilniaus autobusų ir troleibusų vairuotojai skelbia streiką'),
+    body: bi('Half the city’s routes stop on a Monday morning. Drivers want a 20% raise; the city says it has no money.', 'Pirmadienio rytą sustoja pusė miesto maršrutų. Vairuotojai nori 20 % didesnių algų, miestas sako, kad pinigų nėra.'),
+    choices: [
+      { label: bi('Back the drivers: fair pay for essential work', 'Palaikyti vairuotojus: teisingas atlygis už būtiną darbą'), tag: 'welfare', fx: { reg: [['VNO', 0.8]], axis: ['econ', -1, 0.3], groups: { public: 1, business: -1 } } },
+      { label: bi('Offer to mediate between the city and the union', 'Pasisiūlyti tarpininkauti tarp miesto ir profsąjungos'), tag: 'moderate', fx: { reg: [['VNO', 1.1]], pc: 1, cred: 1 } },
+      { label: bi('Free public transport for a week, paid by the state', 'Savaitę nemokamas viešasis transportas valstybės sąskaita'), tag: 'youth', fx: { reg: [['VNO', 1.3], ['rural', -0.4]], money: -10, groups: { youth: 2 } } },
+    ],
+  },
+  {
+    id: 'startup', cat: bi('Economy', 'Ekonomika'), icon: Rocket, scene: 'vilnius',
+    title: bi('A Lithuanian tech unicorn moves its HQ to Tallinn', 'Lietuvos technologijų „vienaragis“ perkelia būstinę į Taliną'),
+    body: bi('The founders blame taxes on stock options and slow residence permits for engineers. 400 well-paid jobs will follow.', 'Įkūrėjai kaltina akcijų opcionų apmokestinimą ir lėtus leidimus gyventi inžinieriams. Paskui išvyks 400 gerai apmokamų darbo vietų.'),
+    choices: [
+      { label: bi('Cut taxes on stock options and speed up permits', 'Mažinti akcijų opcionų mokesčius ir greitinti leidimus'), tag: 'business', fx: { reg: [['VNO', 1.2], ['KNS', 0.6]], axis: ['econ', 1, 0.5], groups: { business: 2, youth: 1 } } },
+      { label: bi('Let them go: we won’t race to the bottom', 'Tegul išvyksta: mokesčių lenktynėse nedalyvausime'), tag: 'welfare', fx: { reg: [['rural', 0.6], ['urban', -0.5]], axis: ['econ', -1, 0.4] } },
+      { label: bi('Call the founders and invite them to talks', 'Paskambinti įkūrėjams ir pakviesti derėtis'), tag: 'moderate', risk: { chance: 0.45, ok: { mom: 1.1, reg: [['VNO', 0.8]] }, okText: bi('They stay! A rare win on the front pages.', 'Jie lieka! Reta pergalė pirmuosiuose puslapiuose.'), fail: { mom: -0.4 }, failText: bi('They leave anyway, and the call leaks.', 'Vis tiek išvyksta, o pokalbis nutekinamas.') } },
+    ],
+  },
+  {
+    id: 'disinfo', cat: bi('Security', 'Saugumas'), icon: ShieldAlert, scene: 'seimas',
+    title: bi('Bot network floods social media with fake quotes from your leader', 'Botų tinklas užtvindė socialinius tinklus netikromis jūsų lyderio citatomis'),
+    body: bi('Analysts at Debunk.org trace hundreds of accounts to a foreign operation. Some of the fakes are being shared by real voters.', 'Analitikai šimtus paskyrų susieja su užsienio operacija. Dalį klastočių dalijasi tikri rinkėjai.'),
+    choices: [
+      { label: bi('Publish a point-by-point fact check', 'Paskelbti išsamų faktų patikrinimą'), tag: 'moderate', fx: { cred: 3, mom: 0.2, reg: [['urban', 0.5]] } },
+      { label: bi('Ask the platforms and the security services to act', 'Kreiptis į platformas ir saugumo tarnybas'), tag: 'security', fx: { pc: 1, axis: ['defense', 1, 0.4], groups: { seniors: 1 } } },
+      { label: bi('Hit back hard: name the parties who benefit', 'Smogti atgal: įvardyti, kurioms partijoms tai naudinga'), tag: 'populist', fx: { mom: 1, pc: -1, cred: -2 } },
+    ],
+  },
+  {
+    id: 'conscription', cat: bi('Defence', 'Gynyba'), icon: Shield, scene: 'vilnius',
+    title: bi('Generals propose universal conscription for all 18-year-olds', 'Generolai siūlo visuotinę šauktinių tarnybą visiems 18-mečiams'),
+    body: bi('Today only a lottery picks who serves. The army wants everyone, including women, from 2030.', 'Šiandien tarnauti tenka burtų keliu. Kariuomenė nori visų, ir merginų, nuo 2030 m.'),
+    choices: [
+      { label: bi('Support it: everyone serves', 'Pritarti: tarnauja visi'), tag: 'security', fx: { axis: ['defense', 1, 0.8], groups: { youth: -2, seniors: 2 }, mom: 0.3 } },
+      { label: bi('Yes, with a civil service alternative', 'Taip, bet su alternatyvia civiline tarnyba'), tag: 'moderate', fx: { axis: ['defense', 1, 0.4], groups: { youth: 1 }, cred: 1 } },
+      { label: bi('Oppose: invest in a professional army instead', 'Nepritarti: geriau investuoti į profesionalią kariuomenę'), tag: 'youth', fx: { groups: { youth: 3, seniors: -1 }, reg: [['urban', 0.7]] } },
+    ],
+  },
+  {
+    id: 'airport', cat: bi('Transport', 'Transportas'), icon: Plane, scene: 'kaunas',
+    title: bi('Low-cost airline closes its Kaunas base', 'Pigių skrydžių bendrovė uždaro savo bazę Kaune'),
+    body: bi('Twelve routes and 300 jobs go. The airline blames airport charges; Kaunas blames Vilnius for ignoring the second city.', 'Nyksta dvylika maršrutų ir 300 darbo vietų. Bendrovė kaltina oro uosto mokesčius, Kaunas – Vilnių, kad ignoruoja antrąjį miestą.'),
+    choices: [
+      { label: bi('Cut airport charges to win the routes back', 'Sumažinti oro uosto mokesčius ir susigrąžinti maršrutus'), tag: 'business', fx: { reg: [['KNS', 1.5], ['KNC', 0.6]], money: -10 } },
+      { label: bi('Finish Rail Baltica to Kaunas first', 'Pirmiausia užbaigti „Rail Baltica“ iki Kauno'), tag: 'green', fx: { reg: [['KNS', 0.8]], axis: ['green', 1, 0.3], cred: 1 } },
+      { label: bi('Blame the government’s neglect of Kaunas', 'Kaltinti Vyriausybę, kad apleido Kauną'), tag: 'populist', fx: { reg: [['KNS', 1.1]], mom: 0.4, pc: -1 } },
+    ],
+  },
+  {
+    id: 'medicine', cat: bi('Health', 'Sveikata'), icon: HeartPulse, scene: 'town',
+    title: bi('Pharmacies run out of common heart and diabetes drugs', 'Vaistinėse trūksta įprastų širdies ir diabeto vaistų'),
+    body: bi('A supplier dispute leaves shelves empty across the country. Pensioners queue at pharmacies in Panevėžys and Šiauliai.', 'Dėl tiekėjų ginčo lentynos tuščios visoje šalyje. Pensininkai stovi eilėse Panevėžio ir Šiaulių vaistinėse.'),
+    choices: [
+      { label: bi('State purchases and a price cap on key drugs', 'Valstybės pirkimai ir kainų lubos svarbiausiems vaistams'), tag: 'welfare', fx: { reg: [['rural', 1.1]], axis: ['econ', -1, 0.4], groups: { seniors: 3 } } },
+      { label: bi('Let pharmacies import from other EU countries', 'Leisti vaistinėms importuoti iš kitų ES šalių'), tag: 'business', fx: { reg: [['urban', 0.8]], cred: 1, groups: { business: 1, seniors: 1 } } },
+      { label: bi('Demand the health minister resign', 'Reikalauti sveikatos ministro atsistatydinimo'), tag: 'populist', fx: { mom: 0.9, reg: [['PAN', 0.6], ['SIA', 0.6]], pc: -1 } },
     ],
   },
 ];
@@ -5283,6 +5377,20 @@ function feedPosts(g) {
   if (g.cred < 45) posts.push({ who: 'public', text: tt(`Does anyone still believe ${Lname}’s promises? #flipflop`, `Ar dar kas nors tiki ${P} pažadais? #pozicijoskeitimas`), likes: big(700), shares: big(160), comments: big(120), tone: 'bad', time: tt('9h', '9 val.') });
   else if (g.cred > 75) posts.push({ who: 'public', text: tt(`Say what you like about ${P}, they keep their word.`, `Galima ginčytis dėl ${P}, bet žodį jie laiko.`), likes: big(420), shares: big(50), comments: big(30), tone: 'good', time: tt('9h', '9 val.') });
   if (g.scandal > 35) posts.push({ who: 'youth', text: tt(`#${P.replace(/[^A-Za-z]/g, '')}scandal is trending again. Who funds these people?`, `#${P.replace(/[^A-Za-zĄČĘĖĮŠŲŪŽąčęėįšųūž]/g, '')}skandalas vėl populiarus. Kas finansuoja šiuos žmones?`), likes: big(1200), shares: big(400), comments: big(300), tone: 'bad', time: tt('10h', '10 val.') });
+  const natR = nationalShares(g);
+  const RIVAL_POSTS = [
+    bi('Under {P} everything got more expensive. We have a plan. #Seimas2028', 'Su {P} viskas tik brango. Mes turime planą. #Seimas2028'),
+    bi('Great crowd today! Thank you, {R}! 💪', 'Puikus susitikimas šiandien! Ačiū, {R}! 💪'),
+    bi('{P} promises everything to everyone. Voters remember.', '{P} žada viską visiems. Rinkėjai atsimena.'),
+    bi('Our candidates are in every district. Meet them!', 'Mūsų kandidatai – kiekvienoje apygardoje. Susipažinkite!'),
+  ];
+  PARTY_IDS.filter((q) => q !== me).sort((a, b) => natR[b] - natR[a]).slice(0, 2).forEach((q, i) => {
+    const mv = (g.rivalMoves || []).find((m) => m.p === q);
+    const hit = mv && mv.list.find((x) => x.target === me);
+    const at = mv && mv.list[0] ? rs(mv.list[0].rid) : rs(REGIONS[0]);
+    const t = hit ? RIVAL_POSTS[i % 2 === 0 ? 0 : 2] : RIVAL_POSTS[1 + (g.week + i) % 3];
+    posts.push({ who: q, text: L(t).replace(/\{P\}/g, P).replace(/\{R\}/g, at), likes: big(800), shares: big(150), comments: big(200), tone: hit ? 'bad' : 'neutral', time: tt(`${3 + i * 2}h`, `${3 + i * 2} val.`) });
+  });
   g.news.slice(0, 3).forEach((n, i) => {
     const v = newsView(g, n);
     posts.push({ who: 'anchor', text: `„${v.title}“ – ${L(FEED_TAKES[(n.id + i) % FEED_TAKES.length])}`, likes: big(600), shares: big(150), comments: big(90), tone: 'neutral', time: tt(`${12 + i * 3}h`, `${12 + i * 3} val.`) });
@@ -5290,7 +5398,7 @@ function feedPosts(g) {
   return posts;
 }
 function FeedPost({ post, compact }) {
-  const pp = FEED_PEOPLE[post.who] || FEED_PEOPLE.anchor;
+  const pp = FEED_PEOPLE[post.who] || (PARTIES[post.who] ? { name: bi(PARTIES[post.who].leader, PARTIES[post.who].leader), handle: `@${PARTIES[post.who].short.toLowerCase().replace(/[^a-z0-9]/g, '')}`, verified: true } : FEED_PEOPLE.anchor);
   const c = post.tone === 'good' ? GREEN : post.tone === 'bad' ? RED : MUTED;
   return (
     <article className="flex gap-2.5 py-2.5" style={{ borderTop: `1px solid ${LINE}` }}>
@@ -7578,7 +7686,7 @@ function govVeto(g, mode) {
     const yes = billTally(g, bill, G.last.amended).yes - Math.round(Math.random() * 7);
     const ok = yes >= MAJORITY;
     G.stability = clamp(G.stability - 3, 0, 100);
-    if (!ok) { G.approval = clamp(G.approval - bill.pop * k - 2, 0, 100); law.res = 'vetoed'; G.last.res = 'vetoed'; }
+    if (!ok) { G.approval = clamp(G.approval - bill.pop * k - 2, 0, 100); law.res = 'vetoed'; G.last.res = 'vetoed'; } else G.overrides = (G.overrides || 0) + 1;
     G.last.veto = { mode, ok, yes };
     chron(g, 'law', bi(`Presidential veto on ${bill.title.en}: override ${ok ? 'succeeded' : 'failed'} (${yes} votes)`, `Prezidento veto („${bill.title.lt}“): veto ${ok ? 'atmestas' : 'neatmestas'} (${yes} balsai)`), ok ? 'good' : 'bad');
   } else {
@@ -7706,6 +7814,24 @@ function ToDoCard({ g }) {
         ))}
       </div>
     </section>
+  );
+}
+function CampaignStats({ g }) {
+  const s = g.stats || {};
+  const fest = Object.entries(g.fest || {}).filter(([id, ci]) => { const F = FESTIVALS.find((f) => f.id === id); return F && !F.choices[ci].skip; }).length;
+  const deb = Object.values(g.candDeb || {});
+  const cells = [
+    [Zap, tt('Moves made', 'Atlikta veiksmų'), s.actions || 0], [Wallet, tt('Money spent', 'Išleista'), fmtEur(s.spent || 0)], [Newspaper, tt('News decisions', 'Sprendimai naujienose'), s.events || 0],
+    [Bus, tt('Regions visited', 'Aplankyta regionų'), `${(g.toured || []).length}/13`], [Clapperboard, tt('Ad campaigns', 'Reklamos kampanijos'), s.ads || 0], [BarChart3, tt('District polls', 'Apygardų apklausos'), s.dpolls || 0],
+    [Mic, tt('Local debates won', 'Laimėti vietos debatai'), `${deb.filter((d) => d.won).length}/${deb.length}`], [Sparkles, tt('Events attended', 'Renginiai'), `${fest}/${FESTIVALS.length}`], [Tv, tt('LRT debates won', 'Laimėti LRT debatai'), `${(s.debates || []).filter((d) => d.won).length}/${(s.debates || []).length}`],
+  ];
+  return (
+    <Card className="mt-4 p-4 lg:col-span-2">
+      <CardTitle>{tt('Campaign in numbers', 'Kampanija skaičiais')}</CardTitle>
+      <div className="grid grid-cols-3 gap-2">
+        {cells.map(([Icon, l, v]) => <div key={l} className="cx-soft p-2.5"><div className="flex items-center gap-1.5 text-[11px] font-bold t-muted"><Icon size={12} />{l}</div><div className="cx-num text-xl mt-0.5">{v}</div></div>)}
+      </div>
+    </Card>
   );
 }
 function HQTab({ g, act, openSheet, sub = 'media', setSub = () => {} }) {
@@ -9525,6 +9651,7 @@ function ResultScreen({ g, onRestart }) {
       <GovSummary g={g} />
       <TermSummary g={g} />
       <div className="mt-4 lg:col-span-2"><NewSeimasButton /></div>
+      <CampaignStats g={g} />
       <Chronicle g={g} />
       <Card className="mt-4 p-4"><CardTitle>{tt('Final Seimas', 'Naujasis Seimas')}</CardTitle><SeatTable seats={E.seats} pr={E.pr} smd={E.smdSeats} highlight={me} /></Card>
       <Btn className="h-16 text-xl w-full mt-5 lg:col-span-2" onClick={onRestart}><RotateCcw size={22} />{tt('Play again', 'Žaisti dar kartą')}</Btn>

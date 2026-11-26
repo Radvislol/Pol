@@ -51,6 +51,28 @@ A political-drama strategy game about the **2028 Lithuanian Seimas election**, p
 
   Your final stability decides the Prime Minister grade, and the result screen shows a 100-day summary.
 
+## More news, achievements and stats
+
+- **8 new news stories,** each with three choices and its own consequences:
+  - the end of Ignalina decommissioning work in Visaginas;
+  - the worst drought in 30 years;
+  - a Vilnius bus and trolleybus strike;
+  - a tech unicorn moving to Tallinn (one choice is a gamble);
+  - a foreign bot network faking your leader's quotes;
+  - universal conscription;
+  - a low-cost airline closing its Kaunas base;
+  - a shortage of heart and diabetes drugs.
+
+  The pool now holds 60 stories, including follow-ups and rival stories.
+- **7 new achievements:** Local hero (3 local debates), Veto buster, Lawmaker (all 6 bills), Government toppler, Data-driven (8 district polls), Everywhere at once (all 7 events) and Mad men (5 ad campaigns). There are now 22 in total.
+- **Rival leaders post too.** The social feed now includes posts from the two biggest rival leaders. They attack you after hitting you with ads, and otherwise promote their own rallies.
+- **Campaign in numbers.** The final screen adds a stats card:
+  - moves made and money spent;
+  - news decisions and regions visited;
+  - ad campaigns and district polls;
+  - local and LRT debates won;
+  - events attended.
+
 ## Help, to-do list and speed
 
 - **To do this week.** The top of the *This week* panel (phone: Map › This week; desktop: side panel) lists what deserves your attention, and each item jumps straight there:
