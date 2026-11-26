@@ -51,6 +51,19 @@ A political-drama strategy game about the **2028 Lithuanian Seimas election**, p
 
   Your final stability decides the Prime Minister grade, and the result screen shows a 100-day summary.
 
+## Forecast and polish
+
+- **Election forecast (Polls › Seats).** One tap runs the election 120 times with polling error, turnout and local noise, as if the vote were held today. It shows:
+  - your 80% seat range and the median;
+  - a histogram of your seat counts, with bars at 71 or above in green;
+  - your chance of being the biggest party or winning 71 seats alone;
+  - each party's chance of coming first;
+  - your chance of clearing the 5% threshold, when that is in doubt.
+
+  It runs in small chunks, so the screen never freezes.
+- **Tested with more parties.** Full playthroughs with Krikščionių sąjunga, Žaliųjų partija, LLRA-KŠS and DSVL completed without errors.
+- **Phone polish.** Long leader names in the top bar become initial plus surname (for example "L. Kasčiūnas") on narrow screens. On a district card, the poll box stacks its button under the text.
+
 ## Photos and full party names
 
 - **Leader photos.** Ten leaders use photos supplied by the game's owner: Mindaugas Sinkevičius (LSDP), Laurynas Kasčiūnas (TS-LKD), Remigijus Žemaitaitis (NA), Virginijus Sinkevičius (DSVL), Viktorija Čmilytė-Nielsen (LS), Aurelijus Veryga (LVŽS), Vytautas Mitalas (LP), Valdemar Tomaševski (LLRA-KŠS), Gintaras Steponėnas (DP) and Artūras Zuokas (L&T). They are cropped square, compressed (about 5–9 KB each) and embedded from `src/portraits.js`. They appear wherever that leader's portrait does: party selection, map, debates, week intro, dossiers, coalition talks and the results. They also appear wherever the leader is a district candidate (for example Kasčiūnas in Lazdynai, Žemaitaitis in Kelmė–Šilalė, Čmilytė-Nielsen in Senamiestis–Žvėrynas, Zuokas in Naujininkai–Rasos), on party lists and in the Seimas member lists. The Krikščionių sąjunga and Žaliųjų partija leaders, and all other characters, keep their cartoon portraits. Make sure you have the rights to use these photos before sharing the game publicly.

@@ -4806,7 +4806,7 @@ function Header({ g, proj, onHelp, lang, setLang, onFind }) {
         <div className="flex items-center gap-2.5">
           <Portrait who={g.player} size={48} square badge />
           <div className="min-w-0 flex-1">
-            <div className="cx-title leading-none truncate" style={{ fontSize: P.leader.length > 18 ? 18 : 20 }}>{P.leader}</div>
+            <div className="cx-title leading-none truncate" style={{ fontSize: 20 }}>{P.leader.length > 17 ? <><span className="min-[430px]:hidden">{`${P.leader[0]}. ${leaderSurname(g.player)}`}</span><span className="hidden min-[430px]:inline">{P.leader}</span></> : P.leader}</div>
             <div className="flex items-center gap-1.5 mt-1 min-w-0">
               <span className="shrink-0 rounded px-1.5 text-xs font-extrabold" style={{ background: P.color, color: '#fff', lineHeight: '18px' }}>{P.short}</span>
               <span className="shrink-0 cx-title text-sm" style={{ color: SUN }}>{tt(`Week ${g.week}/12`, `${g.week}/12 sav.`)}</span>
@@ -5636,6 +5636,7 @@ const POLL_SUBS = () => [
 ];
 // Everything you can do, and where it lives.
 const FINDER = [
+  { id: 'forecast', icon: BarChart3, label: bi('Election forecast (120 simulations)', 'Rinkimų prognozė (120 scenarijų)'), where: bi('Polls › Seats', 'Apklausos › Mandatai'), kw: 'prognoz forecast tikimyb probability simuliac scenarij', go: { tab: 'polls', sub: 'seats' } },
   { id: 'dpoll', icon: BarChart3, label: bi('Order a district poll', 'Užsakyti apygardos apklausą'), where: bi('Map › Districts › a district', 'Žemėlapis › Apygardos › apygarda'), kw: 'apklaus poll apygard district tiksl', go: { tab: 'map', sub: 'districts' } },
   { id: 'cscan', icon: AlertTriangle, label: bi('Candidate scandals in the news', 'Kandidatų skandalai naujienose'), where: bi('News', 'Naujienos'), kw: 'skandal scandal kandidat candidate', go: { tab: 'news' } },
   { id: 'plist', icon: ListOrdered, label: bi('Party list (order your candidates)', 'Partijos sąrašas (kandidatų eilė)'), where: bi('HQ › List', 'Štabas › Sąrašas'), kw: 'sarasas list reiting pirmumo preference vrk', go: { tab: 'hq', sub: 'list' } },
@@ -5763,6 +5764,7 @@ function PollsTab({ g, nat, proj, sub = 'seats', setSub = () => {} }) {
       <h2 className="cx-title text-4xl lg:col-span-2">{tt('Polls', 'Apklausos')}</h2>
       <SubTabs value={sub} onChange={setSub} items={POLL_SUBS()} label={tt('Poll sections', 'Apklausų skiltys')} className="lg:col-span-2" />
       {sub === 'seats' && (<>
+      <ForecastCard g={g} />
       <SeimasMembersCard g={g} />
       <Card className="p-4">
         <CardTitle sub={tt('Each dot is one of the Seimas’ 141 seats. The dashed line marks 71.', 'Kiekvienas taškas – viena iš 141 Seimo vietos. Brūkšninė linija – 71.')} info={<InfoTip title={tt('Seats', 'Mandatai')}>{tt('The Seimas has 141 seats. 70 are shared by the national vote among parties over 5%. 71 go to local winners, one per district. To govern you need 71, alone or with partners.', 'Seime – 141 vieta. 70 paskirstoma pagal balsus visoje šalyje partijoms, surinkusioms daugiau nei 5 %. 71 tenka apygardų nugalėtojams. Valdyti reikia 71 – vieniems arba su partneriais.')}</InfoTip>}>{tt('If the vote were today', 'Jei rinkimai vyktų šiandien')}</CardTitle>
@@ -6732,10 +6734,10 @@ function DistrictSheet({ g, cid, act, onClose }) {
             {!result && (known ? <span className="text-[11px] font-bold" style={{ color: GREEN }}>{tt(`Polled in week ${g.dpoll[cid]}`, `Apklausa ${g.dpoll[cid]} sav.`)}</span> : <span className="text-[11px] font-bold" style={{ color: AMBER }}>±{distErr(g)} {tt('pts', 'p.')}</span>)}
           </div>
           {!result && !known && g.phase === 'campaign' && (
-            <div className="cx-soft p-2.5 mb-2 flex items-center gap-3">
+            <div className="cx-soft p-2.5 mb-2 flex flex-wrap items-center gap-2 sm:gap-3">
               <BarChart3 size={18} className="shrink-0" style={{ color: AMBER }} />
-              <span className="text-xs font-semibold flex-1">{tt('Without a local poll you only see a rough estimate. A poll gives exact numbers for two weeks.', 'Be vietos apklausos matote tik apytikslį vertinimą. Apklausa duoda tikslius skaičius dviem savaitėms.')}</span>
-              <Btn kind="white" className="h-10 px-3 text-sm shrink-0" disabled={g.money < distPollCost(g)} onClick={() => act((gg) => orderDistPoll(gg, cid))}>{tt('Poll', 'Apklausa')} · {fmtEur(distPollCost(g))}</Btn>
+              <span className="text-xs font-semibold flex-1 min-w-[180px]">{tt('Without a local poll you only see a rough estimate. A poll gives exact numbers for two weeks.', 'Be vietos apklausos matote tik apytikslį vertinimą. Apklausa duoda tikslius skaičius dviem savaitėms.')}</span>
+              <Btn kind="white" className="h-10 px-3 text-sm shrink-0 w-full sm:w-auto" disabled={g.money < distPollCost(g)} onClick={() => act((gg) => orderDistPoll(gg, cid))}>{tt('Poll', 'Apklausa')} · {fmtEur(distPollCost(g))}</Btn>
             </div>
           )}
           <div className="flex flex-col gap-1.5">
@@ -7880,6 +7882,70 @@ function TipOnce({ id, title, children }) {
   if (seen || !ADVISOR) return null;
   const close = () => { setSeen(true); try { const l = JSON.parse(window.localStorage.getItem(TIPS_KEY) || '[]'); window.localStorage.setItem(TIPS_KEY, JSON.stringify([...new Set([...l, id])])); } catch (e) { /* ignore */ } };
   return <Coach title={title} actions={<Btn kind="white" className="h-10 px-4 text-sm" onClick={close}>{tt('Got it', 'Supratau')}</Btn>}>{children}</Coach>;
+}
+function ForecastCard({ g }) {
+  const me = g.player;
+  const [res, setRes] = useState(null);
+  const [busy, setBusy] = useState(0);
+  useEffect(() => { setRes(null); }, [g.week]);
+  const run = () => {
+    const N = 120;
+    const mine = [];
+    const top = {};
+    let big = 0, maj = 0, over5 = 0, i = 0;
+    setBusy(1);
+    const chunk = () => {
+      for (let k = 0; k < 12 && i < N; k += 1, i += 1) {
+        const E = simulateElection(g, true);
+        const s = E.seats;
+        mine.push(s[me]);
+        const lead = PARTY_IDS.slice().sort((a, b) => s[b] - s[a])[0];
+        top[lead] = (top[lead] || 0) + 1;
+        if (lead === me) big += 1;
+        if (s[me] >= MAJORITY) maj += 1;
+        if (E.natShares[me] >= 5) over5 += 1;
+      }
+      setBusy(Math.round((i / N) * 100));
+      if (i < N) { setTimeout(chunk, 0); return; }
+      mine.sort((a, b) => a - b);
+      const q = (f) => mine[Math.min(N - 1, Math.floor(N * f))];
+      const lo = mine[0], hi = mine[N - 1];
+      const step = Math.max(1, Math.ceil((hi - lo + 1) / 12));
+      const bins = [];
+      for (let b = lo; b <= hi; b += step) bins.push({ from: b, n: mine.filter((x) => x >= b && x < b + step).length });
+      setRes({ N, p10: q(0.1), med: q(0.5), p90: q(0.9), big: big / N, maj: maj / N, over5: over5 / N, top: Object.entries(top).sort((a, b) => b[1] - a[1]), bins, step });
+      setBusy(0);
+    };
+    setTimeout(chunk, 20);
+  };
+  const pct = (x) => `${Math.round(x * 100)}${LANG === 'lt' ? ' %' : '%'}`;
+  const maxBin = res ? Math.max(...res.bins.map((b) => b.n)) : 1;
+  return (
+    <Card className="p-4">
+      <CardTitle sub={tt('If the vote were held today: the election is run 120 times with polling error, turnout and local noise. The further away election day is, the more can still change.', 'Jei rinkimai vyktų šiandien: jie sumodeliuojami 120 kartų su apklausų paklaida, aktyvumu ir vietos atsitiktinumais. Kuo toliau rinkimai, tuo daugiau dar gali pasikeisti.')}>{tt('Forecast', 'Prognozė')}</CardTitle>
+      {!res && <Btn kind="white" className="h-12 w-full" disabled={!!busy} onClick={run}><BarChart3 size={18} />{busy ? tt(`Simulating… ${busy}%`, `Modeliuojama… ${busy} %`) : tt('Run 120 simulations', 'Sumodeliuoti 120 kartų')}</Btn>}
+      {res && (
+        <div className="flex flex-col gap-3 sbl-fade">
+          <div className="grid grid-cols-3 gap-2">
+            {[[tt('Your seats (80% range)', 'Jūsų mandatai (80 % intervalas)'), `${res.p10}–${res.p90}`], [tt('Biggest party', 'Didžiausia partija'), pct(res.big)], [tt('71 on your own', '71 vieniems'), pct(res.maj)]].map(([l, v]) => <div key={l} className="cx-soft p-2.5"><div className="text-[11px] font-bold t-muted leading-tight">{l}</div><div className="cx-num text-2xl mt-0.5">{v}</div></div>)}
+          </div>
+          <div>
+            <div className="text-xs font-bold t-muted mb-1">{tt(`How many seats you win across ${res.N} runs (median ${res.med})`, `Kiek mandatų laimite per ${res.N} bandymų (mediana ${res.med})`)}</div>
+            <div className="flex items-end gap-1" style={{ height: 70 }} role="img" aria-label={tt('Seat distribution', 'Mandatų pasiskirstymas')}>
+              {res.bins.map((b) => <div key={b.from} className="flex-1 rounded-t" title={`${b.from}–${b.from + res.step - 1}: ${b.n}`} style={{ height: `${(b.n / maxBin) * 100}%`, minHeight: b.n ? 3 : 0, background: b.from + res.step - 1 >= MAJORITY ? GREEN : PARTIES[me].color, opacity: 0.85 }} />)}
+            </div>
+            <div className="flex justify-between text-[10px] t-muted font-bold mt-0.5"><span>{res.bins[0].from}</span><span>{res.bins[res.bins.length - 1].from + res.step - 1}</span></div>
+          </div>
+          <div>
+            <div className="text-xs font-bold t-muted mb-1">{tt('Who comes first', 'Kas bus pirmi')}</div>
+            <div className="flex flex-wrap gap-1.5">{res.top.map(([p, n]) => <span key={p} className="cx-chip px-2 py-0.5 text-xs" title={partyName(p)}><PartyDot p={p} size={9} />{partyShort(p)} {pct(n / res.N)}</span>)}</div>
+          </div>
+          {res.over5 < 0.95 && <div className="text-xs font-bold" style={{ color: res.over5 < 0.5 ? RED : AMBER }}>{tt(`Chance of clearing the 5% threshold: ${pct(res.over5)}`, `Tikimybė peržengti 5 % barjerą: ${pct(res.over5)}`)}</div>}
+          <Btn kind="pale" className="h-10 text-sm" onClick={run} disabled={!!busy}>{busy ? `${busy}%` : tt('Run again', 'Modeliuoti iš naujo')}</Btn>
+        </div>
+      )}
+    </Card>
+  );
 }
 function HQTab({ g, act, openSheet, sub = 'media', setSub = () => {} }) {
   const P = PARTIES[g.player];
