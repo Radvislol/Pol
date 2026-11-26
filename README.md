@@ -51,6 +51,13 @@ A political-drama strategy game about the **2028 Lithuanian Seimas election**, p
 
   Your final stability decides the Prime Minister grade, and the result screen shows a 100-day summary.
 
+## Map districts, tips, music and replay
+
+- **Districts on the map.** Zoom in past about 130% and the dots around each region, one per district coloured by its projected winner, become clickable. Tapping one opens that district's card.
+- **Rūta's first-time tips.** With Rūta on, short tips appear the first time you open the district list, the party list, the cabinet screen and the opposition/partner vote screen. Each can be dismissed with *Got it*, which is remembered in this browser.
+- **Background music.** A quiet, generated chord loop in A minor, made with no audio files. Turn it on with the note button in the desktop top bar or in the phone ☰ menu. It is off by default and the setting is remembered.
+- **Play the same party again.** The final screen has a second button that restarts with the same party, difficulty, scenario and Rūta setting.
+
 ## More news, achievements and stats
 
 - **8 new news stories,** each with three choices and its own consequences:

@@ -4347,7 +4347,7 @@ function layerValue(layer, id, ctx) {
   }
 }
 const MOVE_ICON = { rally: Megaphone, digital: Smartphone, tv: Radio, door: DoorOpen, star: Star, attack: Swords, backfire: Swords };
-function CartoonMap({ shares, sel, onSelect, g, proj, layer = 'lead', live, fx, view, onHover, hover }) {
+function CartoonMap({ shares, sel, onSelect, g, proj, layer = 'lead', live, fx, view, onHover, hover, onPip }) {
   const hv = (id) => (onHover ? { onMouseEnter: () => onHover(id), onMouseLeave: () => onHover(null) } : {});
   const key = (id) => (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(id); } };
   const txt = { fill: '#fff', stroke: '#05070B', strokeWidth: 6, paintOrder: 'stroke', strokeLinejoin: 'round', style: { fontFamily: FONT_TITLE }, fontWeight: 700, fontStyle: 'italic' };
@@ -4356,19 +4356,22 @@ function CartoonMap({ shares, sel, onSelect, g, proj, layer = 'lead', live, fx, 
   const lay = g || live ? layer : 'lead';
   const aria = (id, look) => `${rl(id)}: ${REG[id].seats} ${seatsWord(REG[id].seats)}, ${tt('leading', 'pirmauja')} ${partyShort(look.lead)}`;
   const showPips = proj && (lay === 'lead' || lay === 'battle') && !live;
-  const winners = (id) => (proj ? proj.smd.filter((e) => e.rid === id).map((e) => e.winner).sort((a, b) => SEAT_ORDER.indexOf(a) - SEAT_ORDER.indexOf(b)) : []);
+  const winners = (id) => (proj ? proj.smd.filter((e) => e.rid === id).map((e) => ({ p: e.winner, cid: e.cid })).sort((a, b) => SEAT_ORDER.indexOf(a.p) - SEAT_ORDER.indexOf(b.p)) : []);
   const pips = (id) => {
     const w = winners(id);
     const [x, y] = anchorOf(id);
     const tok = TOKENS[id];
     const R = tok ? tok.r + 12 : 36;
-    return w.map((p, i) => {
+    return w.map(({ p, cid }, i) => {
       const ang = tok ? -Math.PI / 2 + (i / w.length) * Math.PI * 2 : Math.PI + ((i + 0.5) / w.length) * Math.PI;
       const cx = x + R * Math.cos(ang), cy = y + R * Math.sin(ang), rr = tok ? 7 : 7.5;
+      const click = onPip ? { role: 'button', tabIndex: 0, 'aria-label': `${cnum(cid)}. ${cnm(cid)}`, onClick: (e) => { e.stopPropagation(); onPip(cid); }, onKeyDown: (e) => { if (e.key === 'Enter') onPip(cid); }, style: { cursor: 'pointer' } } : {};
       return (
-        <g key={i}>
+        <g key={i} {...click}>
+          {onPip && <circle cx={cx} cy={cy} r={rr + 7} fill="transparent" />}
           <circle cx={cx} cy={cy} r={rr + 2.4} fill={INK} />
-          <circle cx={cx} cy={cy} r={rr} fill={PARTIES[p].color} stroke="#fff" strokeWidth="2" />
+          <circle cx={cx} cy={cy} r={rr} fill={(PARTIES[p] || PARTIES.KITI).color} stroke="#fff" strokeWidth="2" />
+          {onPip && <title>{`${cnum(cid)}. ${cnm(cid)}`}</title>}
         </g>
       );
     });
@@ -4440,7 +4443,7 @@ function CartoonMap({ shares, sel, onSelect, g, proj, layer = 'lead', live, fx, 
           </g>
         );
       })}
-      {showPips && <g pointerEvents="none">{REGIONS.map((r) => <g key={`p-${r.id}`}>{pips(r.id)}</g>)}</g>}
+      {showPips && <g pointerEvents={onPip ? 'auto' : 'none'}>{REGIONS.map((r) => <g key={`p-${r.id}`}>{pips(r.id)}</g>)}</g>}
       {COUNTY_IDS.map((id) => {
         const [lx, ly] = COUNTY_SHAPES[id].label;
         const val = layerValue(lay, id, ctx);
@@ -4818,6 +4821,7 @@ function DesktopHud({ g, proj, onHelp, lang, setLang, onEnd, glowEnd, onFind }) 
           <FindButton onClick={onFind} wide />
           <LangToggle lang={lang} setLang={setLang} />
           <SoundToggle size={42} />
+          <MusicToggle size={42} />
           <button type="button" onClick={onHelp} aria-label={tt('How to play', 'Kaip žaisti')} className="cx-btn shrink-0" style={{ width: 42, height: 42, borderRadius: 999, background: 'rgba(255,255,255,.07)' }}><HelpCircle size={20} /></button>
           <Btn className={`h-14 px-6 text-xl ${glowEnd ? 'cx-glow' : ''}`} onClick={onEnd}>{last ? <Vote size={22} /> : <Play size={20} style={{ fill: '#1B1204' }} />}{last ? tt('Vote!', 'Balsuoti!') : tt('Next week', 'Kita savaitė')}</Btn>
         </div>
@@ -5175,6 +5179,7 @@ function RegionTip({ g, id, shares, proj }) {
 }
 function MapBoard({ g, shares, proj, sel, onSelect, fx, wide }) {
   const me = g.player;
+  const nav = React.useContext(NavCtx);
   const [layer, setLayer] = useState(() => { try { return window.localStorage.getItem(LAYER_KEY) || 'lead'; } catch (e) { return 'lead'; } });
   const pickLayer = (id) => { setLayer(id); SFX.play('tap'); try { window.localStorage.setItem(LAYER_KEY, id); } catch (e) { /* ignore */ } };
   const [view, setView] = useState(MAP_VB);
@@ -5281,14 +5286,14 @@ function MapBoard({ g, shares, proj, sel, onSelect, fx, wide }) {
         onClickCapture={onClickCap}
         onDoubleClick={(e) => { const [ax, ay] = rel(e.clientX, e.clientY); zoomBy(0.6, ax, ay); }}
       >
-        <CartoonMap shares={shares} sel={sel} onSelect={onSelect} g={g} proj={proj} layer={layer} fx={fx} view={view} onHover={onHover} hover={hover} />
+        <CartoonMap shares={shares} sel={sel} onSelect={onSelect} g={g} proj={proj} layer={layer} fx={fx} view={view} onHover={onHover} hover={hover} onPip={view[2] < MAP_VB[2] * 0.75 ? nav.openDistrict : undefined} />
         <div className="absolute flex flex-col gap-1.5" style={{ top: 10, right: 10 }}>
           {ctrl(tt('Zoom in', 'Priartinti'), Plus, () => zoomBy(0.7), view[2] <= MAP_VB[2] / 3.6 + 1)}
           {ctrl(tt('Zoom out', 'Nutolinti'), Minus, () => zoomBy(1 / 0.7), !zoomed)}
           {ctrl(tt('Show all of Lithuania', 'Rodyti visą Lietuvą'), Maximize2, () => setView(MAP_VB), !zoomed)}
           {g.leaderAt && ctrl(tt('Find your leader', 'Rasti lyderį'), LocateFixed, () => { const [x, y] = anchorOf(g.leaderAt); const w = MAP_VB[2] / 2, h = (w * MAP_VB[3]) / MAP_VB[2]; setView(clampView([x - w / 2, y - h / 2, w, h])); })}
         </div>
-        {zoomed && <div className="absolute left-3 top-3 text-[11px] font-bold px-2 py-1 rounded-md pointer-events-none" style={{ background: 'rgba(12,15,22,.8)', border: `1px solid ${LINE}` }}>{tt('Drag to move', 'Tempkite, kad judintumėte')} · {Math.round((MAP_VB[2] / view[2]) * 100)}%</div>}
+        {zoomed && <div className="absolute left-3 top-3 text-[11px] font-bold px-2 py-1 rounded-md pointer-events-none" style={{ background: 'rgba(12,15,22,.8)', border: `1px solid ${LINE}` }}>{tt('Drag to move', 'Tempkite, kad judintumėte')} · {Math.round((MAP_VB[2] / view[2]) * 100)}%{view[2] < MAP_VB[2] * 0.75 ? tt(' · dots = districts', ' · taškeliai – apygardos') : ''}</div>}
         {wide && (
           <div ref={tip} className="absolute left-0 top-0 pointer-events-none z-10" style={{ transition: 'opacity .15s', opacity: hover ? 1 : 0 }}>
             {hover && <RegionTip g={g} id={hover} shares={shares} proj={proj} />}
@@ -5315,6 +5320,7 @@ function HeaderMenu({ lang, setLang, onHelp }) {
           <div className="absolute right-0 z-50 mt-2 p-2 rounded-xl flex flex-col gap-1 sbl-pop" style={{ width: 230, background: '#1A202B', border: `1px solid ${LINE2}`, boxShadow: '0 18px 40px rgba(0,0,0,.6)' }}>
             <div className="flex items-center justify-between px-2 py-1.5"><span className="font-bold text-sm">{tt('Language', 'Kalba')}</span><LangToggle lang={lang} setLang={setLang} /></div>
             <div className="flex items-center justify-between px-2 py-1.5"><span className="font-bold text-sm">{tt('Sound', 'Garsas')}</span><SoundToggle size={36} /></div>
+            <div className="flex items-center justify-between px-2 py-1.5"><span className="font-bold text-sm">{tt('Music', 'Muzika')}</span><MusicToggle size={36} /></div>
             <button type="button" onClick={() => { setOpen(false); onHelp(); }} className="cx-btn justify-start gap-2 px-2 py-2.5 text-sm font-bold rounded-lg" style={{ background: 'rgba(255,255,255,.05)' }}><HelpCircle size={18} />{tt('How to play', 'Kaip žaisti')}</button>
           </div>
         </>
@@ -6599,6 +6605,7 @@ function DistrictList({ g, proj, compact }) {
   const chip = (on, onClick, label, key) => <button key={key} type="button" aria-pressed={on} onClick={onClick} className="cx-chip shrink-0 px-2.5 py-1 text-xs" style={{ background: on ? '#F3F4F6' : 'rgba(255,255,255,.06)', color: on ? INK : TEXT, borderColor: on ? '#F3F4F6' : LINE2, minHeight: 30 }}>{label}</button>;
   return (
     <section className="flex flex-col gap-2.5" aria-label={tt('All 71 districts', 'Visos 71 apygardos')}>
+      <TipOnce id="districts" title={tt('Every district is its own race', 'Kiekviena apygarda – atskira kova')}>{tt('Tap a district to see the candidates. Numbers with “~” are guesses: order a local poll for the real picture, then invest in your candidate or send them to a local TV debate.', 'Paspauskite apygardą – pamatysite kandidatus. Skaičiai su „~“ – tik spėjimai: užsakykite vietos apklausą, tada investuokite į savo kandidatą arba siųskite jį į vietos TV debatus.')}</TipOnce>
       <div className="flex items-baseline justify-between gap-2">
         <h3 className="cx-title text-2xl">{tt('71 local districts', '71 vienmandatė apygarda')}</h3>
         <span className="text-sm font-bold">{tt(`You lead ~${wins}`, `Pirmaujate ~${wins}`)}</span>
@@ -7065,6 +7072,7 @@ function PartyListCard({ g, act }) {
   const nav = React.useContext(NavCtx);
   return (
     <Card className="p-4 lg:col-span-2">
+      <TipOnce id="plist" title={tt('Your list decides who sits in the Seimas', 'Sąrašas lemia, kas sės į Seimą')}>{tt('List seats go down your list. A famous, balanced top ten helps the whole campaign; just don’t drop the sitting MPs without a reason.', 'Vietos pagal sąrašą skirstomos iš eilės. Žinomas ir subalansuotas dešimtukas padeda visai kampanijai, tik be priežasties neišbraukite dabartinių Seimo narių.')}</TipOnce>
       <CardTitle sub={locked ? tt('Registered. Voters can still reorder it with preference votes.', 'Įregistruotas. Rinkėjai dar gali jį perrikiuoti pirmumo balsais.') : tt(`Order your national list by the end of week ${LIST_DEADLINE}. Voters later move people up with preference votes.`, `Sudėliokite sąrašą iki ${LIST_DEADLINE} savaitės pabaigos. Vėliau rinkėjai pirmumo balsais kelia kandidatus aukštyn.`)} right={<span className="cx-chip px-2 py-0.5 text-xs shrink-0">{locked ? tt('Locked', 'Užrakinta') : tt(`Due week ${LIST_DEADLINE}`, `Iki ${LIST_DEADLINE} sav.`)}</span>}>{tt('Party list', 'Partijos sąrašas')}</CardTitle>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
         {[[tt('Top-10 fame', 'Dešimtuko žinomumas'), Math.round(m.fame)], [tt('Women in top 10', 'Moterų dešimtuke'), `${m.women}/10`], [tt('Regions', 'Regionai'), m.regions], [tt('Experienced', 'Patyrę'), m.mps]].map(([l, v]) => <div key={l} className="cx-soft p-2"><div className="text-[10px] font-bold t-muted">{l}</div><div className="cx-num text-lg">{v}</div></div>)}
@@ -7250,6 +7258,7 @@ function GovScreen({ g, act, onFinish }) {
         {stat(tt('Stability', 'Stabilumas'), Math.round(G.stability), G.stability >= 60 ? GREEN : G.stability >= 40 ? SUN : RED)}
         <div className="cx-soft p-3"><div className="text-xs font-bold t-muted">{tt('Laws passed', 'Priimti įstatymai')}</div><div className="cx-num text-3xl">{passedN}<span className="text-base t-muted">/{BILLS.length}</span></div></div>
       </div>
+      {G.stage === 'cabinet' && <div className="mt-4"><TipOnce id="gov" title={tt('Now you govern', 'Dabar jūs valdote')}>{tt('Pick ministers, then take six bills to the Seimas. Watch the expected vote before you press: amend a bill to win waverers, and remember the President can veto.', 'Paskirkite ministrus, tada teikite šešis įstatymus Seimui. Prieš balsavimą pažiūrėkite prognozę: sušvelninkite projektą, kad laimėtumėte abejojančius, ir nepamirškite – Prezidentas gali vetuoti.')}</TipOnce></div>}
       {G.stage === 'cabinet' && (
         <Card className="p-4 mt-4">
           <CardTitle sub={tt('Pick a minister for each ministry. Party colleagues keep partners happy; outside experts are often more competent.', 'Paskirkite ministrą kiekvienai ministerijai. Partijos kolegos tenkina partnerius, o nepartiniai ekspertai dažnai kompetentingesni.')} right={<span className="cx-chip px-2 py-0.5 text-xs shrink-0">{tt('Competence', 'Kompetencija')} {Math.round(comp)}</span>}>{tt('Cabinet', 'Ministrų kabinetas')}</CardTitle>
@@ -7596,6 +7605,7 @@ function TermScreen({ g, act, onFinish }) {
         {stat(tt('Government stability', 'Vyriausybės stabilumas'), T.stability, T.stability >= 60 ? GREEN : T.stability >= 40 ? SUN : RED)}
         <div className="cx-soft p-3"><div className="text-xs font-bold t-muted">{tt('Government seats', 'Valdančiųjų mandatai')}</div><div className="cx-num text-3xl">{govSeats}<span className="text-base t-muted">/141</span></div></div>
       </div>
+      {T.stage === 'bill' && T.bill === 0 && <div className="mt-4"><TipOnce id="term" title={tt('Your votes still count', 'Jūsų balsai vis dar svarbūs')}>{tt('Vote on the government’s bills in line with your promises. When the coalition wobbles, you can strike: a no-confidence vote in opposition, or walking out as a partner.', 'Balsuokite dėl Vyriausybės projektų pagal savo pažadus. Kai koalicija svyruoja, galite smogti: opozicijoje – nepasitikėjimo votumas, partneriui – išėjimas iš koalicijos.')}</TipOnce></div>}
       {T.stage === 'bill' && (
         <Card className="p-4 mt-4 sbl-fade">
           <div className="cx-kicker text-xs mb-1">{tt(`Government bill ${T.bill + 1} of ${BILLS.length}`, `Vyriausybės projektas ${T.bill + 1} iš ${BILLS.length}`)} · {partyShort(T.leader)}</div>
@@ -7833,6 +7843,13 @@ function CampaignStats({ g }) {
       </div>
     </Card>
   );
+}
+const TIPS_KEY = 'seimas-bfl-tips';
+function TipOnce({ id, title, children }) {
+  const [seen, setSeen] = useState(() => { try { return JSON.parse(window.localStorage.getItem(TIPS_KEY) || '[]').includes(id); } catch (e) { return false; } });
+  if (seen || !ADVISOR) return null;
+  const close = () => { setSeen(true); try { const l = JSON.parse(window.localStorage.getItem(TIPS_KEY) || '[]'); window.localStorage.setItem(TIPS_KEY, JSON.stringify([...new Set([...l, id])])); } catch (e) { /* ignore */ } };
+  return <Coach title={title} actions={<Btn kind="white" className="h-10 px-4 text-sm" onClick={close}>{tt('Got it', 'Supratau')}</Btn>}>{children}</Coach>;
 }
 function HQTab({ g, act, openSheet, sub = 'media', setSub = () => {} }) {
   const P = PARTIES[g.player];
@@ -8511,6 +8528,54 @@ const SFX = (() => {
   try { window.addEventListener('pointerdown', () => { if (on) ac(); }, { once: true }); } catch (e) { /* no window */ }
   return { play, isOn: () => on, set: (v) => { on = v; try { window.localStorage.setItem('seimas-bfl-sfx', v ? '1' : '0'); } catch (e) { /* storage unavailable */ } } };
 })();
+const MUSIC = (() => {
+  let ctx = null, timer = null, master = null, step = 0;
+  let on = false;
+  try { on = window.localStorage.getItem('seimas-bfl-music') === '1'; } catch (e) { /* default off */ }
+  const CHORDS = [[220, 261.6, 329.6], [174.6, 220, 261.6], [261.6, 329.6, 392], [196, 246.9, 293.7]];
+  const play = () => {
+    if (!ctx) return;
+    const t = ctx.currentTime + 0.05;
+    CHORDS[step % CHORDS.length].forEach((f, i) => {
+      [1, 1.004].forEach((det) => {
+        const o = ctx.createOscillator();
+        const gn = ctx.createGain();
+        o.type = i === 0 ? 'sine' : 'triangle';
+        o.frequency.value = f * det * (i === 0 ? 0.5 : 1);
+        gn.gain.setValueAtTime(0.0001, t);
+        gn.gain.exponentialRampToValueAtTime(0.05, t + 1.2);
+        gn.gain.exponentialRampToValueAtTime(0.0001, t + 5.6);
+        o.connect(gn).connect(master);
+        o.start(t); o.stop(t + 5.8);
+      });
+    });
+    step += 1;
+  };
+  const start = () => {
+    try {
+      if (!ctx) {
+        const C = window.AudioContext || window.webkitAudioContext; if (!C) return;
+        ctx = new C();
+        const lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 900;
+        master = ctx.createGain(); master.gain.value = 0.35;
+        master.connect(lp).connect(ctx.destination);
+      }
+      if (ctx.state === 'suspended') ctx.resume();
+      if (!timer) { play(); timer = setInterval(play, 5000); }
+    } catch (e) { /* audio unavailable */ }
+  };
+  const stop = () => { if (timer) { clearInterval(timer); timer = null; } };
+  try { window.addEventListener('pointerdown', () => { if (on) start(); }, { once: true }); } catch (e) { /* no window */ }
+  return { isOn: () => on, set: (v) => { on = v; try { window.localStorage.setItem('seimas-bfl-music', v ? '1' : '0'); } catch (e) { /* ignore */ } if (v) start(); else stop(); } };
+})();
+function MusicToggle({ size = 38 }) {
+  const [on, setOn] = useState(MUSIC.isOn());
+  return (
+    <button type="button" onClick={() => { MUSIC.set(!on); setOn(!on); }} aria-pressed={on} aria-label={on ? tt('Music off', 'Išjungti muziką') : tt('Music on', 'Įjungti muziką')} className="cx-btn shrink-0" style={{ width: size, height: size, borderRadius: 999, background: on ? 'rgba(245,165,36,.25)' : 'rgba(255,255,255,.07)' }}>
+      <Music size={17} />
+    </button>
+  );
+}
 function SoundToggle({ size = 38 }) {
   const [on, setOn] = useState(SFX.isOn());
   return (
@@ -9602,7 +9667,7 @@ function AchievementsSheet({ onClose }) {
     </Sheet>
   );
 }
-function ResultScreen({ g, onRestart }) {
+function ResultScreen({ g, onRestart, onSame }) {
   const E = g.election;
   const R = g.result;
   const me = g.player;
@@ -9654,7 +9719,10 @@ function ResultScreen({ g, onRestart }) {
       <CampaignStats g={g} />
       <Chronicle g={g} />
       <Card className="mt-4 p-4"><CardTitle>{tt('Final Seimas', 'Naujasis Seimas')}</CardTitle><SeatTable seats={E.seats} pr={E.pr} smd={E.smdSeats} highlight={me} /></Card>
-      <Btn className="h-16 text-xl w-full mt-5 lg:col-span-2" onClick={onRestart}><RotateCcw size={22} />{tt('Play again', 'Žaisti dar kartą')}</Btn>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-5 lg:col-span-2">
+        <Btn className="h-16 text-xl w-full" onClick={onRestart}><RotateCcw size={22} />{tt('Play again', 'Žaisti dar kartą')}</Btn>
+        {onSame && <Btn kind="white" className="h-16 text-lg w-full" onClick={onSame}><Play size={20} />{tt(`Again as ${partyShort(g.player)}`, `Dar kartą už ${partyShort(g.player)}`)}</Btn>}
+      </div>
     </div>
   );
 }
@@ -9879,7 +9947,7 @@ export default function SeimasGame({ hotData } = {}) {
   } else if (game.phase === 'gov' && game.gov) {
     body = <GovScreen g={game} act={act} onFinish={() => act((g) => { if (g.result.kind === 'pm') g.result.stability = Math.round(g.gov.stability); g.phase = 'result'; try { window.scrollTo({ top: 0 }); } catch (e) { /* ignore */ } return null; })} />;
   } else {
-    body = <ResultScreen g={game} onRestart={restart} />;
+    body = <ResultScreen g={game} onRestart={restart} onSame={() => { const g = newGame(game.player, game.advisor !== false, game.diff || 'normal', game.scen || 'standard'); gameRef.current = g; setGame(g); setTab('map'); setSel(null); setScreen('game'); try { window.scrollTo({ top: 0 }); } catch (e) { /* ignore */ } }} />;
   }
   return (
     <div className="sbl min-h-screen antialiased" lang={lang}>
