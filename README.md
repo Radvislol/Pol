@@ -10,6 +10,25 @@ A political-drama strategy game about the **2028 Lithuanian Seimas election**, p
 - **Phones**: a compact top bar with the leader's card, stat pills and a campaign timeline (months, debates, endorsements, election day), and a bottom bar with the news ticker and sections.
 - **Desktop (1024 px and wider)**: a command-centre layout with a full-width top bar (leader card, timeline, Next week), a navigation rail on the left, the large campaign map in the centre and a docked side panel on the right that shows region details or the latest news. News, debates and voters open as centred cinematic cards. Candidate selection becomes a two-pane screen with a large preview.
 
+## Districts and candidates
+
+- **The real 71 single-member districts.** Names, official numbers and areas follow the boundaries used in the October 2024 election. Each district sits in one of the game's 12 regions plus *Abroad*. A few cross-county districts were placed in the neighbouring region, for example Karšuva (Pagėgiai–Jurbarkas) in Kaunas County and North Nalšia (Ignalina–Visaginas) in Vilnius County.
+- **Real incumbents.** In every district, the member actually elected there in 2024 runs again for the party they were elected for (source: Wikipedia, *2024 Lithuanian parliamentary election*). Only facts are shown for real people: name, party, district and year elected. Their name-recognition, charisma and similar scores are labelled as game estimates. They get no invented age, job, biography or scandal risk. Their portraits are generic cartoons, not likenesses.
+- **Fictional challengers.** The other candidates are generated for each game:
+  - realistic Lithuanian names, with the correct female surname forms;
+  - age, profession, years in local politics and two policy priorities;
+  - name recognition, charisma, local ties, experience and scandal risk.
+
+  Big parties stand everywhere. Small parties only stand where they have a base. Your own party fields a candidate in every district.
+- **Candidates matter.** A district's result is the regional poll × the local lean × the candidate's strength. Strength comes from recognition, charisma and local ties, plus a bonus for incumbents. Star recruits from the region panel raise your candidate's recognition.
+- **Where to see it all:**
+  - **Map › Districts** (desktop: *71 districts* under the map): every district with its number and leading candidate, your share and the race status. You can search by district, town, number or candidate, and filter by region or by your wins and runoffs.
+  - **Region panel:** the region's districts, each opening its district card.
+  - **District card:** voters, city share, the 2024 winner, a first-round projection of every candidate and the likely runoff. Two actions for your candidate: local posters and ads (+recognition) or community meetings (+local ties and +ground team).
+  - **Candidate profile:** portrait, party, profile and score bars, priorities and projected or final result.
+  - **Current Seimas** (Polls › Seats, or the finder): all 141 real members elected in 2024, by party, with district or list position.
+  - **New Seimas** (election night and the final screen): all 141 members after your election. District winners are your game's candidates. List seats go to the party leader, then the party's real 2024 list members, then fictional names.
+
 ## Finding things
 
 - **Where is it?** The magnifier button in the top bar ("Where is it?" on desktop) lists everything you can do, grouped by section, with a search box. Matching ignores Lithuanian accents, so "kazino" and "pazadai" both work. Tapping an entry jumps straight to that action or opens it.

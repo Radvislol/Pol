@@ -694,12 +694,21 @@ const REGIONS = [
     ideal: { econ: 25, social: -35, defense: 85, green: 55 }, sal: SAL_URBAN, issues: ['housing', 'def', 'transit'],
     base: { LSDP: 14, TS: 28, NA: 6, DSVL: 7, LS: 13, LVZS: 3, LP: 10, LLRA: 7, KITI: 12 }, count: 0.32,
     cons: [
-      ['Naujamiesčio', 1, { LP: 1.7, TS: 1.2, LS: 1.25, NA: 0.6, LLRA: 0.4 }], ['Senamiesčio', 1, { LP: 1.6, TS: 1.25, LS: 1.3, NA: 0.6, LLRA: 0.5 }],
-      ['Žvėryno', 1, { LP: 1.4, TS: 1.35, LS: 1.25, NA: 0.6, LLRA: 0.4 }], ['Antakalnio', 1, { TS: 1.3, LS: 1.1, LP: 1.2, LLRA: 0.5 }],
-      ['Žirmūnų', 1, { LSDP: 1.1, LLRA: 0.8 }], ['Šnipiškių', 1, { LP: 1.2, LLRA: 1.0 }], ['Fabijoniškių', 1, { LSDP: 1.15, LLRA: 1.2, NA: 1.1 }],
-      ['Šeškinės', 1, { LLRA: 1.3, LSDP: 1.1 }], ['Justiniškių', 1, { LSDP: 1.15, NA: 1.15, LLRA: 0.9 }], ['Pilaitės', 1, { TS: 1.15, LS: 1.15, LP: 1.1, LLRA: 0.6 }],
-      ['Karoliniškių', 1, { LSDP: 1.1, LLRA: 0.9 }], ['Lazdynų', 1, { LSDP: 1.1, TS: 1.05, LLRA: 1.0 }], ['Naujininkų', 1, { LLRA: 2.3, LSDP: 1.1, LP: 0.7, TS: 0.85 }],
-      ['Naujosios Vilnios', 1, { LLRA: 2.7, LSDP: 1.15, NA: 1.2, LP: 0.6, TS: 0.75 }], ['Verkių', 1, { LLRA: 1.6, TS: 1.05 }],
+      ['Senamiesčio–Žvėryno', 1, { LP: 1.6, TS: 1.3, LS: 1.35, NA: 0.6, LLRA: 0.4 }, 1, 'Senamiestis–Žvėrynas', '', ['Viktorija Čmilytė-Nielsen', 'LS']],
+      ['Naujamiesčio–Vilkpėdės', 1, { LP: 1.5, TS: 1.25, LS: 1.2, NA: 0.6, LLRA: 0.5 }, 2, 'Naujamiestis–Vilkpėdė', '', ['Žygimantas Pavilionis', 'TS']],
+      ['Antakalnio', 1, { TS: 1.35, LS: 1.1, LP: 1.2, LLRA: 0.5 }, 3, 'Antakalnis', '', ['Ingrida Šimonytė', 'TS']],
+      ['Žirmūnų', 1, { TS: 1.15, LSDP: 1.05, LLRA: 0.8 }, 4, 'Žirmūnai', '', ['Paulė Kuzmickienė', 'TS']],
+      ['Fabijoniškių', 1, { LSDP: 1.15, LLRA: 1.1, NA: 1.1 }, 5, 'Fabijoniškės', '', ['Remigijus Motuzas', 'LSDP']],
+      ['Šeškinės–Šnipiškių', 1, { TS: 1.05, LLRA: 1.2, LSDP: 1.05 }, 6, 'Šeškinė–Šnipiškės', '', ['Mindaugas Lingė', 'TS']],
+      ['Justiniškių–Viršuliškių', 1, { DSVL: 1.25, LSDP: 1.1, NA: 1.1 }, 7, 'Justiniškės–Viršuliškės', '', ['Linas Kukuraitis', 'DSVL']],
+      ['Pilaitės–Karoliniškių', 1, { TS: 1.1, LS: 1.1, LP: 1.1, KITI: 1.3, LLRA: 0.7 }, 8, 'Pilaitė–Karoliniškės', '', ['Vytautas Sinica', 'KITI']],
+      ['Lazdynų', 1, { TS: 1.15, LSDP: 1.05 }, 9, 'Lazdynai', '', ['Laurynas Kasčiūnas', 'TS']],
+      ['Naujosios Vilnios', 1, { LLRA: 2.6, LSDP: 1.15, NA: 1.2, LP: 0.6, TS: 0.8 }, 10, 'Naujoji Vilnia', '', ['Liutauras Kazlavickas', 'TS']],
+      ['Pietinė', 1, { LLRA: 2.3, LSDP: 1.1, LP: 0.7, TS: 0.85 }, 11, 'South Vilnius', '', ['Česlav Olševski', 'LLRA']],
+      ['Verkių', 1, { TS: 1.2, LS: 1.1, LLRA: 1.1 }, 12, 'Verkiai', '', ['Dainius Kreivys', 'TS']],
+      ['Pašilaičių', 1, { LS: 1.2, TS: 1.1, LP: 1.1 }, 13, 'Pašilaičiai', '', ['Eugenijus Gentvilas', 'LS']],
+      ['Naujininkų–Rasų', 1, { LIT: 2.2, LLRA: 1.8, LSDP: 1.05 }, 14, 'Naujininkai–Rasos', '', ['Artūras Zuokas', 'LIT']],
+      ['Riešės', 0.4, { LLRA: 1.6, TS: 1.2 }, 55, 'Riešė', 'Vilniaus r.', ['Daiva Ulbinaitė', 'TS']],
     ],
   },
   {
@@ -707,8 +716,13 @@ const REGIONS = [
     ideal: { econ: -20, social: 55, defense: 40, green: 0 }, sal: { econ: 1.1, social: 1.0, defense: 0.8, green: 0.6 }, issues: ['minority', 'roads', 'def'],
     base: { LSDP: 18, TS: 11, NA: 12, DSVL: 10, LS: 4, LVZS: 7, LP: 1.5, LLRA: 23, KITI: 13.5 }, count: 0,
     cons: [
-      ['Šalčininkų', 0.1, { LLRA: 3.0, TS: 0.5, LS: 0.4, LP: 0.3 }], ['Medininkų', 0.3, { LLRA: 2.5, TS: 0.6, LP: 0.4 }], ['Nemenčinės', 0.3, { LLRA: 2.2, TS: 0.7 }],
-      ['Trakų–Elektrėnų', 0.5, { LLRA: 0.6 }], ['Ukmergės', 0.4, { LLRA: 0.08, NA: 1.2, LSDP: 1.15 }], ['Širvintų', 0.2, { LLRA: 0.3, LVZS: 1.2 }], ['Švenčionių', 0.3, { LLRA: 0.9, LSDP: 1.1 }],
+      ['Šalčininkų–Vilniaus', 0.1, { LLRA: 3.0, TS: 0.5, LS: 0.4, LP: 0.3 }, 56, 'Šalčininkai–Vilnius', 'Šalčininkai–Vilniaus r.', ['Jaroslav Narkevič', 'LLRA']],
+      ['Nemenčinės', 0.3, { LLRA: 2.6, TS: 0.6, LP: 0.4 }, 57, 'Nemenčinė', 'Vilniaus r.–Švenčionys', ['Rita Tamašunienė', 'LLRA']],
+      ['Trakų–Vievio', 0.4, { LLRA: 1.0, LSDP: 1.15 }, 58, 'Trakai–Vievis', 'Trakai–Vievis', ['Kęstutis Vilkauskas', 'LSDP']],
+      ['Kaišiadorių–Elektrėnų', 0.4, { LSDP: 1.15 }, 59, 'Kaišiadorys–Elektrėnai', 'Kaišiadorys–Elektrėnai', ['Algimantas Radvila', 'LSDP']],
+      ['Pietų Deltuvos', 0.3, { LSDP: 1.15, NA: 1.15, LLRA: 0.1 }, 61, 'South Deltuva (Ukmergė–Širvintos)', 'Ukmergė–Širvintos', ['Indrė Kižienė', 'LSDP']],
+      ['Pietų Nalšios', 0.2, { LLRA: 1.0, LSDP: 1.15 }, 53, 'South Nalšia (Molėtai–Švenčionys)', 'Molėtai–Švenčionys', ['Šarūnas Birutis', 'LSDP']],
+      ['Šiaurės Nalšios', 0.5, { LLRA: 1.6, LS: 1.2, LSDP: 1.05 }, 52, 'North Nalšia (Ignalina–Visaginas)', 'Ignalina–Visaginas', ['Jevgenij Šuklin', 'LS']],
     ],
   },
   {
@@ -716,69 +730,126 @@ const REGIONS = [
     ideal: { econ: 20, social: -10, defense: 75, green: 40 }, sal: SAL_URBAN, issues: ['jobs', 'housing', 'def'],
     base: { LSDP: 16, TS: 27, NA: 11, DSVL: 8, LS: 11, LVZS: 4, LP: 7, LLRA: 0.3, KITI: 15.7 }, count: 0.22,
     cons: [
-      ['Centro', 1, { TS: 1.2, LP: 1.4, LS: 1.2, NA: 0.75 }], ['Kalniečių', 1, { LSDP: 1.1 }], ['Šilainių', 1, { NA: 1.15, LSDP: 1.1 }], ['Aleksoto–Vilijampolės', 1, { LSDP: 1.05 }],
-      ['Dainavos', 1, { NA: 1.1, LSDP: 1.1 }], ['Petrašiūnų', 1, { LSDP: 1.15, NA: 1.15 }], ['Panemunės', 1, { TS: 1.15, LS: 1.1 }], ['Eigulių', 1, { LSDP: 1.05 }],
+      ['Kalniečių', 1, { TS: 1.15, LSDP: 1.05 }, 15, 'Kalniečiai', '', ['Arvydas Anušauskas', 'TS']],
+      ['Savanorių', 1, { LSDP: 1.15 }, 16, 'Savanoriai', '', ['Orinta Leiputė', 'LSDP']],
+      ['Petrašiūnų–Gričiupio', 1, { LSDP: 1.15, NA: 1.15 }, 17, 'Petrašiūnai–Gričiupis', '', ['Darius Razmislevičius', 'LSDP']],
+      ['Panemunės', 1, { LSDP: 1.05, TS: 1.1, LS: 1.1 }, 18, 'Panemunė', '', ['Audrius Radvilavičius', 'LSDP']],
+      ['Aleksoto–Vilijampolės', 1, { LSDP: 1.1 }, 19, 'Aleksotas–Vilijampolė', '', ['Robertas Kaunas', 'LSDP']],
+      ['Centro–Žaliakalnio', 1, { TS: 1.2, LP: 1.35, LS: 1.3, NA: 0.75 }, 20, 'Centras–Žaliakalnis', '', ['Simonas Kairys', 'LS']],
+      ['Šilainių', 1, { LSDP: 1.1, NA: 1.1 }, 21, 'Šilainiai', '', ['Laurynas Šedvydis', 'LSDP']],
+      ['Raudondvario', 0.4, { LSDP: 1.1 }, 65, 'Raudondvaris', 'Kauno r.', ['Raminta Popovienė', 'LSDP']],
     ],
   },
   {
     id: 'KNC', short: bi('Kaunas area', 'Kauno apskr.'), long: bi('Kaunas County', 'Kauno apskritis'), seats: 7, pop: 275, urban: 0.38, turnout: 0.51,
     ideal: { econ: -15, social: 30, defense: 55, green: 15 }, sal: SAL_RURAL, issues: ['col', 'roads', 'health'],
     base: { LSDP: 23, TS: 17, NA: 16, DSVL: 12, LS: 6, LVZS: 9, LP: 2, LLRA: 0.3, KITI: 14.7 }, count: 0,
-    cons: [['Kėdainių', 0.4, {}], ['Jonavos', 0.5, { LSDP: 1.2 }], ['Raseinių', 0, {}], ['Kaišiadorių', 0, {}], ['Garliavos', 0.3, {}], ['Karmėlavos', 0.3, {}], ['Prienų–Birštono', 0.2, {}]],
+    cons: [
+      ['Raseinių–Josvainių', 0.1, { LSDP: 1.15 }, 42, 'Raseiniai–Josvainiai', 'Raseiniai–Kėdainių r.', ['Matas Skamarakas', 'LSDP']],
+      ['Kėdainių', 0.4, { KITI: 1.6 }, 43, 'Kėdainiai', 'Kėdainiai', ['Viktoras Fiodorovas', 'KITI']],
+      ['Jonavos', 0.5, { LSDP: 1.25 }, 60, 'Jonava', 'Jonava', ['Eugenijus Sabutis', 'LSDP']],
+      ['Karšuvos', 0.1, { LS: 1.3 }, 62, 'Karšuva (Pagėgiai–Jurbarkas)', 'Pagėgiai–Jurbarkas', ['Ričardas Juška', 'LS']],
+      ['Šiaurės Sūduvos', 0.1, { LSDP: 1.1 }, 64, 'North Sūduva (Šakiai–Kazlų Rūda)', 'Šakiai–Kazlų Rūda', ['Darius Jakavičius', 'LSDP']],
+      ['Garliavos', 0.3, { LSDP: 1.1 }, 66, 'Garliava', 'Kauno r.', ['Šarūnas Šukevičius', 'LSDP']],
+      ['Dainavos', 0.2, { LSDP: 1.1 }, 67, 'Dainava (Prienai–Birštonas)', 'Prienai–Birštonas', ['Jūratė Zailskienė', 'LSDP']],
+    ],
   },
   {
     id: 'KLP', short: bi('Klaipėda', 'Klaipėda'), long: bi('Klaipėda & Coast', 'Klaipėda ir pajūris'), seats: 8, pop: 330, urban: 0.7, turnout: 0.5,
     ideal: { econ: 15, social: 5, defense: 60, green: 20 }, sal: SAL_URBAN, issues: ['port', 'col', 'energy'],
     base: { LSDP: 19, TS: 15, NA: 18, DSVL: 9, LS: 11, LVZS: 6, LP: 3, LLRA: 0.3, KITI: 18.7 }, count: 0.12,
-    cons: [['Baltijos', 1, {}], ['Danės', 1, {}], ['Marių', 1, {}], ['Palangos', 0.7, { LS: 1.15 }], ['Kretingos', 0.4, {}], ['Gargždų', 0.3, {}], ['Šilutės', 0.2, { NA: 1.1 }], ['Skuodo', 0, { NA: 1.15 }]],
+    cons: [
+      ['Pajūrio', 1, { NA: 1.2 }, 22, 'Pajūris (Curonian Spit–West Klaipėda)', 'Neringa–vakarų Klaipėda', ['Daiva Petkevičienė', 'NA']],
+      ['Danės', 1, { TS: 1.15 }, 23, 'Danė (North Klaipėda)', 'šiaurės Klaipėda', ['Audrius Petrošius', 'TS']],
+      ['Baltijos', 1, { LSDP: 1.1 }, 24, 'Baltija (Central Klaipėda)', 'centrinė Klaipėda', ['Vytautas Grubliauskas', 'LSDP']],
+      ['Marių', 1, { LVZS: 1.25 }, 25, 'Marios (South Klaipėda)', 'pietų Klaipėda', ['Ligita Girskienė', 'LVZS']],
+      ['Gargždų', 0.3, { LSDP: 1.1 }, 31, 'Gargždai', 'Gargždai', ['Alvydas Mockus', 'LSDP']],
+      ['Šilutės', 0.2, { NA: 1.2 }, 32, 'Šilutė', 'Šilutė', ['Daiva Žebelienė', 'NA']],
+      ['Mėguvos', 0.7, { NA: 1.15, LS: 1.1 }, 36, 'Mėguva (Palanga)', 'Palanga', ['Karolis Neimantas', 'NA']],
+      ['Kuršo', 0.2, { LSDP: 1.1, NA: 1.1 }, 37, 'Kuršas (Kretinga–Skuodas)', 'Kretinga–Skuodas', ['Violeta Turauskaitė', 'LSDP']],
+    ],
   },
   {
     id: 'TEL', short: bi('Telšiai', 'Telšiai'), long: bi('Telšiai · Samogitia', 'Telšiai · Žemaitija'), seats: 3, pop: 125, urban: 0.45, turnout: 0.45,
     ideal: { econ: -20, social: 55, defense: 30, green: -35 }, sal: SAL_RURAL, issues: ['col', 'tax', 'trust'],
     base: { LSDP: 19, TS: 11, NA: 28, DSVL: 9, LS: 5, LVZS: 9, LP: 1.5, LLRA: 0.2, KITI: 17.3 }, count: 0,
-    cons: [['Telšių', 0.4, {}], ['Mažeikių', 0.5, { NA: 1.1 }], ['Plungės', 0.3, {}]],
+    cons: [
+      ['Plungės–Rietavo', 0.3, { NA: 1.25 }, 35, 'Plungė–Rietavas', 'Plungė–Rietavas', ['Tomas Domarkas', 'NA']],
+      ['Mažeikių', 0.5, { LSDP: 1.1 }, 38, 'Mažeikiai', 'Mažeikiai', ['Ingrida Braziulienė', 'LSDP']],
+      ['Telšių', 0.4, { DSVL: 1.25 }, 40, 'Telšiai', 'Telšiai', ['Agnė Jakavičiūtė-Miliauskienė', 'DSVL']],
+    ],
   },
   {
     id: 'TAU', short: bi('Tauragė', 'Tauragė'), long: bi('Tauragė', 'Tauragės apskritis'), seats: 2, pop: 90, urban: 0.38, turnout: 0.44,
     ideal: { econ: -30, social: 45, defense: 35, green: -15 }, sal: SAL_RURAL, issues: ['emig', 'roads', 'col'],
     base: { LSDP: 20, TS: 12, NA: 23, DSVL: 9, LS: 5, LVZS: 10, LP: 1.5, LLRA: 0.2, KITI: 19.3 }, count: 0,
-    cons: [['Tauragės', 0.4, {}], ['Šilalės–Jurbarko', 0, {}]],
+    cons: [
+      ['Tauragės', 0.4, { NA: 1.2 }, 34, 'Tauragė', 'Tauragė', ['Tadas Sadauskis', 'NA']],
+      ['Kelmės–Šilalės', 0, { NA: 1.4 }, 41, 'Kelmė–Šilalė', 'Kelmė–Šilalė', ['Remigijus Žemaitaitis', 'NA']],
+    ],
   },
   {
     id: 'SIA', short: bi('Šiauliai', 'Šiauliai'), long: bi('Šiauliai', 'Šiaulių apskritis'), seats: 6, pop: 260, urban: 0.55, turnout: 0.47,
     ideal: { econ: -30, social: 35, defense: 50, green: -5 }, sal: SAL_RURAL, issues: ['col', 'emig', 'health'],
     base: { LSDP: 24, TS: 13, NA: 19, DSVL: 10, LS: 6, LVZS: 9, LP: 1.8, LLRA: 0.2, KITI: 17 }, count: 0,
-    cons: [['Saulės', 1, {}], ['Aušros', 1, {}], ['Radviliškio', 0.3, {}], ['Joniškio', 0.1, {}], ['Kelmės', 0, {}], ['Akmenės', 0.3, { LSDP: 1.2 }]],
+    cons: [
+      ['Saulės', 1, { DSVL: 1.25 }, 26, 'Saulė (South Šiauliai)', 'pietų Šiauliai', ['Domas Griškevičius', 'DSVL']],
+      ['Aušros', 1, { LSDP: 1.1 }, 27, 'Aušra (North Šiauliai)', 'šiaurės Šiauliai', ['Roma Janušonienė', 'LSDP']],
+      ['Šiaurės Žemaitijos', 0.3, { LSDP: 1.2 }, 39, 'North Samogitia (Naujoji Akmenė)', 'Naujoji Akmenė', ['Tomas Martinaitis', 'LSDP']],
+      ['Radviliškio–Tytuvėnų', 0.3, { LSDP: 1.1 }, 44, 'Radviliškis–Tytuvėnai', 'Radviliškis–Tytuvėnai', ['Saulius Luščikas', 'LSDP']],
+      ['Šiaulių kaimiškoji', 0.1, { LVZS: 1.3 }, 45, 'Šiauliai District', 'Šiaulių r.', ['Eimantas Kirkutis', 'LVZS']],
+      ['Vakarų Žiemgalos', 0.1, { LSDP: 1.15 }, 46, 'West Žiemgala (Joniškis)', 'Joniškis', ['Vaida Aleknavičienė', 'LSDP']],
+    ],
   },
   {
     id: 'PAN', short: bi('Panevėžys', 'Panevėžys'), long: bi('Panevėžys', 'Panevėžio apskritis'), seats: 5, pop: 215, urban: 0.52, turnout: 0.48,
     ideal: { econ: -25, social: 35, defense: 50, green: 0 }, sal: SAL_RURAL, issues: ['jobs', 'col', 'roads'],
     base: { LSDP: 23, TS: 14, NA: 17, DSVL: 12, LS: 6, LVZS: 10, LP: 1.8, LLRA: 0.2, KITI: 16 }, count: 0,
-    cons: [['Aukštaitijos', 1, {}], ['Nevėžio', 1, {}], ['Biržų–Pasvalio', 0.2, {}], ['Rokiškio', 0.2, {}], ['Kupiškio', 0.1, { LVZS: 1.15 }]],
+    cons: [
+      ['Nevėžio', 1, { LSDP: 1.1 }, 28, 'Nevėžis (North Panevėžys)', 'šiaurės Panevėžys', ['Ramūnas Vyžintas', 'LSDP']],
+      ['Panevėžio vakarinė', 1, { LSDP: 1.1 }, 29, 'West Panevėžys', 'vakarų Panevėžys', ['Andrius Busila', 'LSDP']],
+      ['Aukštaitijos', 0.1, { LSDP: 1.1 }, 33, 'Aukštaitija (Panevėžys District)', 'Panevėžio r.', ['Modesta Petrauskaitė', 'LSDP']],
+      ['Rytų Žiemgalos', 0.1, { LSDP: 1.1 }, 47, 'East Žiemgala (Pakruojis–Pasvalys)', 'Pakruojis–Pasvalys', ['Ilona Gelažnikienė', 'LSDP']],
+      ['Vakarų Sėlos', 0.2, { LSDP: 1.1, LVZS: 1.1 }, 48, 'West Sėla (Biržai–Kupiškis)', 'Biržai–Kupiškis', ['Lilija Vaitiekūnienė', 'LSDP']],
+    ],
   },
   {
     id: 'UTE', short: bi('Utena', 'Utena'), long: bi('Utena', 'Utenos apskritis'), seats: 3, pop: 125, urban: 0.5, turnout: 0.48,
     ideal: { econ: -30, social: 35, defense: 55, green: 10 }, sal: SAL_RURAL, issues: ['health', 'emig', 'energy'],
     base: { LSDP: 24, TS: 12, NA: 15, DSVL: 14, LS: 5, LVZS: 11, LP: 1.5, LLRA: 1.5, KITI: 16 }, count: 0,
-    cons: [['Utenos', 0.5, {}], ['Anykščių–Molėtų', 0.1, {}], ['Zarasų–Visagino', 0.5, { LLRA: 2.0, LSDP: 1.1 }]],
+    cons: [
+      ['Utenos', 0.5, { KITI: 1.5 }, 51, 'Utena', 'Utena', ['Vitalijus Šeršniovas', 'KITI']],
+      ['Šiaurės Deltuvos', 0.2, { LSDP: 1.1 }, 49, 'North Deltuva (Anykščiai)', 'Anykščiai', ['Arūnas Dudėnas', 'LSDP']],
+      ['Rytų Sėlos', 0.3, { LSDP: 1.15 }, 50, 'East Sėla (Rokiškis–Zarasai)', 'Rokiškis–Zarasai', ['Tadas Barauskas', 'LSDP']],
+    ],
   },
   {
     id: 'ALY', short: bi('Alytus', 'Alytus'), long: bi('Alytus · Dzūkija', 'Alytus · Dzūkija'), seats: 3, pop: 135, urban: 0.5, turnout: 0.47,
     ideal: { econ: -35, social: 30, defense: 50, green: 5 }, sal: SAL_RURAL, issues: ['pensions', 'health', 'def'],
     base: { LSDP: 28, TS: 13, NA: 14, DSVL: 11, LS: 5, LVZS: 9, LP: 1.5, LLRA: 0.5, KITI: 18 }, count: 0,
-    cons: [['Alytaus', 0.8, { LSDP: 1.1 }], ['Dzūkijos', 0.3, {}], ['Lazdijų', 0, {}]],
+    cons: [
+      ['Alytaus', 0.8, { LSDP: 1.1 }, 30, 'Alytus', 'Alytus', ['Jurgita Šukevičienė', 'LSDP']],
+      ['Dzūkijos', 0.1, { LSDP: 1.1 }, 69, 'Dzūkija (Varėna)', 'Varėna', ['Martynas Katelynas', 'LSDP']],
+      ['Jotvingių', 0.3, { DSVL: 1.2 }, 70, 'Jotvingiai (Lazdijai–Druskininkai)', 'Lazdijai–Druskininkai', ['Linas Urmanavičius', 'DSVL']],
+    ],
   },
   {
     id: 'MAR', short: bi('Marijampolė', 'Marijampolė'), long: bi('Marijampolė · Suvalkija', 'Marijampolė · Suvalkija'), seats: 3, pop: 135, urban: 0.42, turnout: 0.46,
     ideal: { econ: -25, social: 45, defense: 40, green: -10 }, sal: SAL_RURAL, issues: ['agri', 'roads', 'emig'],
     base: { LSDP: 21, TS: 13, NA: 16, DSVL: 10, LS: 5, LVZS: 15, LP: 1.5, LLRA: 0.2, KITI: 18.3 }, count: 0,
-    cons: [['Marijampolės', 0.6, {}], ['Vilkaviškio', 0.2, { LVZS: 1.1 }], ['Šakių', 0, {}]],
+    cons: [
+      ['Marijampolės', 0.6, { LSDP: 1.1 }, 54, 'Marijampolė', 'Marijampolė', ['Karolis Podolskis', 'LSDP']],
+      ['Pietų Sūduvos', 0.1, { DSVL: 1.2, LZP: 1.1 }, 63, 'South Sūduva (Kalvarija–Simnas)', 'Kalvarija–Simnas', ['Kęstutis Mažeika', 'DSVL']],
+      ['Vilkaviškio', 0.2, { DSVL: 1.15, LZP: 1.2 }, 68, 'Vilkaviškis', 'Vilkaviškis', ['Algirdas Butkevičius', 'DSVL']],
+    ],
   },
   {
     id: 'ABR', short: bi('Abroad', 'Užsienis'), long: bi('Lithuanians abroad', 'Užsienio lietuviai'), seats: 1, pop: 62, voters: 62, urban: 0.9, turnout: 0.6,
     ideal: { econ: 35, social: -30, defense: 90, green: 45 }, sal: SAL_URBAN, issues: ['diaspora', 'def', 'tax'],
     base: { LSDP: 9, TS: 35, NA: 7, DSVL: 6, LS: 17, LVZS: 2, LP: 13, LLRA: 0.5, KITI: 10.5 }, count: 0.45,
-    cons: [['Pasaulio lietuvių', 1, {}]],
+    cons: [
+      ['Pasaulio lietuvių', 1, {}, 71, 'Worldwide', '', ['Dalia Asanavičiūtė', 'TS']],
+    ],
   },
 ];
 REGIONS.forEach((r) => {
@@ -2092,7 +2163,7 @@ function doRegionAction(g, rid, type) {
     const who = Math.floor(Math.random() * STAR_PEOPLE.length);
     g.stars[tgt.cid] = { ...(g.stars[tgt.cid] || {}), [p]: who };
     addNews(g, { kind: 'star', cid: tgt.cid, who });
-    const name = consById(tgt.cid)[0];
+    const name = cnm(tgt.cid);
     return { ok: true, tone: 'good', msg: tt(`${L(STAR_PEOPLE[who])} will run for you in ${consName(name)}!`, `${consName(name)}: už jus kandidatuos ${L(STAR_PEOPLE[who])}!`) + (vrkCheck(g) || '') };
   }
   g.ap -= 1; spend(g, cost);
@@ -2803,7 +2874,8 @@ function simulateElection(g, noisy) {
       const cid = `${r.id}-${i}`;
       const Lc = g.leans[cid];
       const st = g.stars[cid] || {};
-      const cand = ALL_IDS.map((p) => ({ p, s: regions[r.id].shares[p] * Lc[p] * (st[p] != null ? (p === g.player ? 1.22 : 1.18) : 1) * Math.exp(ng() * 0.1) }));
+      const cs = candidatesOf(g, cid);
+      const cand = ALL_IDS.map((p) => ({ p, s: regions[r.id].shares[p] * Lc[p] * (st[p] != null ? (p === g.player ? 1.1 : 1.06) : 1) * candQ(cs.find((x) => x.p === p)) * Math.exp(ng() * 0.1) }));
       const kiti = cand.find((x) => x.p === 'KITI');
       cand.push({ p: 'MINOR', s: kiti.s * 0.55 });
       kiti.s *= 0.45;
@@ -4436,7 +4508,7 @@ function ActionTile({ type, g, r, rival, onAction }) {
   else if (type === 'door') effect = tt(`Ground team ${Math.round(g.gg[r.id][p])} → ${Math.round(Math.min(100, g.gg[r.id][p] + 14 * (1 - g.gg[r.id][p] / 110) * geoMult(p, r) * (p === 'DP' ? 1.5 : 1)))}`, `Komanda ${Math.round(g.gg[r.id][p])} → ${Math.round(Math.min(100, g.gg[r.id][p] + 14 * (1 - g.gg[r.id][p] / 110) * geoMult(p, r) * (p === 'DP' ? 1.5 : 1)))}`);
   else if (type === 'star') {
     const t = starTarget(g, r.id);
-    effect = t ? tt(`${consById(t.cid)[0]}: ${t.gap < 0 ? 'you trail' : 'you lead'}`, `${consById(t.cid)[0]}: ${t.gap < 0 ? 'atsiliekate' : 'pirmaujate'}`) : tt('Every district covered', 'Visos apygardos užimtos');
+    effect = t ? tt(`${cnm(t.cid)}: ${t.gap < 0 ? 'you trail' : 'you lead'}`, `${cnm(t.cid)}: ${t.gap < 0 ? 'atsiliekate' : 'pirmaujate'}`) : tt('Every district covered', 'Visos apygardos užimtos');
   } else effect = ADVISOR ? tt(`Rūta’s guess: about +${nf((actionPreview(g, r.id, type) * 100) / (100 - und))}% for you`, `Rūtos spėjimas: apie +${nf((actionPreview(g, r.id, type) * 100) / (100 - und))} % jums`) : null;
   const Icon = A.icon;
   return (
@@ -4534,6 +4606,7 @@ function RegionDrawer({ g, rid, proj, onClose, onAction, onTravel, tutStep, onSk
           {['rally', 'digital', 'tv', 'door', 'star', 'attack'].map((t) => <ActionTile key={t} type={t} g={g} r={r} rival={info.rival} onAction={onAction} />)}
         </div>
         {acts >= 2 && <p className="text-sm font-bold" style={{ color: AMBER }}>{tt('Voters here are getting tired of you this week. Each extra move here works less well.', 'Šio regiono rinkėjai šią savaitę jau pavargo nuo jūsų. Kiekvienas papildomas veiksmas čia veikia silpniau.')}</p>}
+        <RegionDistricts g={g} rid={rid} proj={proj} />
         <button type="button" onClick={() => setMore(!more)} className="cx-btn cx-pale w-full h-12 justify-between px-4">
           <span>{tt('About this region', 'Apie regioną')}</span>
           <ChevronDown size={20} className={`transition ${more ? 'rotate-180' : ''}`} />
@@ -4558,22 +4631,6 @@ function RegionDrawer({ g, rid, proj, onClose, onAction, onTravel, tutStep, onSk
             <div className="grid grid-cols-2 gap-2">
               <div className="cx-soft p-3"><div className="text-xs font-extrabold t-muted mb-1.5">{tt('Your ground team', 'Jūsų komanda vietoje')}</div><Bar value={g.gg[rid][p]} color={PARTIES[p].color} /><div className="cx-num mt-1">{Math.round(g.gg[rid][p])}/100</div></div>
               <div className="cx-soft p-3"><div className="text-xs font-extrabold t-muted mb-1.5">{tt('Turnout boost', 'Aktyvumo postūmis')}</div><Bar value={g.boost[rid][p]} max={0.25} color="#34D399" /><div className="cx-num mt-1">+{Math.round(g.boost[rid][p] * 100)}{LANG === 'lt' ? ' %' : '%'}</div></div>
-            </div>
-            <div>
-              <div className="text-sm font-extrabold t-muted mb-2">{tt(`Local districts: you’d win ${mine} of ${r.seats}`, `Apygardos: laimėtumėte ${mine} iš ${r.seats}`)}</div>
-              <ul className="flex flex-col gap-1.5">
-                {cons.map((e) => {
-                  const st = g.stars[e.cid] || {};
-                  return (
-                    <li key={e.cid} className="flex items-center gap-2 cx-soft px-3 py-2 text-sm font-bold">
-                      <PartyDot p={e.winner} size={12} />
-                      <span className="flex-1 min-w-0 truncate">{e.name}</span>
-                      {Object.keys(st).map((q) => <Star key={q} size={14} style={{ fill: PARTIES[q].color }} strokeWidth={2.4} aria-label={tt(`${partyShort(q)} star candidate`, `${partyShort(q)} žinomas kandidatas`)} />)}
-                      <span className="text-xs t-muted shrink-0">{e.round === 1 ? tt(`${partyShort(e.winner)} wins outright`, `${partyShort(e.winner)} laimi I ture`) : tt(`${partyShort(e.runoff.a)} v ${partyShort(e.runoff.b)} runoff`, `II turas: ${partyShort(e.runoff.a)} – ${partyShort(e.runoff.b)}`)}</span>
-                    </li>
-                  );
-                })}
-              </ul>
             </div>
           </div>
         )}
@@ -4759,7 +4816,7 @@ function newsView(g, n) {
     case 'kompro': return n.outcome === 'hit'
       ? { icon: Search, p: n.target, title: tt(`Leaked documents embarrass ${P(n.target)}`, `Nutekinti dokumentai kompromituoja ${P(n.target)}`), text: tt(`Your investigators’ findings are on every front page. ${P(n.target)} loses ground.`, `Jūsų tyrėjų radiniai – visų portalų pirmuosiuose puslapiuose. ${P(n.target)} praranda pozicijas.`) }
       : { icon: Search, title: tt('Caught digging for dirt', 'Įkliuvote renkant kompromatą'), text: tt(`Journalists reveal you hired investigators to target ${P(n.target)}.`, `Žurnalistai atskleidė, kad samdėte tyrėjus prieš ${P(n.target)}.`) };
-    case 'star': return { icon: Star, title: tt('Star candidate signed', 'Pritrauktas žinomas kandidatas'), text: tt(`${L(STAR_PEOPLE[n.who])} will run for you in ${consName(consById(n.cid)[0])}.`, `${consName(consById(n.cid)[0])}: už jus kandidatuos ${L(STAR_PEOPLE[n.who])}.`) };
+    case 'star': return { icon: Star, title: tt('Star candidate signed', 'Pritrauktas žinomas kandidatas'), text: tt(`${L(STAR_PEOPLE[n.who])} will run for you in ${consName(cnm(n.cid))}.`, `${consName(cnm(n.cid))}: už jus kandidatuos ${L(STAR_PEOPLE[n.who])}.`) };
     case 'endorse': { const o = ORGS.find((x) => x.id === n.org); return { icon: Handshake, p: n.p, title: tt(`${o.name.en} back ${P(n.p)}`, `${o.name.lt} remia ${P(n.p)}`), text: n.p === g.player ? tt('A big endorsement for your campaign.', 'Didelė parama jūsų kampanijai.') : tt('A rival wins an important endorsement.', 'Varžovas gauna svarbią paramą.') }; }
     case 'meet': { const e = ENC_MAP[n.enc]; return { icon: MessageCircle, title: tt(`Street conversation in ${rs(n.rid)}`, `Pokalbis gatvėje – ${rs(n.rid)}`), text: `${tt('“', '„')}${L(e.q)}${tt('”', '“')} ${tt('You:', 'Jūs:')} ${L(e.answers[n.ci].t)}` }; }
     default: return { icon: Info, title: '', text: '' };
@@ -5406,6 +5463,8 @@ const POLL_SUBS = () => [
 ];
 // Everything you can do, and where it lives.
 const FINDER = [
+  { id: 'districts', icon: Landmark, label: bi('All 71 districts and their candidates', 'Visos 71 apygarda ir kandidatai'), where: bi('Map › Districts', 'Žemėlapis › Apygardos'), kw: 'apygard district kandidat candidate vienmand smd numeris', go: { tab: 'map', sub: 'districts' } },
+  { id: 'members', icon: Users, label: bi('Current Seimas: all 141 members', 'Dabartinis Seimas: visi 141 narys'), where: bi('Polls › Seats', 'Apklausos › Mandatai'), kw: 'seimo nariai members seimas 2024 narys', go: { members: 'current' } },
   { id: 'festival', icon: Sparkles, label: bi('This week’s public event', 'Šios savaitės renginys'), where: bi('Map › This week', 'Žemėlapis › Ši savaitė'), kw: 'renginys event festival svente maraton zoline krepsin', go: { tab: 'map', sub: 'week' } },
   { id: 'region', icon: MapIcon, label: bi('Rallies, ads and door-knocking in a region', 'Mitingai, reklama ir agitacija regione'), where: bi('Map › tap a region', 'Žemėlapis › paspauskite regioną'), kw: 'rally miting reklama durys door ads tv region regionas star kandidat attack puolim', go: { tab: 'map', sub: 'regions' } },
   { id: 'travel', icon: Bus, label: bi('Move your leader (bus tour)', 'Perkelti lyderį (autobuso turas)'), where: bi('Map › region › Travel', 'Žemėlapis › regionas › Važiuoti'), kw: 'travel kelion autobus bus leader lyder', go: { tab: 'map', sub: 'regions' } },
@@ -5494,13 +5553,15 @@ function MapTab({ g, shares, proj, sel, onSelect, skipTips, wide, act, fx, sub =
         </Coach>
       )}
       <MapBoard g={g} shares={shares} proj={proj} sel={sel} onSelect={onSelect} fx={fx} wide={wide} />
-      {!wide && <SubTabs value={sub} onChange={setSub} label={tt('Map sections', 'Žemėlapio skiltys')} items={[['week', Calendar, tt('This week', 'Ši savaitė'), g.ap > 0 ? `${g.ap}⚡` : null], ['regions', MapIcon, tt('Regions', 'Regionai')]]} />}
+      {!wide && <SubTabs value={sub} onChange={setSub} label={tt('Map sections', 'Žemėlapio skiltys')} items={[['week', Calendar, tt('This week', 'Ši savaitė'), g.ap > 0 ? `${g.ap}⚡` : null], ['regions', MapIcon, tt('Regions', 'Regionai')], ['districts', Landmark, tt('Districts', 'Apygardos')]]} />}
+      {wide && <SubTabs value={sub === 'districts' ? 'districts' : 'regions'} onChange={setSub} label={tt('Lists', 'Sąrašai')} items={[['regions', MapIcon, tt('12 regions', '12 regionų')], ['districts', Landmark, tt('71 districts', '71 apygarda')]]} />}
+      {sub === 'districts' && <DistrictList g={g} proj={proj} />}
       {!wide && sub === 'week' && <FestivalCard g={g} act={act} />}
       {!wide && sub === 'week' && <WeekPlan g={g} act={act} />}
       {!wide && sub === 'week' && <TourCard g={g} onSelect={onSelect} />}
       {!wide && sub === 'week' && (g.tut === 0 || g.tut >= 5) && <Warnings g={g} />}
       {!wide && sub === 'week' && (g.tut === 0 || g.tut >= 5) && <RaceBriefing g={g} shares={shares} onOpen={onSelect} />}
-      {(wide || sub === 'regions') && <div className="flex flex-col gap-2.5 lg:grid lg:grid-cols-2 lg:gap-3">
+      {((wide && sub !== 'districts') || sub === 'regions') && <div className="flex flex-col gap-2.5 lg:grid lg:grid-cols-2 lg:gap-3">
         <h3 className="cx-title text-2xl lg:col-span-2">{tt('All regions', 'Visi regionai')}</h3>
         {rows.map((r) => <RegionRow key={r.id} r={r} g={g} s={shares[r.id]} mySeats={proj.smd.filter((e) => e.rid === r.id && e.winner === p).length} onClick={() => onSelect(r.id)} />)}
       </div>}
@@ -5524,6 +5585,7 @@ function PollsTab({ g, nat, proj, sub = 'seats', setSub = () => {} }) {
       <h2 className="cx-title text-4xl lg:col-span-2">{tt('Polls', 'Apklausos')}</h2>
       <SubTabs value={sub} onChange={setSub} items={POLL_SUBS()} label={tt('Poll sections', 'Apklausų skiltys')} className="lg:col-span-2" />
       {sub === 'seats' && (<>
+      <SeimasMembersCard g={g} />
       <Card className="p-4">
         <CardTitle sub={tt('Each dot is one of the Seimas’ 141 seats. The dashed line marks 71.', 'Kiekvienas taškas – viena iš 141 Seimo vietos. Brūkšninė linija – 71.')} info={<InfoTip title={tt('Seats', 'Mandatai')}>{tt('The Seimas has 141 seats. 70 are shared by the national vote among parties over 5%. 71 go to local winners, one per district. To govern you need 71, alone or with partners.', 'Seime – 141 vieta. 70 paskirstoma pagal balsus visoje šalyje partijoms, surinkusioms daugiau nei 5 %. 71 tenka apygardų nugalėtojams. Valdyti reikia 71 – vieniems arba su partneriais.')}</InfoTip>}>{tt('If the vote were today', 'Jei rinkimai vyktų šiandien')}</CardTitle>
         <Hemicycle seats={proj.seats} highlight={p} label={`${partyShort(p)}`} />
@@ -6177,6 +6239,492 @@ function Chronicle({ g }) {
       )}
     </Card>
   );
+}
+const LIST_2024 = {
+  LSDP: ['Gintautas Paluckas', 'Juozas Olekas', 'Rasa Budbergytė', 'Inga Ruginienė', 'Algirdas Sysas', 'Dovilė Šakalienė', 'Laura Asadauskaitė', 'Julius Sabatauskas', 'Giedrius Drukteinis', 'Saulius Čaplinskas', 'Linas Jonauskas', 'Tadas Prajara', 'Rimantas Sinkevičius', 'Linas Balsys', 'Antanas Nedzinskas', 'Ruslanas Baranovas', 'Birutė Vėsaitė', 'Paulius Visockas'],
+  TS: ['Radvilė Morkūnaitė-Mikulėnienė', 'Gintarė Skaistė', 'Agnė Bilotaitė', 'Matas Maldeikis', 'Liudas Mažylis', 'Audronius Ažubalis', 'Jurgis Razma', 'Arūnas Valinskas', 'Vytautas Kernagis', 'Kazys Starkevičius', 'Raimondas Kuodis', 'Valdas Rakutis', 'Giedrė Balčytytė', 'Aistė Gedvilienė', 'Emanuelis Zingeris', 'Arvydas Pocius', 'Vytautas Juozapaitis'],
+  NA: ['Agnė Širinskienė', 'Vytautas Jucius', 'Robert Puchovič', 'Artūras Skardžius', 'Aidas Gedvilas', 'Lina Šukytė-Korsakė', 'Kęstutis Bilius', 'Saulius Bucevičius', 'Mantas Poškus', 'Martynas Gedvilas', 'Petras Dargis', 'Raimondas Šukys', 'Dainius Varnas', 'Dainoras Bradauskas'],
+  DSVL: ['Saulius Skvernelis', 'Lukas Savickas', 'Jekaterina Rojaka', 'Rima Baškienė', 'Tomas Tomilinas', 'Zigmantas Balčytis', 'Giedrimas Jeglinskas', 'Rūta Miliūtė'],
+  LS: ['Virgilijus Alekna', 'Edita Rudelienė', 'Viktoras Pranckietis', 'Arminas Lydeka', 'Andrius Bagdonas', 'Vitalijus Gailius', 'Simonas Gentvilas'],
+  LVZS: ['Ignas Vėgėlė', 'Valius Ąžuolas', 'Bronis Ropė', 'Dainius Gaižauskas', 'Aušrinė Norkienė', 'Rimas Jonas Jankūnas'],
+};
+/* ============================================================
+   Districts and candidates
+   Incumbents are the real members elected in each single-member constituency in October 2024
+   (source: Wikipedia, "2024 Lithuanian parliamentary election"). Their party is the one they were
+   elected for. Challengers are fictional and generated per game.
+   ============================================================ */
+const KITI_LABEL_2024 = { 'Vytautas Sinica': bi('National Alliance', 'Nacionalinis susivienijimas'), 'Viktoras Fiodorovas': bi('Independent', 'Išsikėlęs pats'), 'Vitalijus Šeršniovas': bi('Independent', 'Išsikėlęs pats') };
+const FN_M = ['Tomas', 'Mantas', 'Andrius', 'Darius', 'Mindaugas', 'Paulius', 'Lukas', 'Justinas', 'Marius', 'Rokas', 'Vytautas', 'Jonas', 'Aurimas', 'Giedrius', 'Arnas', 'Karolis', 'Edvinas', 'Žygimantas', 'Dovydas', 'Saulius', 'Rimantas', 'Kęstutis', 'Algirdas', 'Gediminas', 'Martynas', 'Ignas', 'Evaldas', 'Tadas', 'Linas', 'Raimundas', 'Vaidas', 'Donatas', 'Arūnas', 'Valdas', 'Šarūnas'];
+const FN_F = ['Rūta', 'Ieva', 'Eglė', 'Greta', 'Aistė', 'Jurgita', 'Kristina', 'Inga', 'Rasa', 'Lina', 'Monika', 'Gintarė', 'Agnė', 'Simona', 'Vaida', 'Neringa', 'Indrė', 'Laura', 'Asta', 'Dalia', 'Jolanta', 'Ugnė', 'Gabija', 'Milda', 'Vilma', 'Audronė', 'Renata', 'Edita', 'Živilė', 'Sigita', 'Loreta', 'Žaneta', 'Brigita'];
+const SURN = ['Petrauskas', 'Jankauskas', 'Kazlauskas', 'Paulauskas', 'Stankevičius', 'Vasiliauskas', 'Žukauskas', 'Butkus', 'Urbonas', 'Navickas', 'Kavaliauskas', 'Ramanauskas', 'Sakalauskas', 'Rimkus', 'Bielskis', 'Lukoševičius', 'Baranauskas', 'Jonaitis', 'Gudelis', 'Adomaitis', 'Šimkus', 'Vaitkus', 'Grigas', 'Morkūnas', 'Juknevičius', 'Dambrauskas', 'Bernotas', 'Valatka', 'Kriaučiūnas', 'Matulis', 'Rutkauskas', 'Žilinskas', 'Petkus', 'Daukša', 'Kalinauskas', 'Lapinskas', 'Tamošiūnas', 'Jurgaitis', 'Norkus', 'Sabaliauskas', 'Mažeikis', 'Venckus', 'Banys', 'Leonavičius', 'Zabarauskas'];
+function femSurname(s, maiden) {
+  if (maiden) {
+    if (s.endsWith('us')) return `${s.slice(0, -2)}utė`;
+    if (s.endsWith('ys')) return `${s.slice(0, -2)}ytė`;
+    if (s.endsWith('is')) return `${s.slice(0, -2)}ytė`;
+    if (s.endsWith('as')) return `${s.slice(0, -2)}aitė`;
+    return `${s.slice(0, -1)}aitė`;
+  }
+  if (s.endsWith('us')) return `${s.slice(0, -2)}uvienė`;
+  if (s.endsWith('as') || s.endsWith('is') || s.endsWith('ys')) return `${s.slice(0, -2)}ienė`;
+  return `${s.slice(0, -1)}ienė`;
+}
+const PROFS = [
+  ['teacher', 'mokytojas', 'mokytoja'], ['family doctor', 'šeimos gydytojas', 'šeimos gydytoja'], ['farmer', 'ūkininkas', 'ūkininkė'], ['business owner', 'verslininkas', 'verslininkė'],
+  ['lawyer', 'teisininkas', 'teisininkė'], ['municipal councillor', 'savivaldybės tarybos narys', 'savivaldybės tarybos narė'], ['former deputy mayor', 'buvęs vicemeras', 'buvusi vicemerė'],
+  ['engineer', 'inžinierius', 'inžinierė'], ['journalist', 'žurnalistas', 'žurnalistė'], ['economist', 'ekonomistas', 'ekonomistė'], ['police officer', 'policininkas', 'policininkė'],
+  ['nurse', 'slaugytojas', 'slaugytoja'], ['IT specialist', 'IT specialistas', 'IT specialistė'], ['basketball coach', 'krepšinio treneris', 'krepšinio trenerė'],
+  ['social worker', 'socialinis darbuotojas', 'socialinė darbuotoja'], ['school head', 'mokyklos direktorius', 'mokyklos direktorė'], ['army reserve officer', 'atsargos karininkas', 'atsargos karininkė'],
+  ['pharmacist', 'vaistininkas', 'vaistininkė'], ['NGO leader', 'NVO vadovas', 'NVO vadovė'], ['student activist', 'studentų aktyvistas', 'studentų aktyvistė'], ['agronomist', 'agronomas', 'agronomė'],
+];
+const FOCUS = {
+  welfare: bi('pensions and social support', 'pensijos ir socialinė parama'), security: bi('defence and security', 'gynyba ir saugumas'), business: bi('jobs and investment', 'darbo vietos ir investicijos'),
+  health: bi('local healthcare', 'sveikatos priežiūra vietoje'), roads: bi('roads and buses', 'keliai ir autobusai'), schools: bi('schools', 'mokyklos'), green: bi('climate and nature', 'klimatas ir gamta'),
+  farmers: bi('farmers', 'ūkininkai'), housing: bi('affordable housing', 'įperkamas būstas'), trust: bi('honest politics', 'sąžininga politika'), minority: bi('minority rights', 'tautinių mažumų teisės'), youth: bi('young families', 'jaunos šeimos'),
+};
+const PARTY_FOCUS = { LSDP: ['welfare', 'health', 'schools'], TS: ['security', 'business', 'youth'], NA: ['trust', 'welfare', 'farmers'], DSVL: ['health', 'roads', 'trust'], LS: ['business', 'housing', 'youth'], LVZS: ['farmers', 'health', 'schools'], LP: ['housing', 'green', 'youth'], LLRA: ['minority', 'schools', 'welfare'], DP: ['welfare', 'roads', 'business'], LIT: ['business', 'roads', 'trust'], KS: ['schools', 'youth', 'trust'], LZP: ['green', 'farmers', 'health'], KITI: ['roads', 'trust', 'health'] };
+const HAIR_M = ['short', 'crop', 'quiff', 'side', 'swept', 'messy', 'receding', 'shaved', 'curly'];
+const HAIR_F = ['long', 'bob', 'bun'];
+const HAIR_C = ['#2A1C14', '#4A3426', '#6B4A2A', '#8A6A3A', '#C9A46A', '#D9B26A', '#7A7F86', '#BABEC4', '#1F1F1F', '#8A4B2A'];
+const isFemName = (full) => /[aė]$/.test(full.split(' ')[0]);
+const CAND_CACHE = new Map();
+function contests(p, r, cons, rand, inc, player) {
+  if (p === player || (inc && inc[1] === p)) return true;
+  if (['LSDP', 'TS', 'NA', 'DSVL', 'LS', 'LVZS'].includes(p)) return true;
+  if (p === 'LLRA') return ['VNO', 'VLC', 'KLP'].includes(r.id) || (cons[6] && /Nalšios|Rytų Sėlos/.test(cons[0]));
+  if (p === 'LP') return cons[1] >= 0.5 || rand() < 0.35;
+  if (p === 'KITI') return rand() < 0.55;
+  return rand() < ({ DP: 0.6, LIT: 0.55, KS: 0.45, LZP: 0.45 }[p] || 0.5);
+}
+// Base (unmodified) candidates for one district, cached per game seed.
+function baseCandidates(seed, cid, player) {
+  const key = `${seed}|${cid}|${player}`;
+  if (CAND_CACHE.has(key)) return CAND_CACHE.get(key);
+  const [rid] = cid.split('-');
+  const r = REG[rid];
+  const cons = consById(cid);
+  const inc = cons[6] || null;
+  const rand = mulberry32(hashStr(`${seed}|${cid}`));
+  const list = [];
+  ALL_IDS.forEach((p) => {
+    if (!contests(p, r, cons, rand, inc, player)) return;
+    const id = `${cid}-${p}`;
+    if (inc && inc[1] === p) {
+      const fem = isFemName(inc[0]);
+      list.push({ id, cid, p, name: inc[0], fem, real: true, inc: true, leader: PARTIES[p] && PARTIES[p].leader === inc[0], label: KITI_LABEL_2024[inc[0]] || null,
+        fame: 62 + Math.round(rand() * 22), cha: 45 + Math.round(rand() * 40), exp: 75 + Math.round(rand() * 20), roots: 55 + Math.round(rand() * 35), risk: 0, focus: PARTY_FOCUS[p].slice(0, 2), look: lookFor(id, fem, p, rand) });
+      return;
+    }
+    const fem = rand() < 0.45;
+    const first = (fem ? FN_F : FN_M)[Math.floor(rand() * (fem ? FN_F.length : FN_M.length))];
+    const sur0 = SURN[Math.floor(rand() * SURN.length)];
+    const name = `${first} ${fem ? femSurname(sur0, rand() < 0.3) : sur0}`;
+    const big = ['LSDP', 'TS', 'NA', 'DSVL'].includes(p);
+    const pf = PARTY_FOCUS[p] || PARTY_FOCUS.KITI;
+    const f1 = pf[Math.floor(rand() * pf.length)];
+    const f2 = (r.issues || []).length && rand() < 0.5 ? ({ housing: 'housing', def: 'security', transit: 'roads', roads: 'roads', health: 'health', jobs: 'business', agri: 'farmers', emig: 'youth', col: 'welfare', pensions: 'welfare', energy: 'welfare', tax: 'business', trust: 'trust', minority: 'minority', port: 'business' }[r.issues[Math.floor(rand() * r.issues.length)]] || 'roads') : pf[(pf.indexOf(f1) + 1) % pf.length];
+    list.push({ id, cid, p, name, fem, real: false, inc: false, age: 28 + Math.floor(rand() * 38), prof: Math.floor(rand() * PROFS.length),
+      fame: Math.round((big ? 22 : 12) + rand() * (big ? 40 : 30)), cha: 30 + Math.round(rand() * 60), exp: Math.round(10 + rand() * 60), roots: 30 + Math.round(rand() * 60), risk: Math.round(4 + rand() * 30),
+      focus: [f1, f2 === f1 ? pf[(pf.indexOf(f1) + 2) % pf.length] : f2], years: 2 + Math.floor(rand() * 20), look: lookFor(id, fem, p, rand) });
+  });
+  CAND_CACHE.set(key, list);
+  return list;
+}
+function lookFor(id, fem, p, rand) {
+  const key = `cand:${id}`;
+  if (!LOOKS[key]) {
+    const col = (PARTIES[p] || PARTIES.KITI).color;
+    const lk = { s: Math.floor(rand() * 3), hair: fem ? HAIR_F[Math.floor(rand() * HAIR_F.length)] : HAIR_M[Math.floor(rand() * HAIR_M.length)], hc: HAIR_C[Math.floor(rand() * HAIR_C.length)], acc: col, bg: mixHex(col, '#FFFFFF', 0.55) };
+    if (fem) { lk.fem = true; lk.top = mixHex(col, '#111827', 0.35); if (rand() < 0.3) lk.earring = true; } else { lk.suit = mixHex(col, '#111827', 0.55); if (rand() < 0.25) lk.beard = ['stubble', 'short', 'full'][Math.floor(rand() * 3)]; if (rand() < 0.1) lk.mous = true; }
+    if (rand() < 0.28) lk.glasses = rand() < 0.5 ? 'rect' : 'round';
+    LOOKS[key] = lk;
+  }
+  return key;
+}
+// Candidates with this game's changes applied (your investments, star recruits).
+function candidatesOf(g, cid) {
+  const inv = (g.candInv && g.candInv[cid]) || null;
+  const st = (g.stars && g.stars[cid]) || {};
+  return baseCandidates(g.seed, cid, g.player).map((c0) => {
+    const c = { ...c0 };
+    if (st[c.p] != null && !c.inc) { c.star = st[c.p]; c.fame = Math.min(95, c.fame + 28); c.cha = Math.min(95, c.cha + 8); }
+    if (inv && c.p === g.player) { c.fame = Math.min(98, c.fame + (inv.fame || 0)); c.roots = Math.min(98, c.roots + (inv.roots || 0)); c.meet = inv.meet || 0; c.ads = inv.ads || 0; }
+    return c;
+  });
+}
+const candOf = (g, cid, p) => candidatesOf(g, cid).find((c) => c.p === p) || null;
+const candQ = (c) => (c ? Math.exp(0.0042 * (c.fame - 50) + 0.0022 * (c.cha - 50) + 0.0016 * (c.roots - 50) + (c.inc ? 0.06 : 0)) : 0.12);
+// First-round projection for one district (no noise).
+function districtView(g, cid, regShares) {
+  const r = REG[cid.split('-')[0]];
+  const sh = regShares || regionShares(g, r);
+  const Lc = g.leans[cid];
+  const cs = candidatesOf(g, cid);
+  const rows = cs.map((c) => ({ c, s: sh[c.p] * Lc[c.p] * candQ(c) * (c.p === 'KITI' ? 0.45 : 1) }));
+  const t = sum(rows.map((x) => x.s)) || 1;
+  rows.forEach((x) => { x.s = (x.s / t) * 100; });
+  return rows.sort((a, b) => b.s - a.s);
+}
+const cnm = (cid) => { const c = consById(cid); return LANG === 'lt' ? c[0] : (c[4] || c[0]); };
+const cnum = (cid) => consById(cid)[3];
+const ALL_CIDS = REGIONS.flatMap((r) => r.cons.map((_, i) => `${r.id}-${i}`));
+function candInvest(g, cid, kind) {
+  const p = g.player;
+  const c = candOf(g, cid, p);
+  if (!c) return { ok: false, msg: tt('Your party has no candidate here.', 'Jūsų partija čia kandidato neturi.') };
+  const cost = kind === 'ads' ? 18 : 6;
+  if (g.ap < 1) return { ok: false, msg: tt('Out of energy! Tap Next week to refill.', 'Baigėsi energija! Spauskite „Kita savaitė“.') };
+  if (g.money < cost) return { ok: false, msg: tt(`Not enough money: ${fmtEur(cost)} needed.`, `Trūksta pinigų: reikia ${fmtEur(cost)}.`) };
+  g.ap -= 1; spend(g, cost); g.stats.actions += 1;
+  if (!g.candInv) g.candInv = {};
+  const inv = { ...(g.candInv[cid] || {}) };
+  const rid = cid.split('-')[0];
+  if (kind === 'ads') {
+    const d = Math.round(12 * (1 - c.fame / 115));
+    inv.fame = (inv.fame || 0) + d; inv.ads = (inv.ads || 0) + 1;
+    g.candInv[cid] = inv;
+    return { ok: true, tone: 'good', msg: tt(`${c.name}’s posters and local ads are up: name recognition +${d}`, `${c.name}: stendai ir vietinė reklama – žinomumas +${d}`) + (vrkCheck(g) || '') };
+  }
+  const d = Math.round(10 * (1 - c.roots / 115));
+  inv.roots = (inv.roots || 0) + d; inv.meet = (inv.meet || 0) + 1;
+  g.candInv[cid] = inv;
+  g.gg[rid][p] = Math.min(100, g.gg[rid][p] + 3);
+  return { ok: true, tone: 'good', msg: tt(`${c.name} met voters at the community centre: local ties +${d}`, `${c.name} susitiko su bendruomene: vietos ryšiai +${d}`) };
+}
+/* ---------- district & member screens ---------- */
+const NavCtx = React.createContext({ openDistrict: () => {}, openCand: () => {}, openMembers: () => {} });
+function CandFace({ c, size = 40, mood = 'ok' }) {
+  return <Portrait who={c.look} size={size} square mood={mood} ring={(PARTIES[c.p] || PARTIES.KITI).color} title={c.name} />;
+}
+function partyLabel(c) {
+  if (c.p === 'KITI') return c.label ? L(c.label) : tt('Independent', 'Išsikėlęs pats');
+  return partyShort(c.p);
+}
+function profText(c) {
+  if (c.real) return c.leader ? tt('Party leader · Seimas member', c.fem ? 'Partijos pirmininkė · Seimo narė' : 'Partijos pirmininkas · Seimo narys') : tt('Seimas member, elected 2024', c.fem ? 'Seimo narė, išrinkta 2024 m.' : 'Seimo narys, išrinktas 2024 m.');
+  if (c.star != null) return L(STAR_PEOPLE[c.star]);
+  const P = PROFS[c.prof];
+  return LANG === 'lt' ? P[c.fem ? 2 : 1] : P[0];
+}
+function DistrictRow({ g, cid, e, onOpen }) {
+  const me = g.player;
+  const view = districtView(g, cid);
+  const mine = view.find((x) => x.c.p === me);
+  const lead = view[0];
+  const second = view[1];
+  const status = !mine ? 'far' : lead.c.p === me ? (lead.s - second.s >= 6 ? 'safe' : 'close') : (lead.s - mine.s < 6 ? 'close' : lead.s - mine.s < 14 ? 'behind' : 'far');
+  return (
+    <button type="button" onClick={() => onOpen(cid)} className="cx-tap w-full flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-left" style={{ background: 'rgba(255,255,255,.04)', border: `1px solid ${LINE}`, borderLeft: `4px solid ${PARTIES[(e && e.winner) || lead.c.p] ? PARTIES[(e && e.winner) || lead.c.p].color : '#64748B'}` }}>
+      <span className="cx-num shrink-0 grid place-items-center rounded-lg text-sm" style={{ width: 34, height: 34, background: 'rgba(0,0,0,.35)' }}>{cnum(cid)}</span>
+      <span className="min-w-0 flex-1">
+        <span className="block font-bold leading-tight truncate">{cnm(cid)}</span>
+        <span className="flex items-center gap-1.5 mt-0.5 text-[11px] font-bold t-muted min-w-0">
+          <CandFace c={lead.c} size={18} /><span className="truncate">{lead.c.name}</span><span className="shrink-0">{fmtPct(lead.s, 0)}</span>
+        </span>
+      </span>
+      <span className="flex flex-col items-end gap-1 shrink-0">
+        <StatusPill status={status} />
+        <span className="text-[11px] font-bold t-muted">{mine ? tt(`you ${fmtPct(mine.s, 0)}`, `jūs ${fmtPct(mine.s, 0)}`) : tt('no candidate', 'be kandidato')}</span>
+      </span>
+    </button>
+  );
+}
+function DistrictList({ g, proj, compact }) {
+  const nav = React.useContext(NavCtx);
+  const [q, setQ] = useState('');
+  const [rf, setRf] = useState('all');
+  const [sf, setSf] = useState('all');
+  const me = g.player;
+  const f = fold(q.trim());
+  const rows = useMemo(() => ALL_CIDS.map((cid) => {
+    const e = proj.smd.find((x) => x.cid === cid);
+    const cs = candidatesOf(g, cid);
+    return { cid, e, text: fold(`${cnum(cid)} ${consById(cid)[0]} ${consById(cid)[4]} ${consById(cid)[5]} ${cs.map((c) => c.name).join(' ')}`) };
+  }), [g, proj]);
+  const list = rows.filter((x) => (rf === 'all' || x.cid.startsWith(`${rf}-`)) && (!f || x.text.includes(f)) && (sf === 'all' || (sf === 'win' ? x.e && x.e.winner === me : sf === 'run' ? x.e && x.e.round === 2 && (x.e.runoff.a === me || x.e.runoff.b === me) : !(x.e && x.e.winner === me))))
+    .sort((a, b) => cnum(a.cid) - cnum(b.cid));
+  const wins = rows.filter((x) => x.e && x.e.winner === me).length;
+  const chip = (on, onClick, label, key) => <button key={key} type="button" aria-pressed={on} onClick={onClick} className="cx-chip shrink-0 px-2.5 py-1 text-xs" style={{ background: on ? '#F3F4F6' : 'rgba(255,255,255,.06)', color: on ? INK : TEXT, borderColor: on ? '#F3F4F6' : LINE2, minHeight: 30 }}>{label}</button>;
+  return (
+    <section className="flex flex-col gap-2.5" aria-label={tt('All 71 districts', 'Visos 71 apygardos')}>
+      <div className="flex items-baseline justify-between gap-2">
+        <h3 className="cx-title text-2xl">{tt('71 local districts', '71 vienmandatė apygarda')}</h3>
+        <span className="text-sm font-bold">{tt(`You’d win ${wins}`, `Laimėtumėte ${wins}`)}</span>
+      </div>
+      <label className="flex items-center gap-2 rounded-xl px-3" style={{ background: 'rgba(255,255,255,.06)', border: `1px solid ${LINE2}`, minHeight: 44 }}>
+        <Search size={16} className="t-muted shrink-0" />
+        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tt('District, town, number or candidate…', 'Apygarda, miestas, numeris ar kandidatas…')} aria-label={tt('Search districts', 'Ieškoti apygardų')} className="flex-1 bg-transparent outline-none text-sm font-semibold" style={{ color: TEXT, minWidth: 0 }} />
+      </label>
+      <div className="cx-layers flex gap-1.5 overflow-x-auto pb-0.5">
+        {chip(sf === 'all', () => setSf('all'), tt('All', 'Visos'), 'a')}
+        {chip(sf === 'win', () => setSf('win'), tt('You win', 'Laimite'), 'w')}
+        {chip(sf === 'run', () => setSf('run'), tt('Your runoffs', 'Jūsų II turai'), 'r')}
+        {chip(sf === 'lose', () => setSf('lose'), tt('Not yours', 'Ne jūsų'), 'l')}
+      </div>
+      <div className="cx-layers flex gap-1.5 overflow-x-auto pb-0.5">
+        {chip(rf === 'all', () => setRf('all'), tt('All regions', 'Visi regionai'), 'all')}
+        {REGIONS.map((r) => chip(rf === r.id, () => setRf(r.id), rs(r), r.id))}
+      </div>
+      <div className={`flex flex-col gap-1.5 ${compact ? '' : 'lg:grid lg:grid-cols-2 lg:gap-2'}`}>
+        {list.map((x) => <DistrictRow key={x.cid} g={g} cid={x.cid} e={x.e} onOpen={nav.openDistrict} />)}
+        {list.length === 0 && <div className="text-sm t-muted py-3">{tt('No districts match.', 'Tokių apygardų nėra.')}</div>}
+      </div>
+    </section>
+  );
+}
+function RegionDistricts({ g, rid, proj }) {
+  const nav = React.useContext(NavCtx);
+  const r = REG[rid];
+  const mine = proj.smd.filter((e) => e.rid === rid && e.winner === g.player).length;
+  return (
+    <div>
+      <div className="text-sm font-extrabold t-muted mb-2">{tt(`Local districts: you’d win ${mine} of ${r.seats}. Tap one for candidates.`, `Apygardos: laimėtumėte ${mine} iš ${r.seats}. Paspauskite – pamatysite kandidatus.`)}</div>
+      <div className="flex flex-col gap-1.5">
+        {r.cons.map((_, i) => { const cid = `${rid}-${i}`; return <DistrictRow key={cid} g={g} cid={cid} e={proj.smd.find((e) => e.cid === cid)} onOpen={nav.openDistrict} />; })}
+      </div>
+    </div>
+  );
+}
+function StatBar({ label, v, color = SUN, hint }) {
+  return (
+    <div>
+      <div className="flex justify-between text-xs font-bold"><span>{label}</span><span className="cx-num">{Math.round(v)}</span></div>
+      <div className="cx-track mt-1" style={{ height: 8 }}><div className="h-full" style={{ width: `${clamp(v, 2, 100)}%`, background: color, transition: 'width .5s ease' }} /></div>
+      {hint && <div className="text-[10px] t-muted mt-0.5">{hint}</div>}
+    </div>
+  );
+}
+function DistrictSheet({ g, cid, act, onClose }) {
+  const nav = React.useContext(NavCtx);
+  const me = g.player;
+  const c0 = consById(cid);
+  const r = REG[cid.split('-')[0]];
+  const E = g.election;
+  const result = E ? E.smd.find((x) => x.cid === cid) : null;
+  const view = districtView(g, cid);
+  const proj = useMemo(() => (E ? null : simulateElection(g, false)), [g]);
+  const pe = proj ? proj.smd.find((x) => x.cid === cid) : null;
+  const mine = view.find((x) => x.c.p === me);
+  const inc = c0[6];
+  const campaign = g.phase === 'campaign';
+  const voters = Math.round((r.voters * 1000) / r.cons.length);
+  return (
+    <Sheet label={tt(`District ${c0[3]}`, `${c0[3]} apygarda`)} onClose={onClose} z="z-50">
+      <div className="relative">
+        <Scene kind={REGION_SCENE[r.id] || 'town'} h={null} caption={false} flush kb className="h-[130px]">
+          <div className="absolute inset-x-4 bottom-3 flex items-end gap-3">
+            <span className="cx-num grid place-items-center rounded-xl text-2xl shrink-0" style={{ width: 54, height: 54, background: SUN, color: INK }}>{c0[3]}</span>
+            <div className="min-w-0">
+              <div className="cx-kicker text-xs" style={{ color: '#fff' }}>{rl(r)}{c0[5] ? ` · ${c0[5]}` : ''}</div>
+              <div className="cx-title text-2xl leading-tight text-white truncate">{consName(cnm(cid))}</div>
+            </div>
+          </div>
+        </Scene>
+        <button type="button" onClick={onClose} aria-label={tt('Close', 'Uždaryti')} className="cx-btn absolute right-3 top-3 grid place-items-center" style={{ width: 36, height: 36, borderRadius: 999, background: 'rgba(7,9,13,.8)' }}><X size={18} /></button>
+      </div>
+      <div style={GUTTER} className="pt-4 flex flex-col gap-4">
+        <div className="grid grid-cols-3 gap-2">
+          {[[tt('Voters', 'Rinkėjai'), `~${fmtNum(voters / 1000, 0)}k`], [tt('City share', 'Miesto dalis'), `${Math.round(c0[1] * 100)}${LANG === 'lt' ? ' %' : '%'}`], [tt('Candidates', 'Kandidatai'), String(view.length)]].map(([l, v]) => <div key={l} className="cx-soft p-2.5"><div className="text-[11px] font-bold t-muted">{l}</div><div className="cx-num text-xl">{v}</div></div>)}
+        </div>
+        {inc && (
+          <div className="cx-soft p-3 flex items-center gap-3 text-sm">
+            <Landmark size={18} className="shrink-0" />
+            <span><b>{tt('2024 result:', '2024 m. rezultatas:')}</b> {inc[0]} ({inc[1] === 'KITI' ? L(KITI_LABEL_2024[inc[0]] || bi('Independent', 'Išsikėlęs pats')) : partyShort(inc[1])}) {tt('won this seat.', 'laimėjo šią apygardą.')}</span>
+          </div>
+        )}
+        <div>
+          <div className="cx-kicker text-xs mb-2">{result ? tt('Election result', 'Rinkimų rezultatas') : tt('First-round projection', 'I turo prognozė')}</div>
+          <div className="flex flex-col gap-1.5">
+            {view.map(({ c, s }, i) => {
+              const won = result ? result.winner === c.p : null;
+              return (
+                <button key={c.id} type="button" onClick={() => nav.openCand(cid, c.p)} className="cx-tap w-full grid items-center gap-2.5 rounded-xl px-2.5 py-2 text-left" style={{ gridTemplateColumns: '40px 1fr 54px', background: c.p === me ? ACC_BG : 'rgba(255,255,255,.04)', border: `1px solid ${won ? GREEN : LINE}` }}>
+                  <CandFace c={c} size={40} mood={i === 0 ? 'grin' : 'ok'} />
+                  <span className="min-w-0">
+                    <span className="flex items-center gap-1.5 min-w-0"><span className="font-bold truncate">{c.name}</span>{c.inc && <span className="cx-chip px-1.5 text-[10px] shrink-0" style={{ color: SUN }}>{tt('MP', c.fem ? 'Seimo narė' : 'Seimo narys')}</span>}{c.star != null && <Star size={12} className="shrink-0" style={{ fill: SUN, color: SUN }} />}{won && <Trophy size={13} className="shrink-0" style={{ color: GREEN }} />}</span>
+                    <span className="flex items-center gap-1.5 text-[11px] font-bold t-muted"><PartyDot p={c.p} size={9} />{partyLabel(c)} · {profText(c)}</span>
+                    <span className="cx-track block mt-1" style={{ height: 6 }}><span className="block h-full" style={{ width: `${clamp(s * 2, 2, 100)}%`, background: (PARTIES[c.p] || PARTIES.KITI).color }} /></span>
+                  </span>
+                  <span className="cx-num text-right">{fmtPct(s, 1)}</span>
+                </button>
+              );
+            })}
+          </div>
+          <div className="text-[11px] t-muted mt-1.5">{tt('Projection = regional poll × local lean × candidate strength. Tap a candidate for the profile.', 'Prognozė = regiono reitingas × vietos polinkis × kandidato stiprumas. Paspauskite kandidatą – pamatysite profilį.')}</div>
+        </div>
+        {(pe || result) && (
+          <div className="cx-soft p-3 text-sm font-semibold">
+            {(() => {
+              const e = result || pe;
+              if (e.round === 1) return tt(`${(candOf(g, cid, e.winner) || {}).name || partyShort(e.winner)} ${result ? 'won' : 'would win'} outright in round one.`, `${(candOf(g, cid, e.winner) || {}).name || partyShort(e.winner)} ${result ? 'laimėjo' : 'laimėtų'} jau pirmajame ture.`);
+              const a = candOf(g, cid, e.runoff.a), b = candOf(g, cid, e.runoff.b);
+              return <>{tt('Runoff:', 'II turas:')} <b>{a ? a.name : partyShort(e.runoff.a)}</b> {tt('vs', 'prieš')} <b>{b ? b.name : partyShort(e.runoff.b)}</b>{e.runoff.sa != null ? ` · ${fmtPct(e.runoff.sa, 0)} – ${fmtPct(e.runoff.sb, 0)}` : ''}{` · ${tt(result ? 'winner' : 'likely winner', result ? 'laimėjo' : 'tikėtinas laimėtojas')}: ${(candOf(g, cid, e.winner) || {}).name || partyShort(e.winner)}`}</>;
+            })()}
+          </div>
+        )}
+        {campaign && mine && (
+          <div className="cx-card p-3 flex flex-col gap-2">
+            <div className="flex items-center gap-2"><CandFace c={mine.c} size={36} /><div className="min-w-0"><div className="font-black leading-tight truncate">{tt('Your candidate:', 'Jūsų kandidatas:')} {mine.c.name}</div><div className="text-xs t-muted">{tt('Spend on them directly', 'Investuokite tiesiogiai į kandidatą')}</div></div></div>
+            <Btn kind="white" className="h-12 justify-between px-3" disabled={g.ap < 1 || g.money < 18} onClick={() => act((gg) => candInvest(gg, cid, 'ads'))}><span className="inline-flex items-center gap-2"><Megaphone size={17} />{tt('Local posters and ads', 'Vietiniai stendai ir reklama')}</span><span className="text-sm inline-flex items-center gap-1"><Zap size={13} style={{ fill: INK }} />1 · {fmtEur(18)}</span></Btn>
+            <Btn kind="white" className="h-12 justify-between px-3" disabled={g.ap < 1 || g.money < 6} onClick={() => act((gg) => candInvest(gg, cid, 'meet'))}><span className="inline-flex items-center gap-2"><Users size={17} />{tt('Community meetings', 'Susitikimai su bendruomene')}</span><span className="text-sm inline-flex items-center gap-1"><Zap size={13} style={{ fill: INK }} />1 · {fmtEur(6)}</span></Btn>
+          </div>
+        )}
+        {campaign && !mine && <div className="cx-soft p-3 text-sm font-semibold">{tt('Your party is not running a candidate here.', 'Jūsų partija čia kandidato neiškėlė.')}</div>}
+      </div>
+    </Sheet>
+  );
+}
+function CandidateSheet({ g, cid, p, onClose, onBack }) {
+  const c = candOf(g, cid, p);
+  if (!c) return null;
+  const P = PARTIES[p] || PARTIES.KITI;
+  const view = districtView(g, cid);
+  const row = view.find((x) => x.c.p === p);
+  const rank = view.indexOf(row) + 1;
+  const E = g.election;
+  const res = E ? E.smd.find((x) => x.cid === cid) : null;
+  const won = res && res.winner === p;
+  const bio = c.real
+    ? tt(`Elected for ${c.label ? L(c.label) : partyShort(p)} in this district in October 2024${c.leader ? ' and now leads the party' : ''}. In this game they seek re-election in 2028. Profile scores below are game estimates, not real data.`,
+      `2024 m. spalį ${c.fem ? 'išrinkta' : 'išrinktas'} šioje apygardoje nuo ${c.label ? L(c.label) : partyShort(p)}${c.leader ? ' ir dabar vadovauja partijai' : ''}. Žaidime 2028 m. siekia būti ${c.fem ? 'perrinkta' : 'perrinktas'}. Žemiau pateikti vertinimai – žaidimo, ne tikri duomenys.`)
+    : tt(`${c.age}, ${profText(c)}. Active in local politics for ${c.years} years. Running in ${cnm(cid)} on ${L(FOCUS[c.focus[0]])} and ${L(FOCUS[c.focus[1]])}.`,
+      `${c.age} m., ${profText(c)}. Vietos politikoje – ${c.years} m. ${cnm(cid)} apygardoje kandidatuoja ${c.fem ? 'žadėdama' : 'žadėdamas'} rūpintis tema „${L(FOCUS[c.focus[0]])}“ ir „${L(FOCUS[c.focus[1]])}“.`);
+  return (
+    <Sheet label={c.name} onClose={onClose} z="z-50">
+      <div className="relative">
+        <div style={{ height: 130, background: `linear-gradient(135deg, ${tint(P.color, 0.3)}, #0B0E14)` }} />
+        <div className="absolute left-4 bottom-[-44px] flex items-end gap-3">
+          <CandFace c={c} size={104} mood={won ? 'grin' : 'happy'} />
+          <div className="pb-12 min-w-0">
+            <div className="cx-kicker text-xs" style={{ color: '#fff' }}>{tt(`Candidate · district ${cnum(cid)}`, `Kandidatas · ${cnum(cid)} apygarda`)}</div>
+            <div className="cx-title text-2xl leading-none">{c.name}</div>
+          </div>
+        </div>
+        <div className="absolute right-3 top-3 flex gap-2">
+          {onBack && <button type="button" onClick={onBack} aria-label={tt('Back to the district', 'Atgal į apygardą')} className="cx-btn grid place-items-center" style={{ width: 38, height: 38, borderRadius: 999, background: 'rgba(7,9,13,.7)' }}><ArrowRight size={18} style={{ transform: 'rotate(180deg)' }} /></button>}
+          <button type="button" onClick={onClose} aria-label={tt('Close', 'Uždaryti')} className="cx-btn grid place-items-center" style={{ width: 38, height: 38, borderRadius: 999, background: 'rgba(7,9,13,.7)' }}><X size={18} /></button>
+        </div>
+      </div>
+      <div style={GUTTER} className="pt-14 flex flex-col gap-4">
+        <div className="flex flex-wrap gap-1.5">
+          <span className="cx-chip px-2.5 py-1 text-sm" style={{ background: tint(P.color, 0.3), borderColor: P.color }}><PartyDot p={p} size={10} />{partyLabel(c)}</span>
+          {c.real && <span className="cx-chip px-2.5 py-1 text-sm" style={{ color: SUN }}><Landmark size={14} />{tt('Real Seimas member (2024–2028)', c.fem ? 'Tikra Seimo narė (2024–2028)' : 'Tikras Seimo narys (2024–2028)')}</span>}
+          {c.leader && <span className="cx-chip px-2.5 py-1 text-sm"><Crown size={14} />{tt('Party leader', c.fem ? 'Partijos pirmininkė' : 'Partijos pirmininkas')}</span>}
+          {!c.real && <span className="cx-chip px-2.5 py-1 text-sm t-muted"><Sparkles size={14} />{tt('Fictional candidate', c.fem ? 'Išgalvota kandidatė' : 'Išgalvotas kandidatas')}</span>}
+          {c.star != null && <span className="cx-chip px-2.5 py-1 text-sm" style={{ color: SUN }}><Star size={14} />{tt('Star recruit', 'Žinomas veidas')}</span>}
+        </div>
+        <p className="text-sm font-semibold leading-relaxed">{bio}</p>
+        <div className="grid grid-cols-2 gap-2">
+          <div className="cx-soft p-2.5"><div className="text-[11px] font-bold t-muted">{res ? tt('Result', 'Rezultatas') : tt('Projected', 'Prognozė')}</div><div className="cx-num text-xl">{res ? (won ? tt('Elected', 'Išrinktas') : tt('Lost', 'Pralaimėjo')) : `${fmtPct(row.s, 1)} · #${rank}`}</div></div>
+          <div className="cx-soft p-2.5"><div className="text-[11px] font-bold t-muted">{tt('District', 'Apygarda')}</div><div className="font-bold text-sm leading-tight">{cnum(cid)}. {cnm(cid)}</div></div>
+        </div>
+        <div className="flex flex-col gap-2.5">
+          <StatBar label={tt('Name recognition', 'Žinomumas')} v={c.fame} color="#60A5FA" hint={c.p === g.player && (c.ads || c.meet) ? tt(`Your investment: ${c.ads || 0} ad pushes, ${c.meet || 0} meetings`, `Jūsų investicijos: ${c.ads || 0} reklamos, ${c.meet || 0} susitikimai`) : null} />
+          <StatBar label={tt('Charisma', 'Charizma')} v={c.cha} color="#F472B6" />
+          <StatBar label={tt('Local ties', 'Vietos ryšiai')} v={c.roots} color="#34D399" />
+          <StatBar label={tt('Experience', 'Patirtis')} v={c.exp} color={SUN} />
+          {!c.real && <StatBar label={tt('Scandal risk', 'Skandalo rizika')} v={c.risk} color="#F87171" />}
+          <div className="text-[11px] t-muted">{tt('Strength in this district:', 'Stiprumas šioje apygardoje:')} ×{nf(candQ(c), 2)}{c.inc ? tt(' (incumbent bonus)', ' (dabartinio nario premija)') : ''}</div>
+        </div>
+        {!c.real && (
+          <div>
+            <div className="cx-kicker text-xs mb-1.5">{tt('Priorities', 'Prioritetai')}</div>
+            <div className="flex flex-wrap gap-1.5">{c.focus.map((k) => <span key={k} className="cx-chip px-2.5 py-1 text-sm">{L(FOCUS[k])}</span>)}</div>
+          </div>
+        )}
+      </div>
+    </Sheet>
+  );
+}
+// Members of the current Seimas (elected 2024) and of the newly elected one.
+const PARTY_FROM_2024 = (code) => code;
+function currentSeimas() {
+  const out = [];
+  ALL_CIDS.forEach((cid) => { const inc = consById(cid)[6]; if (inc) out.push({ name: inc[0], p: inc[1], how: 'smd', cid, real: true, label: KITI_LABEL_2024[inc[0]] || null }); });
+  Object.entries(LIST_2024).forEach(([p, names]) => names.forEach((n, i) => out.push({ name: n, p, how: 'list', no: i + 1, real: true })));
+  return out;
+}
+function listNames(g, p, n, exclude) {
+  const out = [];
+  if (PARTIES[p] && !exclude.has(PARTIES[p].leader)) out.push({ name: PARTIES[p].leader, real: true, leader: true });
+  (LIST_2024[p] || []).forEach((nm) => { if (!exclude.has(nm) && nm !== (PARTIES[p] || {}).leader) out.push({ name: nm, real: true }); });
+  const rand = mulberry32(hashStr(`${g.seed}|list|${p}`));
+  while (out.length < n) {
+    const fem = rand() < 0.45;
+    const nm = `${(fem ? FN_F : FN_M)[Math.floor(rand() * (fem ? FN_F.length : FN_M.length))]} ${fem ? femSurname(SURN[Math.floor(rand() * SURN.length)], rand() < 0.3) : SURN[Math.floor(rand() * SURN.length)]}`;
+    if (!exclude.has(nm)) out.push({ name: nm, real: false });
+  }
+  return out.slice(0, n);
+}
+function newSeimas(g) {
+  const E = g.election;
+  const out = [];
+  const smdNames = new Set();
+  E.smd.forEach((e) => { const c = candOf(g, e.cid, e.winner); if (c) smdNames.add(c.name); out.push({ name: c ? c.name : partyShort(e.winner), p: e.winner === 'MINOR' ? 'KITI' : e.winner, how: 'smd', cid: e.cid, real: !!(c && c.real), cand: c }); });
+  Object.entries(E.pr).forEach(([p, n]) => { listNames(g, p, n, smdNames).forEach((x, i) => out.push({ ...x, p, how: 'list', no: i + 1 })); });
+  return out;
+}
+function MembersSheet({ g, kind, onClose }) {
+  const nav = React.useContext(NavCtx);
+  const members = useMemo(() => (kind === 'new' && g.election ? newSeimas(g) : currentSeimas()), [g, kind]);
+  const [q, setQ] = useState('');
+  const f = fold(q.trim());
+  const byParty = {};
+  members.filter((m) => !f || fold(`${m.name} ${partyShort(m.p)} ${m.cid ? cnm(m.cid) : ''}`).includes(f)).forEach((m) => { (byParty[m.p] = byParty[m.p] || []).push(m); });
+  const order = Object.keys(byParty).sort((a, b) => byParty[b].length - byParty[a].length);
+  const total = members.length;
+  return (
+    <Sheet label={kind === 'new' ? tt('The new Seimas', 'Naujasis Seimas') : tt('Current Seimas', 'Dabartinis Seimas')} onClose={onClose} z="z-50">
+      <SheetHead kicker={kind === 'new' ? tt(`Elected in 2028 · ${total} members`, `Išrinktas 2028 m. · ${total} narių`) : tt('Elected in October 2024 · real members', 'Išrinktas 2024 m. spalį · tikri nariai')} title={kind === 'new' ? tt('The new Seimas', 'Naujasis Seimas') : tt('Current Seimas', 'Dabartinis Seimas')} onClose={onClose} />
+      <div style={GUTTER} className="flex flex-col gap-3">
+        {kind !== 'new' && <p className="text-xs t-muted">{tt('Members as elected in 2024, with the party they were elected for (source: Wikipedia). Later resignations and party switches are not shown.', 'Nariai pagal 2024 m. rinkimų rezultatus ir partiją, nuo kurios išrinkti (šaltinis: Vikipedija). Vėlesni pasitraukimai ir perėjimai į kitas partijas neparodyti.')}</p>}
+        {kind === 'new' && <p className="text-xs t-muted">{tt('District winners are your game’s candidates. List seats go to the party leader, then to real 2024 list members of that party, then to fictional names.', 'Apygardose – žaidimo kandidatai. Sąrašo vietos atitenka partijos pirmininkui, tada tikriems tos partijos 2024 m. sąrašo nariams, o likusios – išgalvotiems vardams.')}</p>}
+        <label className="flex items-center gap-2 rounded-xl px-3" style={{ background: 'rgba(255,255,255,.06)', border: `1px solid ${LINE2}`, minHeight: 44 }}>
+          <Search size={16} className="t-muted shrink-0" />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={tt('Search a member or district…', 'Ieškoti nario ar apygardos…')} aria-label={tt('Search members', 'Ieškoti narių')} className="flex-1 bg-transparent outline-none text-sm font-semibold" style={{ color: TEXT, minWidth: 0 }} />
+        </label>
+        {order.map((p) => (
+          <div key={p}>
+            <div className="flex items-center gap-2 mb-1.5"><PartyDot p={p} size={12} /><span className="cx-title text-lg">{p === 'KITI' ? tt('Others & independents', 'Kiti ir nepriklausomi') : partyShort(p)}</span><span className="cx-num t-muted">{byParty[p].length}</span></div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+              {byParty[p].map((m, i) => {
+                const clickable = m.how === 'smd' && m.cid && candOf(g, m.cid, m.p);
+                const Tag = clickable ? 'button' : 'div';
+                return (
+                  <Tag key={`${m.name}-${i}`} type={clickable ? 'button' : undefined} onClick={clickable ? () => nav.openCand(m.cid, m.p) : undefined} className={`${clickable ? 'cx-tap' : ''} flex items-center gap-2 rounded-lg px-2 py-1.5 text-left`} style={{ background: 'rgba(255,255,255,.04)', border: `1px solid ${LINE}` }}>
+                    {m.how === 'smd' && m.cid && candOf(g, m.cid, m.p) ? <CandFace c={candOf(g, m.cid, m.p)} size={30} /> : <span className="grid place-items-center rounded-md shrink-0 text-[11px] font-black" style={{ width: 30, height: 30, background: tint((PARTIES[p] || PARTIES.KITI).color, 0.35) }}>{m.name.split(' ').map((w) => w[0]).slice(0, 2).join('')}</span>}
+                    <span className="min-w-0 flex-1">
+                      <span className="block text-sm font-bold truncate">{m.name}{m.leader ? ' ★' : ''}</span>
+                      <span className="block text-[11px] t-muted truncate">{m.how === 'smd' ? `${cnum(m.cid)}. ${cnm(m.cid)}` : tt(`List #${m.no}`, `Sąrašo Nr. ${m.no}`)}{m.real && kind === 'new' ? tt(' · real person', ' · tikras asmuo') : ''}</span>
+                    </span>
+                  </Tag>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+    </Sheet>
+  );
+}
+function SeimasMembersCard({ g }) {
+  const nav = React.useContext(NavCtx);
+  const cur = useMemo(() => currentSeimas(), []);
+  const counts = {};
+  cur.forEach((m) => { counts[m.p] = (counts[m.p] || 0) + 1; });
+  const order = Object.keys(counts).sort((a, b) => counts[b] - counts[a]);
+  return (
+    <Card className="p-4">
+      <CardTitle sub={tt('The 141 real members elected in October 2024, by the party they were elected for.', '141 tikras Seimo narys, išrinktas 2024 m. spalį, pagal partiją, nuo kurios išrinktas.')}>{tt('Current Seimas', 'Dabartinis Seimas')}</CardTitle>
+      <div className="flex flex-wrap gap-1.5 mb-3">{order.map((p) => <span key={p} className="cx-chip px-2 py-0.5 text-xs"><PartyDot p={p} size={9} />{p === 'KITI' ? tt('Others', 'Kiti') : partyShort(p)} {counts[p]}</span>)}</div>
+      <Btn kind="white" className="h-12 w-full" onClick={() => nav.openMembers('current')}><Users size={18} />{tt('See all 141 members', 'Peržiūrėti visus 141 narį')}</Btn>
+    </Card>
+  );
+}
+function NewSeimasButton() {
+  const nav = React.useContext(NavCtx);
+  return <Btn kind="white" className="h-12 w-full" onClick={() => nav.openMembers('new')}><Users size={18} />{tt('The new Seimas: all 141 members', 'Naujasis Seimas: visi 141 narys')}</Btn>;
 }
 function HQTab({ g, act, openSheet, sub = 'media', setSub = () => {} }) {
   const P = PARTIES[g.player];
@@ -7450,7 +7998,7 @@ function RunoffRow({ e, me }) {
   return (
     <li className="rounded-2xl px-3 py-2 sbl-fade" style={{ border: `1px solid ${LINE}`, background: mine ? ACC_BG : PANEL2 }}>
       <div className="flex items-center justify-between gap-2">
-        <span className="font-black truncate">{e.name}</span>
+        <span className="font-black truncate">{cnm(e.cid)}</span>
         <span className="text-sm font-extrabold inline-flex items-center gap-1 shrink-0"><PartyDot p={e.winner} size={11} />{tt(`${partyShort(e.winner)} wins`, `laimi ${partyShort(e.winner)}`)}</span>
       </div>
       <div className="flex mt-1.5 overflow-hidden rounded-full" style={{ height: 12, border: `1px solid ${LINE}` }}>
@@ -7523,7 +8071,7 @@ function RunoffDeals({ g, onConfirm }) {
             const opp = mineA ? e.runoff.b : e.runoff.a;
             return (
               <div key={e.cid} className="flex items-center gap-2 rounded-lg px-2.5 py-1.5" style={{ background: 'rgba(255,255,255,.04)', border: `1px solid ${LINE}` }}>
-                <div className="min-w-0 flex-1"><div className="text-sm font-bold truncate">{consName(e.name)}</div><div className="text-xs t-muted">{tt('vs', 'prieš')} {partyShort(opp)}</div></div>
+                <div className="min-w-0 flex-1"><div className="text-sm font-bold truncate">{consName(cnm(e.cid))}</div><div className="text-xs t-muted">{tt('vs', 'prieš')} {partyShort(opp)}</div></div>
                 <span className="cx-num text-lg w-14 text-right" style={{ color: myS >= 50 ? GREEN : RED }}>{nf(myS, 0)}%</span>
                 <button type="button" aria-label="−" onClick={() => bump(e.cid, -1)} className="cx-btn h-8 w-8" style={{ borderRadius: 999 }}>−</button>
                 <span className="cx-num w-4 text-center">{boosts[e.cid] || 0}</span>
@@ -7670,12 +8218,13 @@ function ElectionNight({ g, onFinish, onDeals }) {
             <p className="font-semibold mt-2">{tt(`You got ${fmtPct(E.natShares[me])} of the national vote${E.natShares[me] < 5 ? ' (under 5%, so no list seats)' : ''} and ${E.seats[me]} seats.`, `Gavote ${fmtPct(E.natShares[me])} balsų${E.natShares[me] < 5 ? ' (mažiau nei 5 %, todėl sąrašo vietų nėra)' : ''} ir ${E.seats[me]} ${seatsWord(E.seats[me])}.`)}{E.seats[me] < MAJORITY ? tt(' Nobody has 71 alone, so it’s time to build a team.', ' Niekas neturi 71 vienas – laikas burti koaliciją.') : ''}</p>
             <div className="mt-3"><SeatTable seats={E.seats} pr={E.pr} smd={E.smdSeats} highlight={me} /></div>
           </Card>
+          <NewSeimasButton />
           <Btn kind="pale" className="h-12 w-full" onClick={() => setShowAll(!showAll)}>{showAll ? tt('Hide the 71 districts', 'Slėpti 71 apygardą') : tt('Show all 71 local districts', 'Rodyti visas 71 apygardą')}</Btn>
           {showAll && (
             <ul className="flex flex-col gap-2">
               {E.smd.map((e) => (e.round === 2 ? <RunoffRow key={e.cid} e={e} me={me} /> : (
                 <li key={e.cid} className="rounded-2xl px-3 py-2 flex items-center gap-2 cx-panel2" style={{ border: `1px solid ${LINE}` }}>
-                  <PartyDot p={e.winner} size={12} /><span className="font-black flex-1 min-w-0 truncate">{e.name}</span>
+                  <PartyDot p={e.winner} size={12} /><span className="font-black flex-1 min-w-0 truncate">{cnum(e.cid)}. {cnm(e.cid)} <span className="font-semibold t-muted">· {(candOf(g, e.cid, e.winner) || {}).name || ''}</span></span>
                   <span className="text-xs font-extrabold t-muted">{tt(`${partyShort(e.winner)} won outright`, `${partyShort(e.winner)} laimėjo I ture`)}</span>
                 </li>
               )))}
@@ -7966,6 +8515,7 @@ function ResultScreen({ g, onRestart }) {
           [tt('Gambling', 'Lošimai'), g.stats.gambles ? `${g.stats.gambleNet >= 0 ? '+' : '−'}${fmtEur(Math.abs(g.stats.gambleNet))}` : tt('Stayed clean', 'Nelošta')],
         ].map(([l, v]) => <div key={l} className="cx-card p-3" style={{ boxShadow: SHADOW }}><div className="text-xs font-extrabold t-muted">{l}</div><div className="cx-num text-2xl">{v}</div></div>)}
       </div>
+      <div className="mt-4 lg:col-span-2"><NewSeimasButton /></div>
       <Chronicle g={g} />
       <Card className="mt-4 p-4"><CardTitle>{tt('Final Seimas', 'Naujasis Seimas')}</CardTitle><SeatTable seats={E.seats} pr={E.pr} smd={E.smdSeats} highlight={me} /></Card>
       <Btn className="h-16 text-xl w-full mt-5 lg:col-span-2" onClick={onRestart}><RotateCcw size={22} />{tt('Play again', 'Žaisti dar kartą')}</Btn>
@@ -8015,6 +8565,14 @@ export default function SeimasGame({ hotData } = {}) {
   const setSubFor = (k) => (v) => setSubs((s) => ({ ...s, [k]: v }));
   const [finder, setFinder] = useState(false);
   const [gotvOpen, setGotvOpen] = useState(false);
+  const [distOpen, setDistOpen] = useState(null);
+  const [candOpen, setCandOpen] = useState(null);
+  const [membersOpen, setMembersOpen] = useState(null);
+  const nav = useMemo(() => ({
+    openDistrict: (cid) => { setCandOpen(null); setDistOpen(cid); SFX.play('tap'); },
+    openCand: (cid, p) => { setCandOpen({ cid, p }); SFX.play('tap'); },
+    openMembers: (kind) => { setMembersOpen(kind); SFX.play('tap'); },
+  }), []);
   const fxTimer = useRef(null);
   const wide = useWide();
   const gameRef = useRef(game);
@@ -8070,6 +8628,7 @@ export default function SeimasGame({ hotData } = {}) {
   const goFind = (d) => {
     setFinder(false); setSel(null);
     if (d.help) { setHelp(true); return; }
+    if (d.members) { setMembersOpen(d.members); return; }
     if (d.sheet) { setSheet(d.sheet); return; }
     if (d.sub) setSubs((s) => ({ ...s, [d.tab]: d.sub }));
     goTab(d.tab);
@@ -8181,7 +8740,12 @@ export default function SeimasGame({ hotData } = {}) {
     <div className="sbl min-h-screen antialiased" lang={lang}>
       <style>{GLOBAL_CSS}</style>
       <Backdrop kind={screen !== 'game' || !game ? 'night' : game.phase === 'campaign' ? 'seimas' : game.phase === 'result' || game.phase === 'vote' ? 'palace' : 'night'} />
+      <NavCtx.Provider value={nav}>
       {body}
+      {game && distOpen && !candOpen && <DistrictSheet g={game} cid={distOpen} act={act} onClose={() => setDistOpen(null)} />}
+      {game && candOpen && <CandidateSheet g={game} cid={candOpen.cid} p={candOpen.p} onClose={() => { setCandOpen(null); setDistOpen(null); }} onBack={distOpen ? () => setCandOpen(null) : null} />}
+      {game && membersOpen && !candOpen && <MembersSheet g={game} kind={membersOpen} onClose={() => setMembersOpen(null)} />}
+      </NavCtx.Provider>
       {toast && <Toast t={toast} wideToast={wide} />}
       <div id="sbl-portal" />
     </div>
