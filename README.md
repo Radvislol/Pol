@@ -51,6 +51,21 @@ A political-drama strategy game about the **2028 Lithuanian Seimas election**, p
 
   Your final stability decides the Prime Minister grade, and the result screen shows a 100-day summary.
 
+## Help, to-do list and speed
+
+- **To do this week.** The top of the *This week* panel (phone: Map › This week; desktop: side panel) lists what deserves your attention, and each item jumps straight there:
+  - a public event you haven't attended yet;
+  - a missing message of the week;
+  - the party-list deadline;
+  - next week's LRT debate;
+  - close districts without a poll;
+  - no ad campaign running;
+  - room for more staff;
+  - unspent energy.
+- **Help in four tabs.** *How to play* is now split into Basics, Campaign, Districts and After the vote, covering every system including district polls, local debates, scandals, the party list, ads and events, election day, governing, the President and opposition.
+- **Tidier tabs on phones.** Section tabs shrink and hide their icons on narrow screens, and the selected tab always scrolls into view.
+- **Faster.** Region and national shares, district candidates and projections are now cached for the game state on screen, so tab changes and the 71-district list respond faster on slow phones.
+
 ## District polls and your career
 
 - **District polls (fog of war).** During the campaign you only see a rough estimate for each district: ±6 points, shown as a range and marked "~" in the district list. The list filters and counts use what you can see. To get exact numbers, order a local poll on the district card for €8k (€5k with an in-house pollster); it stays valid for two weeks. Runoff predictions appear only for polled districts. After the election everything is exact.

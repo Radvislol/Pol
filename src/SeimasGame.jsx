@@ -1876,14 +1876,29 @@ function effSupport(g, r, p, stance) {
   const pol = p === g.player ? policyMult(g, r, stance) * groupMult(g, r) : 1;
   return Math.max(0.02, raw * mom * pol);
 }
-function regionShares(g, r, stance) {
+/* Per-state memo cache: only game states already shown on screen (frozen) are cached,
+   so engine code that mutates a working copy always recomputes. */
+const FROZEN = new WeakSet();
+const GCACHE = new WeakMap();
+function gcache(g, key, fn) {
+  if (!g || !FROZEN.has(g)) return fn();
+  let m = GCACHE.get(g);
+  if (!m) { m = new Map(); GCACHE.set(g, m); }
+  if (m.has(key)) return m.get(key);
+  const v = fn();
+  m.set(key, v);
+  return v;
+}
+function regionShares(g, r, stance) { return stance ? regionShares0(g, r, stance) : gcache(g, `rs:${r.id}`, () => regionShares0(g, r)); }
+function nationalShares(g, stance) { return stance ? nationalShares0(g, stance) : gcache(g, 'nat', () => nationalShares0(g)); }
+function regionShares0(g, r, stance) {
   const e = {};
   let t = 0;
   for (const p of ALL_IDS) { e[p] = effSupport(g, r, p, stance); t += e[p]; }
   for (const p of ALL_IDS) e[p] = (e[p] / t) * 100;
   return e;
 }
-function nationalShares(g, stance) {
+function nationalShares0(g, stance) {
   const out = Object.fromEntries(ALL_IDS.map((p) => [p, 0]));
   let W = 0;
   for (const r of REGIONS) {
@@ -2831,6 +2846,10 @@ function transferAff(g, q, X) {
   return aff;
 }
 function simulateElection(g, noisy) {
+  if (!noisy) return gcache(g, 'sim', () => simulateElection0(g, false));
+  return simulateElection0(g, true);
+}
+function simulateElection0(g, noisy) {
   const ng = () => (noisy ? gauss() : 0);
   const W = WEATHER[g.weather || 'cloud'];
   const natErr = Object.fromEntries(ALL_IDS.map((p) => [p, Math.exp(ng() * 0.045)]));
@@ -4729,6 +4748,7 @@ function SidePanel({ g, shares, onSelect, act }) {
   return (
     <div className="flex flex-col gap-4 sbl-scroll overflow-y-auto pr-1" style={{ position: 'sticky', top: 118, maxHeight: 'calc(100vh - 170px)' }}>
       <SubTabs value={pane} onChange={setPane} label={tt('Side panel', 'Šoninis skydelis')} items={[['week', Calendar, tt('This week', 'Ši savaitė')], ['news', Newspaper, tt('News', 'Žinios'), g.news.filter((n) => n.week === g.week).length || null]]} />
+      {pane === 'week' && <ToDoCard g={g} />}
       {pane === 'week' && <FestivalCard g={g} act={act} />}
       {pane === 'week' && <WeekPlan g={g} act={act} />}
       {pane === 'week' && <TourCard g={g} onSelect={onSelect} />}
@@ -5441,13 +5461,16 @@ function PressSheet({ g, onDone, onClose }) {
    Navigation helpers: sub-tabs and the "Where is it?" finder
    ============================================================ */
 function SubTabs({ value, onChange, items, label, className = '' }) {
+  const box = useRef(null);
+  useEffect(() => { const el = box.current && box.current.querySelector('[aria-selected="true"]'); if (el && el.scrollIntoView) { try { el.scrollIntoView({ block: 'nearest', inline: 'nearest' }); } catch (e) { /* ignore */ } } }, [value]);
   return (
-    <div className={`cx-layers flex gap-1 p-1 rounded-2xl overflow-x-auto ${className}`} role="tablist" aria-label={label} style={{ background: 'rgba(255,255,255,.05)', border: `1px solid ${LINE}` }}>
+    <div ref={box} className={`cx-layers flex gap-1 p-1 rounded-2xl overflow-x-auto ${className}`} role="tablist" aria-label={label} style={{ background: 'rgba(255,255,255,.05)', border: `1px solid ${LINE}` }}>
       {items.map(([id, Icon, text, badge]) => {
         const on = value === id;
+        const compact = items.length >= 4;
         return (
-          <button key={id} type="button" role="tab" aria-selected={on} onClick={() => { if (!on) { onChange(id); SFX.play('tap'); } }} className="flex-1 shrink-0 inline-flex items-center justify-center gap-1.5 px-3 rounded-xl text-sm font-extrabold whitespace-nowrap" style={{ minHeight: 40, background: on ? '#F3F4F6' : 'transparent', color: on ? INK : TEXT, transition: 'background .2s' }}>
-            <Icon size={16} />{text}
+          <button key={id} type="button" role="tab" aria-selected={on} onClick={() => { if (!on) { onChange(id); SFX.play('tap'); } }} className={`flex-1 shrink-0 inline-flex items-center justify-center gap-1.5 rounded-xl font-extrabold whitespace-nowrap ${compact ? 'px-2 text-[12.5px] sm:px-3 sm:text-sm' : items.length === 3 ? 'px-2 text-[13.5px] sm:px-3 sm:text-sm' : 'px-3 text-sm'}`} style={{ minHeight: 40, background: on ? '#F3F4F6' : 'transparent', color: on ? INK : TEXT, transition: 'background .2s' }}>
+            <span className={compact ? 'hidden sm:inline-flex' : items.length === 3 ? 'hidden min-[400px]:inline-flex' : 'inline-flex'}><Icon size={16} /></span>{text}
             {badge ? <span className="grid place-items-center rounded-full text-[10px] font-black" style={{ minWidth: 18, height: 18, padding: '0 4px', background: on ? INK : SUN, color: on ? '#fff' : INK }}>{badge}</span> : null}
           </button>
         );
@@ -5566,6 +5589,7 @@ function MapTab({ g, shares, proj, sel, onSelect, skipTips, wide, act, fx, sub =
       {!wide && <SubTabs value={sub} onChange={setSub} label={tt('Map sections', 'Žemėlapio skiltys')} items={[['week', Calendar, tt('This week', 'Ši savaitė'), g.ap > 0 ? `${g.ap}⚡` : null], ['regions', MapIcon, tt('Regions', 'Regionai')], ['districts', Landmark, tt('Districts', 'Apygardos')]]} />}
       {wide && <SubTabs value={sub === 'districts' ? 'districts' : 'regions'} onChange={setSub} label={tt('Lists', 'Sąrašai')} items={[['regions', MapIcon, tt('12 regions', '12 regionų')], ['districts', Landmark, tt('71 districts', '71 apygarda')]]} />}
       {sub === 'districts' && <DistrictList g={g} proj={proj} />}
+      {!wide && sub === 'week' && <ToDoCard g={g} />}
       {!wide && sub === 'week' && <FestivalCard g={g} act={act} />}
       {!wide && sub === 'week' && <WeekPlan g={g} act={act} />}
       {!wide && sub === 'week' && <TourCard g={g} onSelect={onSelect} />}
@@ -6353,7 +6377,8 @@ function lookFor(id, fem, p, rand) {
   return key;
 }
 // Candidates with this game's changes applied (your investments, star recruits).
-function candidatesOf(g, cid) {
+function candidatesOf(g, cid) { return gcache(g, `c:${cid}`, () => candidatesOf0(g, cid)); }
+function candidatesOf0(g, cid) {
   const inv = (g.candInv && g.candInv[cid]) || null;
   const st = (g.stars && g.stars[cid]) || {};
   return baseCandidates(g.seed, cid, g.player).map((c0) => {
@@ -6371,7 +6396,8 @@ function candidatesOf(g, cid) {
 const candOf = (g, cid, p) => candidatesOf(g, cid).find((c) => c.p === p) || null;
 const candQ = (c) => (c ? Math.exp(0.0042 * (c.fame - 50) + 0.0022 * (c.cha - 50) + 0.0016 * (c.roots - 50) + (c.inc ? 0.06 : 0) - (c.scandal ? c.scandal.sev : 0)) : 0.12);
 // First-round projection for one district (no noise).
-function districtView(g, cid, regShares) {
+function districtView(g, cid, regShares) { return regShares ? districtView0(g, cid, regShares) : gcache(g, `dv:${cid}`, () => districtView0(g, cid)); }
+function districtView0(g, cid, regShares) {
   const r = REG[cid.split('-')[0]];
   const sh = regShares || regionShares(g, r);
   const Lc = g.leans[cid];
@@ -6931,7 +6957,7 @@ function PartyListCard({ g, act }) {
   const nav = React.useContext(NavCtx);
   return (
     <Card className="p-4 lg:col-span-2">
-      <CardTitle sub={locked ? tt('Registered. Voters can still reorder it with preference votes.', 'Įregistruotas. Rinkėjai dar gali jį perrikiuoti pirmumo balsais.') : tt(`Order your national list before week ${LIST_DEADLINE + 1}. Voters later move people up with preference votes.`, `Sudėliokite sąrašą iki ${LIST_DEADLINE + 1} savaitės. Vėliau rinkėjai pirmumo balsais kelia kandidatus aukštyn.`)} right={<span className="cx-chip px-2 py-0.5 text-xs shrink-0">{locked ? tt('Locked', 'Užrakinta') : tt(`Due week ${LIST_DEADLINE}`, `Iki ${LIST_DEADLINE} sav.`)}</span>}>{tt('Party list', 'Partijos sąrašas')}</CardTitle>
+      <CardTitle sub={locked ? tt('Registered. Voters can still reorder it with preference votes.', 'Įregistruotas. Rinkėjai dar gali jį perrikiuoti pirmumo balsais.') : tt(`Order your national list by the end of week ${LIST_DEADLINE}. Voters later move people up with preference votes.`, `Sudėliokite sąrašą iki ${LIST_DEADLINE} savaitės pabaigos. Vėliau rinkėjai pirmumo balsais kelia kandidatus aukštyn.`)} right={<span className="cx-chip px-2 py-0.5 text-xs shrink-0">{locked ? tt('Locked', 'Užrakinta') : tt(`Due week ${LIST_DEADLINE}`, `Iki ${LIST_DEADLINE} sav.`)}</span>}>{tt('Party list', 'Partijos sąrašas')}</CardTitle>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
         {[[tt('Top-10 fame', 'Dešimtuko žinomumas'), Math.round(m.fame)], [tt('Women in top 10', 'Moterų dešimtuke'), `${m.women}/10`], [tt('Regions', 'Regionai'), m.regions], [tt('Experienced', 'Patyrę'), m.mps]].map(([l, v]) => <div key={l} className="cx-soft p-2"><div className="text-[10px] font-bold t-muted">{l}</div><div className="cx-num text-lg">{v}</div></div>)}
       </div>
@@ -7594,7 +7620,8 @@ const distKnown = (g, cid) => g.phase !== 'campaign' || (g.dpoll && g.dpoll[cid]
 const distErr = (g) => (hasStaff(g, 'pollster') ? 4 : 6);
 const distPollCost = (g) => (hasStaff(g, 'pollster') ? 5 : 8);
 // What you can see of a district: exact numbers after a fresh poll, otherwise a fuzzy estimate.
-function districtSeen(g, cid, regShares) {
+function districtSeen(g, cid, regShares) { return regShares ? districtSeen0(g, cid, regShares) : gcache(g, `ds:${cid}`, () => districtSeen0(g, cid)); }
+function districtSeen0(g, cid, regShares) {
   const v = districtView(g, cid, regShares);
   if (distKnown(g, cid)) return v.map((x) => ({ ...x, lo: x.s, hi: x.s, exact: true }));
   const e = distErr(g);
@@ -7654,6 +7681,33 @@ function CareerSheet({ onClose }) {
   );
 }
 function CareerSaver({ g }) { useState(() => saveCareer(g)); return null; }
+function ToDoCard({ g }) {
+  const nav = React.useContext(NavCtx);
+  const items = [];
+  const F = festivalNow(g);
+  if (F && !(g.fest && g.fest[F.id] != null)) items.push([Sparkles, tt(`Event this week: ${L(F.name)}`, `Šios savaitės renginys: ${L(F.name)}`), { tab: 'map', sub: 'week' }, SUN]);
+  if (!g.theme) items.push([Megaphone, tt('Pick a message of the week', 'Pasirinkite savaitės žinutę'), { tab: 'map', sub: 'week' }, SUN]);
+  if (!g.plistLocked && g.week <= LIST_DEADLINE) items.push([ListOrdered, tt(`Register your party list (due week ${LIST_DEADLINE})`, `Užregistruokite sąrašą (iki ${LIST_DEADLINE} sav.)`), { tab: 'hq', sub: 'list' }, g.week >= LIST_DEADLINE - 1 ? RED : AMBER]);
+  if (DEBATE_WEEKS.includes(g.week + 1)) items.push([Tv, tt('LRT debate next week: build up buzz', 'Kitą savaitę – LRT debatai: kaupkite pagreitį'), null, '#60A5FA']);
+  const close = ALL_CIDS.filter((cid) => { const v = districtSeen(g, cid); const m = v.findIndex((x) => x.c.p === g.player); return m >= 0 && m <= 1 && Math.abs(v[0].s - v[1].s) < 6 && !distKnown(g, cid); }).length;
+  if (close) items.push([BarChart3, tt(`Close districts without a poll: ${close}`, `Artimos apygardos be apklausos: ${close}`), { tab: 'map', sub: 'districts' }, '#93C5FD']);
+  if (!(g.ads || []).some((a) => a.left > 0) && g.money > 200) items.push([Clapperboard, tt('No ad campaign running', 'Nevyksta jokia reklamos kampanija'), { sheet: 'ads' }, MUTED]);
+  if (STAFF && (g.staff || []).length < 2 && g.money > 400) items.push([Users, tt('You can afford more campaign staff', 'Galite samdyti daugiau štabo narių'), { tab: 'hq', sub: 'team' }, MUTED]);
+  if (g.ap > 0) items.push([Zap, tt(`${g.ap} energy left this week`, `Šią savaitę liko ${g.ap} energijos`), { tab: 'map', sub: 'regions' }, SUN]);
+  if (!items.length) return null;
+  return (
+    <section className="cx-card p-3" aria-label={tt('To do this week', 'Savaitės darbai')}>
+      <div className="flex items-center gap-2 mb-1.5"><Check size={16} color={SUN} /><span className="cx-title text-lg">{tt('To do this week', 'Savaitės darbai')}</span></div>
+      <div className="flex flex-col gap-1">
+        {items.slice(0, 6).map(([Icon, text, dest, col]) => (
+          <button key={text} type="button" disabled={!dest} onClick={() => dest && nav.go(dest)} className="cx-tap flex items-center gap-2 rounded-lg px-2 py-1.5 text-left text-sm font-semibold" style={{ background: 'rgba(255,255,255,.04)' }}>
+            <Icon size={15} className="shrink-0" style={{ color: col }} /><span className="flex-1 min-w-0">{text}</span>{dest && <ChevronRight size={14} className="shrink-0 t-muted" />}
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
 function HQTab({ g, act, openSheet, sub = 'media', setSub = () => {} }) {
   const P = PARTIES[g.player];
   const orig = P.pos;
@@ -8677,11 +8731,26 @@ function HelpSheet({ onClose }) {
     [Lightbulb, tt('Thinking tips', 'Kaip mąstyti'), tt('Close races (stripes) swing the most seats. Big regions matter for the national vote too. Watch your money, the VRK limit and scandal risk, and keep potential partners happy with your promises.', 'Lygios kovos (juostos) nulemia daugiausia mandatų. Dideli regionai svarbūs ir bendram balsų skaičiui. Stebėkite pinigus, VRK limitą ir skandalo riziką, o pažadais neatstumkite būsimų partnerių.')],
     [Info, tt('About this game', 'Apie žaidimą'), tt('A fictional simulation of the 2028 Seimas election. Real parties and leaders appear for context; every event, quote and result is invented. Party emblems are original designs, not official logos.', 'Išgalvota 2028 m. Seimo rinkimų simuliacija. Tikros partijos ir lyderiai naudojami tik kontekstui; visi įvykiai, citatos ir rezultatai išgalvoti. Partijų ženkliukai sukurti žaidimui, tai ne oficialūs logotipai.')],
   ];
+  const more = [
+    [Landmark, tt('71 districts & candidates', '71 apygarda ir kandidatai'), tt('Each district has named candidates. Real 2024 winners run again; challengers are fictional. A candidate’s recognition, charisma and local ties change the local result. Find them in Map › Districts.', 'Kiekvienoje apygardoje – konkretūs kandidatai. 2024 m. laimėtojai kandidatuoja vėl, varžovai – išgalvoti. Kandidato žinomumas, charizma ir vietos ryšiai keičia rezultatą apygardoje. Ieškokite: Žemėlapis › Apygardos.')],
+    [BarChart3, tt('District polls', 'Apygardų apklausos'), tt('Without a local poll you only see a range (±6 points). A poll gives exact numbers for two weeks.', 'Be vietos apklausos matote tik intervalą (±6 p.). Apklausa duoda tikslius skaičius dviem savaitėms.')],
+    [Mic, tt('Local debates & investments', 'Vietos debatai ir investicijos'), tt('On a district card: posters and ads raise your candidate’s recognition, community meetings build local ties, and a local TV debate can win both.', 'Apygardos kortelėje: stendai ir reklama didina kandidato žinomumą, susitikimai stiprina vietos ryšius, o vietos TV debatai gali duoti abu.')],
+    [AlertTriangle, tt('Candidate scandals', 'Kandidatų skandalai'), tt('Fictional candidates with high scandal risk can get caught. Defend, apologise or replace yours. A lawyer and a press secretary help.', 'Išgalvoti kandidatai su didele rizika gali įkliūti. Savo kandidatą galite ginti, atsiprašyti arba pakeisti. Padeda teisininkas ir spaudos sekretorius.')],
+    [ListOrdered, tt('Party list & preference votes', 'Sąrašas ir pirmumo balsai'), tt('Order your list in HQ › List before week 4. On election night voters reorder it with preference votes.', 'Sudėliokite sąrašą (Štabas › Sąrašas) iki 4 savaitės. Rinkimų naktį rinkėjai jį perrikiuoja pirmumo balsais.')],
+    [Clapperboard, tt('Ads, press & events', 'Reklama, spauda ir renginiai'), tt('Design ads in the ad studio, take reporters’ questions at press conferences and show up at real-calendar events (bring your leader for +30%).', 'Kurkite reklamas studijoje, atsakinėkite žurnalistams spaudos konferencijose ir dalyvaukite tikrų datų renginiuose (su lyderiu +30 %).')],
+    [Users, tt('Election day', 'Rinkimų diena'), tt('In week 12 you send volunteers to three regions to get voters out. Bigger ground teams bring more voters.', '12 savaitę siunčiate savanorius į tris regionus. Kuo didesnė komanda, tuo daugiau rinkėjų ateis.')],
+    [Landmark, tt('Governing', 'Valdymas'), tt('As Prime Minister you pick 14 ministers and pass six bills. The President can reject weak ministers and veto laws; overriding a veto needs 71 votes.', 'Tapę premjeru skiriate 14 ministrų ir teikiate šešis įstatymus. Prezidentas gali atmesti silpnus ministrus ir vetuoti įstatymus; veto atmesti reikia 71 balso.')],
+    [Swords, tt('Opposition & coalition partner', 'Opozicija ir partneris'), tt('Not in charge? Vote on the government’s bills. Junior partners can walk out; the opposition can call one no-confidence vote.', 'Nevaldote? Balsuokite dėl Vyriausybės projektų. Jaunesnysis partneris gali išeiti iš koalicijos, opozicija – kartą inicijuoti nepasitikėjimo votumą.')],
+    [Search, tt('Can’t find something?', 'Nerandate?'), tt('Use the magnifier (Where is it?) in the top bar: it lists every action and takes you there.', 'Spauskite didinamąjį stiklą („Kur rasti?“) viršutinėje juostoje: ten visi veiksmai ir nuorodos į juos.')],
+  ];
+  const [sec, setSec] = useState('basics');
+  const shown = sec === 'basics' ? items.slice(0, 5).concat(items.slice(-2)) : sec === 'campaign' ? items.slice(5, items.length - 2).concat(more.slice(5, 7)) : sec === 'districts' ? more.slice(0, 5) : more.slice(7);
   return (
     <Sheet onClose={onClose} label={tt('How to play', 'Kaip žaisti')}>
       <SheetHead title={tt('How to play', 'Kaip žaisti')} onClose={onClose} />
       <div style={GUTTER} className="pt-4 flex flex-col gap-3">
-        {items.map(([Icon, t, d]) => (
+        <SubTabs value={sec} onChange={setSec} label={tt('Help sections', 'Pagalbos skiltys')} items={[['basics', Info, tt('Basics', 'Pagrindai')], ['campaign', Megaphone, tt('Campaign', 'Kampanija')], ['districts', Landmark, tt('Districts', 'Apygardos')], ['after', Crown, tt('After the vote', 'Po rinkimų')]]} />
+        {shown.map(([Icon, t, d]) => (
           <div key={t} className="cx-soft p-3 flex gap-3 items-start">
             <span className="grid place-items-center rounded-full shrink-0" style={{ width: 38, height: 38, background: ACC_BG, border: `1px solid ${LINE}` }}><Icon size={18} strokeWidth={2.5} /></span>
             <div><div className="font-black">{t}</div><div className="text-sm font-semibold leading-relaxed">{d}</div></div>
@@ -9509,7 +9578,9 @@ export default function SeimasGame({ hotData } = {}) {
   const [distOpen, setDistOpen] = useState(null);
   const [candOpen, setCandOpen] = useState(null);
   const [membersOpen, setMembersOpen] = useState(null);
+  const goFindRef = useRef(null);
   const nav = useMemo(() => ({
+    go: (d) => { if (goFindRef.current) goFindRef.current(d); },
     openDistrict: (cid) => { setCandOpen(null); setDistOpen(cid); SFX.play('tap'); },
     openCand: (cid, p) => { setCandOpen({ cid, p }); SFX.play('tap'); },
     openMembers: (kind) => { setMembersOpen(kind); SFX.play('tap'); },
@@ -9519,6 +9590,7 @@ export default function SeimasGame({ hotData } = {}) {
   const gameRef = useRef(game);
   gameRef.current = game;
   ADVISOR = !game || game.advisor !== false;
+  if (game) FROZEN.add(game);
   const toastTimer = useRef(null);
   useEffect(() => {
     if (!document.querySelector('link[href*="family=Fredoka"]')) {
@@ -9574,6 +9646,7 @@ export default function SeimasGame({ hotData } = {}) {
     if (d.sub) setSubs((s) => ({ ...s, [d.tab]: d.sub }));
     goTab(d.tab);
   };
+  goFindRef.current = goFind;
   const doEnd = (arg) => {
     const picks = Array.isArray(arg) ? arg : null;
     if (gameRef.current && gameRef.current.week >= WEEKS && !picks) { setConfirmEnd(false); setGotvOpen(true); return; }
