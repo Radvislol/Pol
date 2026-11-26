@@ -2,7 +2,7 @@
 
 A political-drama strategy game about the **2028 Lithuanian Seimas election**, playable on **phones and desktop**, in **Lithuanian and English** (switch with the LT/EN toggle). You lead a real party and its real leader through a twelve-week campaign, then try to build a 71-seat governing majority and survive the Seimas confidence vote.
 
-> Fictional simulation. Real parties and leaders appear for context; every event, quote and result is invented. Party emblems are original designs, not official logos, and five party leaders (Mindaugas Sinkevičius, Laurynas Kasčiūnas, Remigijus Žemaitaitis, Virginijus Sinkevičius and Viktorija Čmilytė-Nielsen) are shown with photos supplied by the game's owner; every other portrait is an original cartoon drawing. Starting polls roughly follow late-2026 averages, and party leaders were checked in November 2026.
+> Fictional simulation. Real parties and leaders appear for context; every event, quote and result is invented. Party emblems are original designs, not official logos, and ten party leaders (Mindaugas Sinkevičius, Laurynas Kasčiūnas, Remigijus Žemaitaitis, Virginijus Sinkevičius, Viktorija Čmilytė-Nielsen, Aurelijus Veryga, Vytautas Mitalas, Valdemar Tomaševski, Gintaras Steponėnas and Artūras Zuokas) are shown with photos supplied by the game's owner; every other portrait is an original cartoon drawing. Starting polls roughly follow late-2026 averages, and party leaders were checked in November 2026.
 
 ## Look and layout
 
@@ -53,7 +53,7 @@ A political-drama strategy game about the **2028 Lithuanian Seimas election**, p
 
 ## Photos and full party names
 
-- **Leader photos.** Five leaders use photos supplied by the game's owner: Mindaugas Sinkevičius (LSDP), Laurynas Kasčiūnas (TS-LKD), Remigijus Žemaitaitis (NA), Virginijus Sinkevičius (DSVL) and Viktorija Čmilytė-Nielsen (LS). They are cropped square, compressed (about 5–9 KB each) and embedded from `src/portraits.js`. They appear wherever that leader's portrait does: party selection, map, debates, week intro, dossiers, coalition talks and the results. All other leaders and characters keep their cartoon portraits. Make sure you have the rights to use these photos before sharing the game publicly.
+- **Leader photos.** Ten leaders use photos supplied by the game's owner: Mindaugas Sinkevičius (LSDP), Laurynas Kasčiūnas (TS-LKD), Remigijus Žemaitaitis (NA), Virginijus Sinkevičius (DSVL), Viktorija Čmilytė-Nielsen (LS), Aurelijus Veryga (LVŽS), Vytautas Mitalas (LP), Valdemar Tomaševski (LLRA-KŠS), Gintaras Steponėnas (DP) and Artūras Zuokas (L&T). They are cropped square, compressed (about 5–9 KB each) and embedded from `src/portraits.js`. They appear wherever that leader's portrait does: party selection, map, debates, week intro, dossiers, coalition talks and the results. They also appear wherever the leader is a district candidate (for example Kasčiūnas in Lazdynai, Žemaitaitis in Kelmė–Šilalė, Čmilytė-Nielsen in Senamiestis–Žvėrynas, Zuokas in Naujininkai–Rasos), on party lists and in the Seimas member lists. The Krikščionių sąjunga and Žaliųjų partija leaders, and all other characters, keep their cartoon portraits. Make sure you have the rights to use these photos before sharing the game publicly.
 - **Full party names where there's room.** Short codes such as LSDP or TS-LKD are kept where space is tight. Full official names (Lithuanian, or English in the English version) now appear in:
   - party selection and the desktop top bar;
   - national poll bars on desktop and election-night vote bars;

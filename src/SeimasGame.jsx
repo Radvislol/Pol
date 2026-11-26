@@ -352,6 +352,9 @@ const PARTY_EN = {
   LS: 'Liberal Movement', LVZS: 'Lithuanian Farmers and Greens Union', LP: 'Freedom Party', LLRA: 'Electoral Action of Poles in Lithuania – Christian Families Alliance',
   DP: 'Labour Party', LIT: 'Freedom and Justice', KS: 'Christian Union', LZP: 'Lithuanian Green Party', KITI: 'Small parties and independents',
 };
+// Leaders who have a photo, looked up by name (for district candidates and member lists).
+const PHOTO_BY_NAME = Object.fromEntries(Object.keys(PHOTOS).filter((p) => PARTIES[p]).map((p) => [PARTIES[p].leader, p]));
+const photoWho = (name) => PHOTO_BY_NAME[name] || null;
 // Full official party name, for places with enough room.
 const partyName = (p) => (LANG === 'lt' ? (PARTIES[p] || PARTIES.KITI).full : PARTY_EN[p] || PARTY_EN.KITI);
 const leaderSurname = (p) => {
@@ -3326,7 +3329,7 @@ function Delta({ v, d = 1, pct }) {
   return <span style={{ color: v > 0 ? GREEN : RED }}>{v > 0 ? '▲' : '▼'}{pct ? fmtPct(Math.abs(v), d) : nf(Math.abs(v), d)}</span>;
 }
 /* ============================================================
-   Portraits. Five party leaders use supplied photos (src/portraits.js); everyone else is an original cartoon drawing.
+   Portraits. Ten party leaders use supplied photos (src/portraits.js); everyone else is an original cartoon drawing.
    ============================================================ */
 const SKIN = ['#FBD9BE', '#F4C29F', '#E5A77D', '#C68B63'];
 const LOOKS = {
@@ -6577,7 +6580,7 @@ function candInvest(g, cid, kind) {
 /* ---------- district & member screens ---------- */
 const NavCtx = React.createContext({ openDistrict: () => {}, openCand: () => {}, openMembers: () => {} });
 function CandFace({ c, size = 40, mood = 'ok' }) {
-  return <Portrait who={c.look} size={size} square mood={mood} ring={(PARTIES[c.p] || PARTIES.KITI).color} title={c.name} />;
+  return <Portrait who={photoWho(c.name) || c.look} size={size} square mood={mood} ring={(PARTIES[c.p] || PARTIES.KITI).color} title={c.name} />;
 }
 function partyLabel(c) {
   if (c.p === 'KITI') return c.label ? L(c.label) : tt('Independent', 'Išsikėlęs pats');
@@ -6907,7 +6910,7 @@ function MembersSheet({ g, kind, onClose }) {
                 const Tag = clickable ? 'button' : 'div';
                 return (
                   <Tag key={`${m.name}-${i}`} type={clickable ? 'button' : undefined} onClick={clickable ? () => nav.openCand(m.cid, m.p) : undefined} className={`${clickable ? 'cx-tap' : ''} flex items-center gap-2 rounded-lg px-2 py-1.5 text-left`} style={{ background: 'rgba(255,255,255,.04)', border: `1px solid ${LINE}` }}>
-                    {m.how === 'smd' && m.cid && candOf(g, m.cid, m.p) ? <CandFace c={candOf(g, m.cid, m.p)} size={30} /> : <span className="grid place-items-center rounded-md shrink-0 text-[11px] font-black" style={{ width: 30, height: 30, background: tint((PARTIES[p] || PARTIES.KITI).color, 0.35) }}>{m.name.split(' ').map((w) => w[0]).slice(0, 2).join('')}</span>}
+                    {m.how === 'smd' && m.cid && candOf(g, m.cid, m.p) ? <CandFace c={candOf(g, m.cid, m.p)} size={30} /> : photoWho(m.name) ? <Portrait who={photoWho(m.name)} size={30} square title={m.name} /> : <span className="grid place-items-center rounded-md shrink-0 text-[11px] font-black" style={{ width: 30, height: 30, background: tint((PARTIES[p] || PARTIES.KITI).color, 0.35) }}>{m.name.split(' ').map((w) => w[0]).slice(0, 2).join('')}</span>}
                     <span className="min-w-0 flex-1">
                       <span className="block text-sm font-bold truncate">{m.name}{m.leader ? ' ★' : ''}</span>
                       <span className="block text-[11px] t-muted truncate">{m.how === 'smd' ? `${cnum(m.cid)}. ${cnm(m.cid)}` : tt(`List #${m.no}`, `Sąrašo Nr. ${m.no}`)}{m.real && kind === 'new' ? tt(' · real person', ' · tikras asmuo') : ''}</span>
@@ -7108,7 +7111,7 @@ function PartyListCard({ g, act }) {
         {list.slice(0, 15).map((x, i) => (
           <li key={x.name} className="flex items-center gap-2 rounded-lg px-2 py-1.5" style={{ background: i < 10 ? 'rgba(255,255,255,.05)' : 'rgba(255,255,255,.02)', border: `1px solid ${LINE}` }}>
             <span className="cx-num w-6 text-center shrink-0">{i + 1}</span>
-            {x.cid ? <CandFace c={candOf(g, x.cid, g.player)} size={28} /> : <span className="grid place-items-center rounded-md shrink-0 text-[10px] font-black" style={{ width: 28, height: 28, background: tint(PARTIES[g.player].color, 0.35) }}>{x.name.split(' ').map((w) => w[0]).slice(0, 2).join('')}</span>}
+            {x.cid ? <CandFace c={candOf(g, x.cid, g.player)} size={28} /> : photoWho(x.name) ? <Portrait who={photoWho(x.name)} size={28} square title={x.name} /> : <span className="grid place-items-center rounded-md shrink-0 text-[10px] font-black" style={{ width: 28, height: 28, background: tint(PARTIES[g.player].color, 0.35) }}>{x.name.split(' ').map((w) => w[0]).slice(0, 2).join('')}</span>}
             <span className="min-w-0 flex-1">
               <span className="block text-sm font-bold truncate">{x.name}{x.leader ? ' ★' : ''}</span>
               <span className="block text-[11px] t-muted truncate">{x.leader ? tt('Party leader', 'Partijos pirmininkas') : x.mp ? tt('Seimas member', 'Seimo narys') : tt('District candidate', 'Apygardos kandidatas')}{x.cid ? ` · ${cnum(x.cid)}. ${cnm(x.cid)}` : ''} · {tt('fame', 'žinomumas')} {Math.round(x.fame)}</span>
@@ -8947,7 +8950,7 @@ function HelpSheet({ onClose }) {
     [Gavel, tt('VRK spending limit', 'VRK išlaidų limitas'), tt(`The electoral commission lets you spend ${fmtEur(VRK_LIMIT)} in total. Spend more and you are fined.`, `Rinkimų komisija leidžia išleisti iš viso ${fmtEur(VRK_LIMIT)}. Išleidus daugiau – bauda.`)],
     [Dices, tt('Risky money', 'Rizikingi pinigai'), tt('The casino and sports bets can refill your budget fast, but you usually lose, and every bet can leak to the press.', 'Kazino ir lažybos gali greitai papildyti biudžetą, bet dažniausiai pralošiate, o kiekvienas statymas gali nutekėti žiniasklaidai.')],
     [Lightbulb, tt('Thinking tips', 'Kaip mąstyti'), tt('Close races (stripes) swing the most seats. Big regions matter for the national vote too. Watch your money, the VRK limit and scandal risk, and keep potential partners happy with your promises.', 'Lygios kovos (juostos) nulemia daugiausia mandatų. Dideli regionai svarbūs ir bendram balsų skaičiui. Stebėkite pinigus, VRK limitą ir skandalo riziką, o pažadais neatstumkite būsimų partnerių.')],
-    [Info, tt('About this game', 'Apie žaidimą'), tt('A fictional simulation of the 2028 Seimas election. Real parties and leaders appear for context; every event, quote and result is invented. Party emblems are original designs, not official logos. Five leaders are shown with photos; all other portraits are drawings.', 'Išgalvota 2028 m. Seimo rinkimų simuliacija. Tikros partijos ir lyderiai naudojami tik kontekstui; visi įvykiai, citatos ir rezultatai išgalvoti. Partijų ženkliukai sukurti žaidimui, tai ne oficialūs logotipai. Penki lyderiai rodomi nuotraukose, kiti portretai – piešti.')],
+    [Info, tt('About this game', 'Apie žaidimą'), tt('A fictional simulation of the 2028 Seimas election. Real parties and leaders appear for context; every event, quote and result is invented. Party emblems are original designs, not official logos. Ten leaders are shown with photos; all other portraits are drawings.', 'Išgalvota 2028 m. Seimo rinkimų simuliacija. Tikros partijos ir lyderiai naudojami tik kontekstui; visi įvykiai, citatos ir rezultatai išgalvoti. Partijų ženkliukai sukurti žaidimui, tai ne oficialūs logotipai. Dešimt lyderių rodomi nuotraukose, kiti portretai – piešti.')],
   ];
   const more = [
     [Landmark, tt('71 districts & candidates', '71 apygarda ir kandidatai'), tt('Each district has named candidates. Real 2024 winners run again; challengers are fictional. A candidate’s recognition, charisma and local ties change the local result. Find them in Map › Districts.', 'Kiekvienoje apygardoje – konkretūs kandidatai. 2024 m. laimėtojai kandidatuoja vėl, varžovai – išgalvoti. Kandidato žinomumas, charizma ir vietos ryšiai keičia rezultatą apygardoje. Ieškokite: Žemėlapis › Apygardos.')],
@@ -9038,7 +9041,7 @@ function TitleScreen({ saved, onNew, onContinue, lang, setLang }) {
           <div className="flex gap-2.5 overflow-x-auto cx-layers pb-2">{PARTY_IDS.map((p) => <CandidateCard key={p} p={p} w={92} />)}</div>
           {ach && <AchievementsSheet onClose={() => setAch(false)} />}
           {career && <CareerSheet onClose={() => setCareer(false)} />}
-          <p className="text-xs t-muted mt-3 max-w-3xl leading-relaxed">{tt('A fictional simulation. Real parties and leaders appear for context; all events, quotes and results are invented. Emblems are not official logos. Five party leaders are shown with photos; everyone else is drawn.', 'Išgalvota simuliacija. Tikros partijos ir lyderiai naudojami kontekstui; visi įvykiai, citatos ir rezultatai išgalvoti. Ženkliukai – ne oficialūs logotipai. Penki partijų lyderiai rodomi nuotraukose, kiti – piešti.')}</p>
+          <p className="text-xs t-muted mt-3 max-w-3xl leading-relaxed">{tt('A fictional simulation. Real parties and leaders appear for context; all events, quotes and results are invented. Emblems are not official logos. Ten party leaders are shown with photos; everyone else is drawn.', 'Išgalvota simuliacija. Tikros partijos ir lyderiai naudojami kontekstui; visi įvykiai, citatos ir rezultatai išgalvoti. Ženkliukai – ne oficialūs logotipai. Dešimt partijų lyderių rodomi nuotraukose, kiti – piešti.')}</p>
         </div>
       </div>
     </div>
@@ -9154,7 +9157,7 @@ function PartySelect({ onPick, onBack }) {
             ))}
             <div className="grid grid-cols-2 gap-3 items-start"><RutaSwitch helper={helper} setHelper={setHelper} /><SettingsCard diff={diff} setDiff={setDiff} scen={scen} setScen={setScen} /></div>
             {startBtn}
-            <p className="text-xs t-muted">{tt('Starting polls roughly follow late-2026 averages. Five leaders have photos; the rest are drawn.', 'Pradiniai reitingai apytiksliai atitinka 2026 m. pabaigos vidurkius. Penki lyderiai – nuotraukose, kiti – piešti.')}</p>
+            <p className="text-xs t-muted">{tt('Starting polls roughly follow late-2026 averages. Ten leaders have photos; the rest are drawn.', 'Pradiniai reitingai apytiksliai atitinka 2026 m. pabaigos vidurkius. Dešimt lyderių – nuotraukose, kiti – piešti.')}</p>
           </div>
         </div>
       </div>
@@ -9200,7 +9203,7 @@ function PartySelect({ onPick, onBack }) {
           </React.Fragment>
         ))}
       </div>
-      <p className="text-xs t-muted mt-4">{tt('Starting polls roughly follow late-2026 averages. Five leaders have photos; the rest are drawn.', 'Pradiniai reitingai apytiksliai atitinka 2026 m. pabaigos vidurkius. Penki lyderiai – nuotraukose, kiti – piešti.')}</p>
+      <p className="text-xs t-muted mt-4">{tt('Starting polls roughly follow late-2026 averages. Ten leaders have photos; the rest are drawn.', 'Pradiniai reitingai apytiksliai atitinka 2026 m. pabaigos vidurkius. Dešimt lyderių – nuotraukose, kiti – piešti.')}</p>
       <div className="mt-4 flex flex-col gap-3"><RutaSwitch helper={helper} setHelper={setHelper} /><SettingsCard diff={diff} setDiff={setDiff} scen={scen} setScen={setScen} /></div>
       <div className="fixed bottom-0 inset-x-0 z-20" style={{ background: 'rgba(8,10,15,.96)', borderTop: `1px solid ${LINE}`, paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 14px)', backdropFilter: 'blur(8px)' }}>
         <div className="max-w-lg mx-auto pt-3" style={GUTTER}>{startBtn}</div>
