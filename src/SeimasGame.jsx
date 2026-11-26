@@ -17,7 +17,7 @@ import {
   Languages, PiggyBank, Trophy, Music, Mail, SkipForward, Check, Tv, Target, Briefcase, Play, Sparkles,
   ShieldAlert, Siren, Flag, Star, Smile, Meh, Frown, Lightbulb, Medal, Landmark, Heart, Sprout,
   Wheat, LockOpen, Rocket, Hammer, Church, Bus, MessageCircle, ShieldCheck, TrendingUp, Route, Layers, Clock, Dices, Search, Cloud, CloudRain, Sun, Gavel, Ticket, Eye,
-  ThumbsUp, ThumbsDown, Volume2, VolumeX, Plus, Minus, Maximize2, LocateFixed, Menu, Repeat2, MessageSquare, Hash, Camera, BadgeCheck, Clapperboard, Share2, Calendar,
+  ThumbsUp, ThumbsDown, Volume2, VolumeX, Plus, Minus, Maximize2, LocateFixed, Menu, Repeat2, MessageSquare, Hash, Camera, BadgeCheck, Clapperboard, Share2, Calendar, ListOrdered, ArrowUp, ArrowDown, FileCheck, UserCheck,
 } from 'lucide-react';
 
 /* ============================================================
@@ -2521,6 +2521,7 @@ function startWeek(g) {
   g.money += income;
   g.lastIncome = income;
   runAds(g);
+  if (g.week === LIST_DEADLINE + 1 && !g.plistLocked) { g.plistLocked = true; addCons(g, 'warn', bi('Your party list was registered automatically in its default order.', 'Jūsų partijos sąrašas įregistruotas automatiškai, numatyta tvarka.')); }
   g.apMax = 6 + (hasStaff(g, 'strategist') ? 1 : 0);
   g.ap = g.apMax;
   const wages = sum((g.staff || []).map((id) => STAFF.find((x) => x.id === id).wage));
@@ -5455,6 +5456,7 @@ const HQ_SUBS = () => [
   ['money', Wallet, tt('Money', 'Pinigai')],
   ['team', Users, tt('Team', 'Komanda')],
   ['promises', ShieldCheck, tt('Promises', 'Pažadai')],
+  ['list', ListOrdered, tt('List', 'Sąrašas')],
 ];
 const POLL_SUBS = () => [
   ['seats', Landmark, tt('Seats', 'Mandatai')],
@@ -5463,6 +5465,8 @@ const POLL_SUBS = () => [
 ];
 // Everything you can do, and where it lives.
 const FINDER = [
+  { id: 'plist', icon: ListOrdered, label: bi('Party list (order your candidates)', 'Partijos sąrašas (kandidatų eilė)'), where: bi('HQ › List', 'Štabas › Sąrašas'), kw: 'sarasas list reiting pirmumo preference vrk', go: { tab: 'hq', sub: 'list' } },
+  { id: 'ldeb', icon: Mic, label: bi('Local TV debates in a district', 'Vietos TV debatai apygardoje'), where: bi('Map › Districts › a district', 'Žemėlapis › Apygardos › apygarda'), kw: 'debat apygard local vietos tv', go: { tab: 'map', sub: 'districts' } },
   { id: 'districts', icon: Landmark, label: bi('All 71 districts and their candidates', 'Visos 71 apygarda ir kandidatai'), where: bi('Map › Districts', 'Žemėlapis › Apygardos'), kw: 'apygard district kandidat candidate vienmand smd numeris', go: { tab: 'map', sub: 'districts' } },
   { id: 'members', icon: Users, label: bi('Current Seimas: all 141 members', 'Dabartinis Seimas: visi 141 narys'), where: bi('Polls › Seats', 'Apklausos › Mandatai'), kw: 'seimo nariai members seimas 2024 narys', go: { members: 'current' } },
   { id: 'festival', icon: Sparkles, label: bi('This week’s public event', 'Šios savaitės renginys'), where: bi('Map › This week', 'Žemėlapis › Ši savaitė'), kw: 'renginys event festival svente maraton zoline krepsin', go: { tab: 'map', sub: 'week' } },
@@ -6211,7 +6215,7 @@ function GotvSheet({ g, onDone, onClose }) {
     </Sheet>
   );
 }
-const CHRON_ICON = { debate: Tv, festival: Sparkles, ad: Clapperboard, presser: Mic, event: Newspaper, kompro: Search, gotv: Users };
+const CHRON_ICON = { list: ListOrdered, law: Gavel, gov: Landmark, debate: Tv, festival: Sparkles, ad: Clapperboard, presser: Mic, event: Newspaper, kompro: Search, gotv: Users };
 function Chronicle({ g }) {
   const me = g.player;
   const hist = g.history.map((h) => h.shares[me]);
@@ -6509,6 +6513,8 @@ function DistrictSheet({ g, cid, act, onClose }) {
   const inc = c0[6];
   const campaign = g.phase === 'campaign';
   const voters = Math.round((r.voters * 1000) / r.cons.length);
+  const [debating, setDebating] = useState(false);
+  const deb = g.candDeb && g.candDeb[cid];
   return (
     <Sheet label={tt(`District ${c0[3]}`, `${c0[3]} apygarda`)} onClose={onClose} z="z-50">
       <div className="relative">
@@ -6524,6 +6530,8 @@ function DistrictSheet({ g, cid, act, onClose }) {
         <button type="button" onClick={onClose} aria-label={tt('Close', 'Uždaryti')} className="cx-btn absolute right-3 top-3 grid place-items-center" style={{ width: 36, height: 36, borderRadius: 999, background: 'rgba(7,9,13,.8)' }}><X size={18} /></button>
       </div>
       <div style={GUTTER} className="pt-4 flex flex-col gap-4">
+        {debating && <LocalDebatePanel g={g} cid={cid} act={act} onDone={() => setDebating(false)} />}
+        {!debating && <>
         <div className="grid grid-cols-3 gap-2">
           {[[tt('Voters', 'Rinkėjai'), `~${fmtNum(voters / 1000, 0)}k`], [tt('City share', 'Miesto dalis'), `${Math.round(c0[1] * 100)}${LANG === 'lt' ? ' %' : '%'}`], [tt('Candidates', 'Kandidatai'), String(view.length)]].map(([l, v]) => <div key={l} className="cx-soft p-2.5"><div className="text-[11px] font-bold t-muted">{l}</div><div className="cx-num text-xl">{v}</div></div>)}
         </div>
@@ -6568,9 +6576,15 @@ function DistrictSheet({ g, cid, act, onClose }) {
             <div className="flex items-center gap-2"><CandFace c={mine.c} size={36} /><div className="min-w-0"><div className="font-black leading-tight truncate">{tt('Your candidate:', 'Jūsų kandidatas:')} {mine.c.name}</div><div className="text-xs t-muted">{tt('Spend on them directly', 'Investuokite tiesiogiai į kandidatą')}</div></div></div>
             <Btn kind="white" className="h-12 justify-between px-3" disabled={g.ap < 1 || g.money < 18} onClick={() => act((gg) => candInvest(gg, cid, 'ads'))}><span className="inline-flex items-center gap-2"><Megaphone size={17} />{tt('Local posters and ads', 'Vietiniai stendai ir reklama')}</span><span className="text-sm inline-flex items-center gap-1"><Zap size={13} style={{ fill: INK }} />1 · {fmtEur(18)}</span></Btn>
             <Btn kind="white" className="h-12 justify-between px-3" disabled={g.ap < 1 || g.money < 6} onClick={() => act((gg) => candInvest(gg, cid, 'meet'))}><span className="inline-flex items-center gap-2"><Users size={17} />{tt('Community meetings', 'Susitikimai su bendruomene')}</span><span className="text-sm inline-flex items-center gap-1"><Zap size={13} style={{ fill: INK }} />1 · {fmtEur(6)}</span></Btn>
+            {deb ? (
+              <div className="cx-soft p-2.5 text-sm font-semibold flex items-center gap-2"><Mic size={16} style={{ color: deb.won ? GREEN : AMBER }} />{deb.won ? tt(`Won the local debate (${deb.mine}–${deb.theirs})`, `Vietos debatai laimėti (${deb.mine}–${deb.theirs})`) : tt(`Lost the local debate (${deb.mine}–${deb.theirs})`, `Vietos debatai pralaimėti (${deb.mine}–${deb.theirs})`)}</div>
+            ) : (
+              <Btn className="h-12 justify-between px-3" disabled={g.ap < 1 || !debateRival(g, cid)} onClick={() => { setDebating(true); window.scrollTo && window.scrollTo({ top: 0 }); }}><span className="inline-flex items-center gap-2"><Mic size={17} />{tt('Local TV debate', 'Vietos TV debatai')}{debateRival(g, cid) ? ` · ${tt('vs', 'prieš')} ${debateRival(g, cid).name}` : ''}</span><span className="text-sm inline-flex items-center gap-1"><Zap size={13} style={{ fill: INK }} />1</span></Btn>
+            )}
           </div>
         )}
         {campaign && !mine && <div className="cx-soft p-3 text-sm font-semibold">{tt('Your party is not running a candidate here.', 'Jūsų partija čia kandidato neiškėlė.')}</div>}
+        </>}
       </div>
     </Sheet>
   );
@@ -6662,7 +6676,14 @@ function newSeimas(g) {
   const out = [];
   const smdNames = new Set();
   E.smd.forEach((e) => { const c = candOf(g, e.cid, e.winner); if (c) smdNames.add(c.name); out.push({ name: c ? c.name : partyShort(e.winner), p: e.winner === 'MINOR' ? 'KITI' : e.winner, how: 'smd', cid: e.cid, real: !!(c && c.real), cand: c }); });
-  Object.entries(E.pr).forEach(([p, n]) => { listNames(g, p, n, smdNames).forEach((x, i) => out.push({ ...x, p, how: 'list', no: i + 1 })); });
+  Object.entries(E.pr).forEach(([p, n]) => {
+    let names = listNames(g, p, n, smdNames);
+    if (p === g.player) {
+      const pr = prefResults(g).map((r) => ({ name: r.x.name, real: r.x.real, leader: r.x.leader, pref: r.pref })).filter((x) => !smdNames.has(x.name));
+      if (pr.length >= n) names = pr.slice(0, n);
+    }
+    names.forEach((x, i) => out.push({ ...x, p, how: 'list', no: i + 1 }));
+  });
   return out;
 }
 function MembersSheet({ g, kind, onClose }) {
@@ -6725,6 +6746,449 @@ function SeimasMembersCard({ g }) {
 function NewSeimasButton() {
   const nav = React.useContext(NavCtx);
   return <Btn kind="white" className="h-12 w-full" onClick={() => nav.openMembers('new')}><Users size={18} />{tt('The new Seimas: all 141 members', 'Naujasis Seimas: visi 141 narys')}</Btn>;
+}
+/* ============================================================
+   District debates
+   ============================================================ */
+const LOCAL_QS = [
+  { issue: 'roads', q: bi('The road to the district centre has potholes everywhere. What will you do?', 'Kelias į rajono centrą – vienos duobės. Ką darysite?'), answers: [
+    { t: bi('Get it into the national road plan, with a date.', 'Įtraukti į valstybinį kelių planą su konkrečia data.'), base: 7 }, { t: bi('Roads are the municipality’s job.', 'Keliai – savivaldybės reikalas.'), base: 3 }, { t: bi('Bring back the regional road fund.', 'Atkurti regioninių kelių fondą.'), base: 6 }] },
+  { issue: 'health', q: bi('Our clinic only has a doctor twice a week. Why?', 'Mūsų ambulatorijoje gydytojas – tik du kartus per savaitę. Kodėl?'), answers: [
+    { t: bi('Pay doctors more to work in small towns.', 'Mokėti daugiau gydytojams, dirbantiems miesteliuose.'), base: 7 }, { t: bi('Use video consultations instead.', 'Pakeisti nuotolinėmis konsultacijomis.'), base: 4 }, { t: bi('Blame the reform of the last government.', 'Kaltinti ankstesnės Vyriausybės reformą.'), base: 4 }] },
+  { issue: 'jobs', q: bi('The factory is cutting 300 jobs. Your answer?', 'Gamykla atleidžia 300 žmonių. Jūsų atsakymas?'), answers: [
+    { t: bi('Retraining money and a free economic zone here.', 'Perkvalifikavimo lėšos ir laisvoji ekonominė zona čia.'), base: 7 }, { t: bi('The market will sort it out.', 'Rinka susitvarkys.'), base: 3 }, { t: bi('Meet the owners this week and fight for every job.', 'Dar šią savaitę susitikti su savininkais ir kovoti už kiekvieną darbo vietą.'), base: 6 }] },
+  { issue: 'emig', q: bi('Half my classmates live in Dublin and London. Why come back?', 'Pusė mano klasiokų gyvena Dubline ir Londone. Kodėl grįžti?'), answers: [
+    { t: bi('Tax breaks for people who return and start a business.', 'Mokesčių lengvatos grįžusiems ir kuriantiems verslą.'), base: 7 }, { t: bi('Because Lithuania is home.', 'Nes Lietuva – namai.'), base: 4 }, { t: bi('Affordable rent and childcare here.', 'Įperkama nuoma ir darželiai čia.'), base: 6 }] },
+  { issue: 'housing', q: bi('Young families can’t afford a flat here. Your plan?', 'Jaunos šeimos čia negali įpirkti buto. Jūsų planas?'), answers: [
+    { t: bi('Municipal rental homes on public land.', 'Savivaldybės nuomojami būstai valstybės žemėje.'), base: 7 }, { t: bi('Build more, cut red tape.', 'Statyti daugiau, mažinti biurokratiją.'), base: 6 }, { t: bi('Prices will fall on their own.', 'Kainos nukris pačios.'), base: 2 }] },
+  { issue: 'agri', q: bi('Milk prices are below the cost of production. Will you help farmers?', 'Pieno supirkimo kainos mažesnės už savikainą. Ar padėsite ūkininkams?'), answers: [
+    { t: bi('Minimum purchase prices and a cooperative fund.', 'Minimalios supirkimo kainos ir kooperatyvų fondas.'), base: 7 }, { t: bi('EU subsidies are enough.', 'Užtenka ES išmokų.'), base: 3 }, { t: bi('Fight the big processors in court.', 'Kovoti su stambiais perdirbėjais teisme.'), base: 5 }] },
+  { issue: 'transit', q: bi('The bus runs twice a day. How do we get to work?', 'Autobusas važiuoja du kartus per dieną. Kaip patekti į darbą?'), answers: [
+    { t: bi('On-demand minibuses run by the district.', 'Rajono užsakomieji mikroautobusai.'), base: 7 }, { t: bi('Buy a car.', 'Įsigykite automobilį.'), base: 1 }, { t: bi('More state funding for regional buses.', 'Daugiau valstybės lėšų regioniniams autobusams.'), base: 6 }] },
+  { issue: 'def', q: bi('People near the border are worried. What about civil defence?', 'Pasienio gyventojai neramūs. Kaip su civiline sauga?'), answers: [
+    { t: bi('Shelters, sirens and training in every town by 2030.', 'Slėptuvės, sirenos ir mokymai kiekviename miestelyje iki 2030 m.'), base: 7 }, { t: bi('NATO will protect us.', 'NATO mus apgins.'), base: 4 }, { t: bi('Fund the Riflemen’s Union properly.', 'Tinkamai finansuoti Šaulių sąjungą.'), base: 6 }] },
+];
+function localQuestions(g, cid) {
+  const r = REG[cid.split('-')[0]];
+  const rand = mulberry32(hashStr(`${g.seed}|deb|${cid}`));
+  const pref = LOCAL_QS.map((q, i) => ({ i, w: ((r.issues || []).includes(q.issue) ? 3 : 1) * (0.5 + rand()) })).sort((a, b) => b.w - a.w);
+  return [pref[0].i, pref[1].i];
+}
+function debateRival(g, cid) {
+  const v = districtView(g, cid);
+  const x = v.find((y) => y.c.p !== g.player);
+  return x ? x.c : null;
+}
+function resolveLocalDebate(g, cid, picks) {
+  const p = g.player;
+  const me = candOf(g, cid, p);
+  const rv = debateRival(g, cid);
+  if (!me || !rv) return { ok: false };
+  if (g.ap < 1) return { ok: false, msg: tt('Out of energy!', 'Baigėsi energija!') };
+  g.ap -= 1; g.stats.actions += 1;
+  const qs = localQuestions(g, cid);
+  let mine = 0, theirs = 0;
+  qs.forEach((qi, k) => {
+    const A = LOCAL_QS[qi].answers[picks[k]];
+    mine += A.base + (me.cha - 50) / 18 + (Math.random() * 2 - 1);
+    theirs += 5.4 + (rv.cha - 50) / 18 + (rv.inc ? 0.6 : 0) + (Math.random() * 2.4 - 1.2);
+  });
+  const won = mine > theirs;
+  if (!g.candInv) g.candInv = {};
+  const inv = { ...(g.candInv[cid] || {}) };
+  inv.fame = (inv.fame || 0) + (won ? 6 : 2);
+  inv.roots = (inv.roots || 0) + (won ? 3 : -1);
+  g.candInv[cid] = inv;
+  const rid = cid.split('-')[0];
+  if (won) { gainSupport(g, rid, p, 0.22, 0.7); normalizeRegion(g, rid); }
+  if (!g.candDeb) g.candDeb = {};
+  g.candDeb[cid] = { won, mine: Math.round(mine * 5), theirs: Math.round(theirs * 5), rival: rv.p, week: g.week };
+  chron(g, 'debate', bi(`District debate in ${consById(cid)[4] || consById(cid)[0]}: ${won ? 'won' : 'lost'} against ${rv.name}`, `Apygardos debatai (${consById(cid)[0]}): ${won ? 'laimėta' : 'pralaimėta'} prieš ${rv.name}`), won ? 'good' : 'warn');
+  return { ok: true, tone: won ? 'good' : 'warn', msg: won ? tt(`${me.name} won the local debate against ${rv.name}!`, `${me.name} laimėjo vietos debatus prieš ${rv.name}!`) : tt(`${rv.name} came out on top in the local debate.`, `Vietos debatus laimėjo ${rv.name}.`) };
+}
+function LocalDebatePanel({ g, cid, act, onDone }) {
+  const me = candOf(g, cid, g.player);
+  const rv = debateRival(g, cid);
+  const qs = localQuestions(g, cid);
+  const [k, setK] = useState(0);
+  const [picks, setPicks] = useState([]);
+  const Q = LOCAL_QS[qs[Math.min(k, 1)]];
+  const [typed, done, finish] = useTypewriter(L(Q.q), 16, true);
+  useEffect(() => { SFX.play('sting'); }, []);
+  if (!me || !rv) return null;
+  const choose = (i) => {
+    const np = [...picks, i];
+    setPicks(np);
+    SFX.play('tap');
+    if (k === 0) setK(1);
+    else { act((gg) => resolveLocalDebate(gg, cid, np)); SFX.play('applause'); onDone(); }
+  };
+  return (
+    <div className="flex flex-col gap-3 sbl-fade">
+      <div className="rounded-xl overflow-hidden" style={{ background: 'linear-gradient(135deg, #0B5CAD33, #0B0E14)', border: `1px solid ${LINE2}` }}>
+        <div className="flex items-center justify-between px-3 py-2"><span className="cx-kicker text-xs">{tt('Local debate', 'Vietos debatai')} · {k + 1}/2</span><span className="text-[11px] font-extrabold px-1.5 rounded" style={{ background: '#DC2626', color: '#fff' }}>{tt('LIVE', 'TIESIOGIAI')}</span></div>
+        <div className="flex items-end justify-around px-3 pb-3">
+          <div className="flex flex-col items-center gap-1"><CandFace c={me} size={64} mood="happy" /><span className="text-xs font-bold">{me.name}</span></div>
+          <span className="cx-title text-3xl" style={{ color: SUN }}>VS</span>
+          <div className="flex flex-col items-center gap-1"><CandFace c={rv} size={64} mood="grr" /><span className="text-xs font-bold">{rv.name}</span></div>
+        </div>
+      </div>
+      <div className="cx-title text-xl leading-snug" onClick={finish} style={{ minHeight: '2.6em' }}>{typed}{!done && <span className="cx-caret" style={{ color: SUN }}>▌</span>}</div>
+      {done && Q.answers.map((a, i) => (
+        <button key={`${k}-${i}`} type="button" onClick={() => choose(i)} className="cx-btn cx-quote cx-answer w-full items-center text-left px-4 py-2.5 cx-pop-in" style={{ gap: 12, minHeight: 48, justifyContent: 'flex-start', animationDelay: `${i * 0.06}s` }}>
+          <span className="cx-num grid place-items-center rounded-full shrink-0" style={{ width: 24, height: 24, background: '#11141B', color: '#fff' }}>{String.fromCharCode(65 + i)}</span>
+          <span className="font-bold text-sm leading-snug flex-1">{L(a.t)}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/* ============================================================
+   Party list and preference votes
+   ============================================================ */
+function listPool(g) {
+  const p = g.player;
+  const out = [];
+  const seen = new Set();
+  const add = (x) => { if (!seen.has(x.name)) { seen.add(x.name); out.push(x); } };
+  add({ name: PARTIES[p].leader, real: true, leader: true, fame: 95, fem: isFemName(PARTIES[p].leader) });
+  (LIST_2024[p] || []).forEach((n, i) => add({ name: n, real: true, mp: true, fame: 70 - i, fem: isFemName(n) }));
+  ALL_CIDS.map((cid) => candOf(g, cid, p)).filter(Boolean).sort((a, b) => b.fame - a.fame).forEach((c) => add({ name: c.name, real: c.real, mp: c.real, fame: c.fame, fem: c.fem, cid: c.cid, cand: true }));
+  return out;
+}
+function currentList(g) {
+  const pool = listPool(g);
+  if (!g.plist) return pool;
+  const by = Object.fromEntries(pool.map((x) => [x.name, x]));
+  const head = g.plist.map((n) => by[n]).filter(Boolean);
+  const rest = pool.filter((x) => !g.plist.includes(x.name));
+  return [...head, ...rest];
+}
+function listMetrics(list) {
+  const top = list.slice(0, 10);
+  const fame = sum(top.map((x) => x.fame)) / top.length;
+  const women = top.filter((x) => x.fem).length;
+  const regions = new Set(top.filter((x) => x.cid).map((x) => x.cid.split('-')[0])).size;
+  const mps = top.filter((x) => x.mp || x.leader).length;
+  return { fame, women, regions, mps };
+}
+function moveInList(g, i, d) {
+  const list = currentList(g).map((x) => x.name);
+  const j = i + d;
+  if (i === 0 || j < 1 || j >= list.length) return null;
+  [list[i], list[j]] = [list[j], list[i]];
+  g.plist = list.slice(0, 25);
+  return null;
+}
+function submitList(g) {
+  if (g.plistLocked) return { ok: false };
+  const list = currentList(g);
+  const m = listMetrics(list);
+  const p = g.player;
+  const dropped = (LIST_2024[p] || []).slice(0, 8).filter((n) => !list.slice(0, 15).some((x) => x.name === n)).length;
+  const mom = clamp((m.fame - 50) / 35, -0.6, 0.9);
+  g.momentum[p] = clamp(g.momentum[p] + mom, -10, 10);
+  if (m.women >= 4) { g.groupMood.public = clamp((g.groupMood.public || 0) + 1.5, -20, 20); g.groupMood.youth = clamp((g.groupMood.youth || 0) + 1, -20, 20); }
+  if (m.mps >= 4) addCred(g, 2);
+  REGIONS.forEach((r) => { if (list.slice(0, 10).some((x) => x.cid && x.cid.startsWith(`${r.id}-`))) { gainSupport(g, r.id, p, 0.12, 0.7); normalizeRegion(g, r.id); } });
+  g.unity = clamp((g.unity == null ? 70 : g.unity) + (dropped ? -3 * dropped : 3), 0, 100);
+  g.plist = list.map((x) => x.name).slice(0, 25);
+  g.plistLocked = true;
+  chron(g, 'list', bi(`Party list registered: ${m.women} women in the top 10, ${m.regions} regions represented`, `Sąrašas įregistruotas: ${m.women} moterys dešimtuke, atstovaujami ${m.regions} regionai`), dropped ? 'warn' : 'good');
+  return { ok: true, tone: dropped ? 'warn' : 'good', msg: tt(`List registered with the VRK. Buzz ${fmtSigned(mom)}${dropped ? `, unity −${3 * dropped} (sitting MPs dropped)` : ', party unity +3'}`, `Sąrašas įregistruotas VRK. Pagreitis ${fmtSigned(mom)}${dropped ? `, vienybė −${3 * dropped} (išbraukti Seimo nariai)` : ', vienybė +3'}`) };
+}
+const LIST_DEADLINE = 4;
+function PartyListCard({ g, act }) {
+  const list = currentList(g);
+  const m = listMetrics(list);
+  const locked = g.plistLocked || g.week > LIST_DEADLINE;
+  const nav = React.useContext(NavCtx);
+  return (
+    <Card className="p-4 lg:col-span-2">
+      <CardTitle sub={locked ? tt('Registered. Voters can still reorder it with preference votes.', 'Įregistruotas. Rinkėjai dar gali jį perrikiuoti pirmumo balsais.') : tt(`Order your national list before week ${LIST_DEADLINE + 1}. Voters later move people up with preference votes.`, `Sudėliokite sąrašą iki ${LIST_DEADLINE + 1} savaitės. Vėliau rinkėjai pirmumo balsais kelia kandidatus aukštyn.`)} right={<span className="cx-chip px-2 py-0.5 text-xs shrink-0">{locked ? tt('Locked', 'Užrakinta') : tt(`Due week ${LIST_DEADLINE}`, `Iki ${LIST_DEADLINE} sav.`)}</span>}>{tt('Party list', 'Partijos sąrašas')}</CardTitle>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3">
+        {[[tt('Top-10 fame', 'Dešimtuko žinomumas'), Math.round(m.fame)], [tt('Women in top 10', 'Moterų dešimtuke'), `${m.women}/10`], [tt('Regions', 'Regionai'), m.regions], [tt('Experienced', 'Patyrę'), m.mps]].map(([l, v]) => <div key={l} className="cx-soft p-2"><div className="text-[10px] font-bold t-muted">{l}</div><div className="cx-num text-lg">{v}</div></div>)}
+      </div>
+      <ol className="flex flex-col gap-1">
+        {list.slice(0, 15).map((x, i) => (
+          <li key={x.name} className="flex items-center gap-2 rounded-lg px-2 py-1.5" style={{ background: i < 10 ? 'rgba(255,255,255,.05)' : 'rgba(255,255,255,.02)', border: `1px solid ${LINE}` }}>
+            <span className="cx-num w-6 text-center shrink-0">{i + 1}</span>
+            {x.cid ? <CandFace c={candOf(g, x.cid, g.player)} size={28} /> : <span className="grid place-items-center rounded-md shrink-0 text-[10px] font-black" style={{ width: 28, height: 28, background: tint(PARTIES[g.player].color, 0.35) }}>{x.name.split(' ').map((w) => w[0]).slice(0, 2).join('')}</span>}
+            <span className="min-w-0 flex-1">
+              <span className="block text-sm font-bold truncate">{x.name}{x.leader ? ' ★' : ''}</span>
+              <span className="block text-[11px] t-muted truncate">{x.leader ? tt('Party leader', 'Partijos pirmininkas') : x.mp ? tt('Seimas member', 'Seimo narys') : tt('District candidate', 'Apygardos kandidatas')}{x.cid ? ` · ${cnum(x.cid)}. ${cnm(x.cid)}` : ''} · {tt('fame', 'žinomumas')} {Math.round(x.fame)}</span>
+            </span>
+            {!locked && i > 0 && (
+              <span className="flex gap-1 shrink-0">
+                <button type="button" aria-label={tt(`Move ${x.name} up`, `Kelti ${x.name} aukštyn`)} disabled={i <= 1} onClick={() => act((gg) => moveInList(gg, i, -1))} className="cx-btn grid place-items-center" style={{ width: 30, height: 30, borderRadius: 8, background: 'rgba(255,255,255,.08)', opacity: i <= 1 ? 0.3 : 1 }}><ArrowUp size={15} /></button>
+                <button type="button" aria-label={tt(`Move ${x.name} down`, `Leisti ${x.name} žemyn`)} onClick={() => act((gg) => moveInList(gg, i, 1))} className="cx-btn grid place-items-center" style={{ width: 30, height: 30, borderRadius: 8, background: 'rgba(255,255,255,.08)' }}><ArrowDown size={15} /></button>
+              </span>
+            )}
+            {x.cid && <button type="button" aria-label={tt('Open profile', 'Atverti profilį')} onClick={() => nav.openCand(x.cid, g.player)} className="cx-btn grid place-items-center shrink-0" style={{ width: 30, height: 30, borderRadius: 8, background: 'rgba(255,255,255,.04)' }}><ChevronRight size={15} /></button>}
+          </li>
+        ))}
+      </ol>
+      <div className="text-xs t-muted mt-2">{tt('A famous top 10 adds buzz. Four or more women please teachers, doctors and young voters. Each region in the top 10 gets a small boost. Dropping sitting MPs angers the party.', 'Žinomas dešimtukas didina pagreitį. Keturios ar daugiau moterų patinka mokytojams, medikams ir jaunimui. Kiekvienas dešimtuke atstovaujamas regionas gauna nedidelį postūmį. Išbraukti dabartiniai Seimo nariai supykdo partiją.')}</div>
+      {!locked && <Btn className="h-12 w-full mt-3" onClick={() => act((gg) => submitList(gg))}><FileCheck size={18} />{tt('Register the list with the VRK', 'Įregistruoti sąrašą VRK')}</Btn>}
+    </Card>
+  );
+}
+// Preference votes: list order + voters' picks decide who takes your list seats.
+function prefResults(g) {
+  const E = g.election;
+  const p = g.player;
+  const list = currentList(g).slice(0, 25);
+  const votes = E.natVotes[p] || 0;
+  const rand = mulberry32(hashStr(`${g.seed}|pref`));
+  const raw = list.map((x, i) => ({ x, pos: i + 1, w: Math.pow(x.fame / 50, 1.6) * (1 + 1.2 / (i + 1)) * (0.75 + rand() * 0.5) }));
+  const tw = sum(raw.map((r) => r.w)) || 1;
+  raw.forEach((r) => { r.pref = Math.round((votes * 0.62 * r.w) / tw); r.score = r.pref / Math.max(1, votes) * 100 + (26 - r.pos) * 0.35; });
+  const ranked = raw.slice().sort((a, b) => b.score - a.score);
+  ranked.forEach((r, i) => { r.final = i + 1; });
+  return ranked;
+}
+function PrefVotesCard({ g }) {
+  const E = g.election;
+  const seats = E.pr[g.player] || 0;
+  const rows = useMemo(() => prefResults(g), [g]);
+  if (!E.natVotes[g.player]) return null;
+  return (
+    <Card className="p-4">
+      <CardTitle sub={tt(`Your party won ${seats} list seats. Voters reordered your list with preference votes.`, `Jūsų partija gavo ${seats} ${seatsWord(seats)} pagal sąrašą. Rinkėjai perrikiavo sąrašą pirmumo balsais.`)}>{tt('Preference votes', 'Pirmumo balsai')}</CardTitle>
+      <div className="grid gap-2 text-[10px] font-bold t-muted px-2 mb-1" style={{ gridTemplateColumns: '24px 1fr 70px 34px' }}><span>#</span><span>{tt('Candidate', 'Kandidatas')}</span><span className="text-right">{tt('Pref. votes', 'Pirm. balsai')}</span><span className="text-right">±</span></div>
+      <ol className="flex flex-col gap-1">
+        {rows.slice(0, 12).map((r) => {
+          const d = r.pos - r.final;
+          return (
+            <li key={r.x.name} className="grid items-center gap-2 text-sm rounded-lg px-2 py-1" style={{ gridTemplateColumns: '24px 1fr 70px 34px', background: r.final <= seats ? GOOD_BG : 'rgba(255,255,255,.03)' }}>
+              <span className="cx-num text-center">{r.final}</span>
+              <span className="font-bold truncate">{r.x.name}</span>
+              <span className="cx-num text-right text-xs">{fmtNum(r.pref, 0)}</span>
+              <span className="text-xs font-extrabold text-right" style={{ color: d > 0 ? GREEN : d < 0 ? RED : MUTED }}>{d > 0 ? `▲${d}` : d < 0 ? `▼${-d}` : '–'}</span>
+            </li>
+          );
+        })}
+      </ol>
+      <div className="text-[11px] t-muted mt-1.5">{tt('Final order = preference votes plus a small bonus for list position. Green = takes a list seat (unless already elected in a district).', 'Galutinė eilė = pirmumo balsai ir nedidelė premija už vietą sąraše. Žalia – gauna vietą pagal sąrašą (jei nebuvo išrinktas apygardoje).')}</div>
+    </Card>
+  );
+}
+
+/* ============================================================
+   Governing: cabinet and the first bills
+   ============================================================ */
+const BILLS = [
+  { id: 'budget', axis: null, pop: 2, icon: Wallet, title: bi('Budget 2029', '2029 m. valstybės biudžetas'), desc: bi('Your first budget. If it fails, the government is badly shaken.', 'Jūsų pirmasis biudžetas. Jei nepraeis – Vyriausybė smarkiai sudrebės.') },
+  { id: 'defense', axis: ['defense', 1], pop: 2, icon: Shield, title: bi('Defence at 4% of GDP', 'Krašto apsaugai – 4 % BVP'), desc: bi('A big rise in defence spending, paid by a temporary bank tax.', 'Didelis krašto apsaugos finansavimo didinimas, finansuojamas laikinu bankų mokesčiu.') },
+  { id: 'minwage', axis: ['econ', -1], pop: 4, icon: Coins, title: bi('Minimum wage to €1,300', 'MMA – iki 1 300 €'), desc: bi('Popular with workers. Businesses warn about lost jobs.', 'Populiaru tarp dirbančiųjų. Verslas įspėja dėl darbo vietų.') },
+  { id: 'partner', axis: ['social', -1], pop: -1, icon: Heart, title: bi('Civil partnership law', 'Civilinės sąjungos įstatymas'), desc: bi('Legal recognition for couples who don’t marry, including same-sex couples. Divides the country.', 'Teisinis pripažinimas nesusituokusioms poroms, ir tos pačios lyties. Skaldo visuomenę.') },
+  { id: 'wind', axis: ['green', 1], pop: 1, icon: Leaf, title: bi('Offshore wind and green energy', 'Jūrinis vėjas ir žalioji energetika'), desc: bi('A second offshore wind farm and solar on every school roof.', 'Antrasis jūrinis vėjo parkas ir saulės elektrinės ant mokyklų stogų.') },
+  { id: 'tax', axis: ['econ', -1], pop: -1, icon: Scale, title: bi('Progressive income tax', 'Progresinis pajamų mokestis'), desc: bi('Higher rates for top earners to fund pensions and schools.', 'Didesni tarifai daugiausiai uždirbantiems – pensijoms ir mokykloms.') },
+];
+function ministerOptions(g, q, m) {
+  const rand = mulberry32(hashStr(`${g.seed}|min|${m}|${q}`));
+  const opts = [];
+  const pool = [];
+  if (g.election) {
+    const ns = newSeimas(g).filter((x) => x.p === q);
+    ns.forEach((x) => pool.push({ name: x.name, real: !!x.real }));
+  }
+  const pick = pool.sort(() => rand() - 0.5).slice(0, 2);
+  pick.forEach((x) => opts.push({ name: x.name, real: x.real, comp: x.real ? 65 : 40 + Math.round(rand() * 45), kind: 'mp' }));
+  const fem = rand() < 0.5;
+  opts.push({ name: `${(fem ? FN_F : FN_M)[Math.floor(rand() * (fem ? FN_F.length : FN_M.length))]} ${fem ? femSurname(SURN[Math.floor(rand() * SURN.length)], false) : SURN[Math.floor(rand() * SURN.length)]}`, real: false, comp: 60 + Math.round(rand() * 32), kind: 'expert' });
+  return opts;
+}
+function initGov(g, members, stability) {
+  const cab = cabinet(g, members.slice(1));
+  const alloc = {};
+  Object.entries(cab.alloc).forEach(([q, ms]) => ms.forEach((m) => { alloc[m] = q; }));
+  MINISTRY_IDS.forEach((m) => { if (!alloc[m]) alloc[m] = g.player; });
+  const opts = Object.fromEntries(MINISTRY_IDS.map((m) => [m, ministerOptions(g, alloc[m], m)]));
+  return { members, alloc, opts, picks: Object.fromEntries(MINISTRY_IDS.map((m) => [m, 0])), stage: 'cabinet', bill: 0, laws: [], approval: 52, stability: stability || 80, last: null };
+}
+function billPartyVote(g, q, bill, amended, coalition, stab) {
+  let v = bill.axis ? posOf(g, q)[bill.axis[0]] * bill.axis[1] : (coalition ? 60 : -40);
+  if (amended) v += 25;
+  if (coalition) return v > -35 ? 'yes' : (stab > 60 ? 'yes' : 'no');
+  if (q === 'KITI') return v >= 0 ? 'yes' : 'abst';
+  return v >= 45 ? 'yes' : v >= 15 ? 'abst' : 'no';
+}
+function billTally(g, bill, amended) {
+  const S = g.election.seats;
+  const G = g.gov;
+  const rows = ALL_IDS.filter((q) => S[q] > 0).map((q) => {
+    const coal = G.members.includes(q);
+    const vote = billPartyVote(g, q, bill, amended, coal, G.stability);
+    return { q, seats: S[q], vote, coal };
+  });
+  const rebels = Math.round(sum(rows.filter((r) => r.coal && r.vote === 'yes').map((r) => r.seats)) * clamp((70 - G.stability) / 300, 0, 0.12));
+  let yes = sum(rows.filter((r) => r.vote === 'yes').map((r) => r.seats)) - rebels;
+  let abst = sum(rows.filter((r) => r.vote === 'abst').map((r) => r.seats)) + Math.round(rebels / 2);
+  const no = 141 - yes - abst;
+  return { rows, yes, no, abst, passed: yes > no };
+}
+function govVote(g, mode) {
+  const G = g.gov;
+  const bill = BILLS[G.bill];
+  if (mode === 'drop') {
+    G.approval = clamp(G.approval - 1, 0, 100);
+    G.laws.push({ id: bill.id, res: 'dropped' });
+    G.last = { id: bill.id, res: 'dropped' };
+  } else {
+    const amended = mode === 'amend';
+    const T = billTally(g, bill, amended);
+    const k = amended ? 0.5 : 1;
+    if (T.passed) {
+      G.approval = clamp(G.approval + bill.pop * k + 1, 0, 100);
+      T.rows.filter((r) => r.coal && r.q !== g.player && bill.axis && posOf(g, r.q)[bill.axis[0]] * bill.axis[1] + (amended ? 25 : 0) <= -35).forEach(() => { G.stability = clamp(G.stability - 7, 0, 100); });
+      if (bill.axis && g.stance[bill.axis[0]] * bill.axis[1] < -30) G.approval = clamp(G.approval - 3, 0, 100);
+    } else {
+      G.approval = clamp(G.approval - 3, 0, 100);
+      G.stability = clamp(G.stability - (bill.id === 'budget' ? 15 : 5), 0, 100);
+    }
+    G.laws.push({ id: bill.id, res: T.passed ? 'passed' : 'failed', amended, yes: T.yes, no: T.no, abst: T.abst });
+    G.last = { id: bill.id, res: T.passed ? 'passed' : 'failed', amended, yes: T.yes, no: T.no, abst: T.abst };
+    chron(g, 'law', bi(`${bill.title.en}: ${T.passed ? 'passed' : 'rejected'} (${T.yes}–${T.no})`, `${bill.title.lt}: ${T.passed ? 'priimta' : 'atmesta'} (${T.yes}–${T.no})`), T.passed ? 'good' : 'bad');
+  }
+  G.stage = 'result';
+  return null;
+}
+function GovScreen({ g, act, onFinish }) {
+  const G = g.gov;
+  const me = g.player;
+  const P = PARTIES[me];
+  const [swap, setSwap] = useState(null);
+  const comp = sum(MINISTRY_IDS.map((m) => G.opts[m][G.picks[m]].comp)) / MINISTRY_IDS.length;
+  const bill = BILLS[Math.min(G.bill, BILLS.length - 1)];
+  const preview = G.stage === 'bill' ? billTally(g, bill, false) : null;
+  const previewA = G.stage === 'bill' ? billTally(g, bill, true) : null;
+  const passedN = G.laws.filter((l) => l.res === 'passed').length;
+  const stat = (label, v, color) => <div className="cx-soft p-3"><div className="text-xs font-bold t-muted">{label}</div><div className="cx-num text-3xl" style={{ color }}><CountUp to={v} /><span className="text-base">{LANG === 'lt' ? ' %' : '%'}</span></div><div className="cx-track mt-1" style={{ height: 6 }}><div className="h-full" style={{ width: `${v}%`, background: color, transition: 'width .6s' }} /></div></div>;
+  return (
+    <div className="max-w-lg lg:max-w-5xl mx-auto min-h-screen" style={{ ...GUTTER, paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 32px)' }}>
+      <div className="pt-6">
+        <Scene kind="palace" h={null} caption={false} kb className="w-full h-[150px] lg:h-[210px]">
+          <div className="absolute inset-x-4 bottom-3 flex items-end gap-3">
+            <Portrait who={me} size={78} badge mood="grin" />
+            <div className="min-w-0 pb-1 rounded-xl px-3 py-2" style={{ background: 'rgba(7,9,13,.72)', backdropFilter: 'blur(3px)' }}>
+              <div className="cx-kicker text-xs" style={{ color: '#fff' }}>{tt('The first 100 days', 'Pirmosios 100 dienų')}</div>
+              <div className="cx-title text-2xl lg:text-3xl leading-none text-white">{tt('Your government', 'Jūsų Vyriausybė')}</div>
+              <div className="flex flex-wrap gap-1 mt-1.5">{G.members.map((q) => <PartyChip key={q} p={q}> {g.election.seats[q]}</PartyChip>)}</div>
+            </div>
+          </div>
+        </Scene>
+      </div>
+      <div className="grid grid-cols-3 gap-2 mt-4">
+        {stat(tt('Approval', 'Pritarimas'), Math.round(G.approval), G.approval >= 50 ? GREEN : G.approval >= 35 ? SUN : RED)}
+        {stat(tt('Stability', 'Stabilumas'), Math.round(G.stability), G.stability >= 60 ? GREEN : G.stability >= 40 ? SUN : RED)}
+        <div className="cx-soft p-3"><div className="text-xs font-bold t-muted">{tt('Laws passed', 'Priimti įstatymai')}</div><div className="cx-num text-3xl">{passedN}<span className="text-base t-muted">/{BILLS.length}</span></div></div>
+      </div>
+      {G.stage === 'cabinet' && (
+        <Card className="p-4 mt-4">
+          <CardTitle sub={tt('Pick a minister for each ministry. Party colleagues keep partners happy; outside experts are often more competent.', 'Paskirkite ministrą kiekvienai ministerijai. Partijos kolegos tenkina partnerius, o nepartiniai ekspertai dažnai kompetentingesni.')} right={<span className="cx-chip px-2 py-0.5 text-xs shrink-0">{tt('Competence', 'Kompetencija')} {Math.round(comp)}</span>}>{tt('Cabinet', 'Ministrų kabinetas')}</CardTitle>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+            {MINISTRY_IDS.map((m) => {
+              const q = G.alloc[m];
+              const o = G.opts[m][G.picks[m]];
+              return (
+                <button key={m} type="button" onClick={() => setSwap(swap === m ? null : m)} className="cx-tap flex items-center gap-2 rounded-lg px-2 py-2 text-left" style={{ background: swap === m ? ACC_BG : 'rgba(255,255,255,.04)', border: `1px solid ${swap === m ? SUN : LINE}`, borderLeft: `4px solid ${(PARTIES[q] || PARTIES.KITI).color}` }}>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-[11px] font-bold t-muted truncate">{tt(`Minister of ${L(MINISTRIES[m])}`, `${L(MINISTRIES[m])} ministras`)}</span>
+                    <span className="block text-sm font-bold truncate">{o.name}</span>
+                    <span className="block text-[10px] t-muted">{partyShort(q)} · {o.kind === 'expert' ? tt('outside expert', 'nepartinis ekspertas') : o.real ? tt('Seimas member', 'Seimo narys') : tt('party member', 'partijos narys')}</span>
+                  </span>
+                  <span className="cx-num text-sm shrink-0">{o.comp}</span>
+                </button>
+              );
+            })}
+          </div>
+          {swap && (
+            <div className="cx-soft p-3 mt-2 flex flex-col gap-1.5 sbl-fade">
+              <div className="text-xs font-bold t-muted">{tt(`Choose: ${L(MINISTRIES[swap])}`, `Pasirinkite: ${L(MINISTRIES[swap])} ministerija`)}</div>
+              {G.opts[swap].map((o, i) => (
+                <button key={o.name} type="button" aria-pressed={G.picks[swap] === i} onClick={() => { act((gg) => { gg.gov.picks[swap] = i; return null; }); setSwap(null); }} className="cx-btn justify-between px-3 py-2 text-sm" style={{ background: G.picks[swap] === i ? '#F3F4F6' : 'rgba(255,255,255,.06)', color: G.picks[swap] === i ? INK : TEXT }}>
+                  <span className="font-bold truncate">{o.name} <span className="font-semibold opacity-70">· {o.kind === 'expert' ? tt('expert', 'ekspertas') : o.real ? tt('real MP', 'tikras Seimo narys') : tt('party', 'partija')}</span></span><span className="cx-num">{o.comp}</span>
+                </button>
+              ))}
+              <div className="text-[10px] t-muted">{tt('Competence scores are game estimates. Real MPs get a neutral 65.', 'Kompetencijos balai – žaidimo vertinimai. Tikriems Seimo nariams – neutralūs 65.')}</div>
+            </div>
+          )}
+          <Btn className="h-14 w-full mt-3 text-lg" onClick={() => act((gg) => {
+            const Gx = gg.gov;
+            const c = sum(MINISTRY_IDS.map((m) => Gx.opts[m][Gx.picks[m]].comp)) / MINISTRY_IDS.length;
+            const experts = MINISTRY_IDS.filter((m) => Gx.opts[m][Gx.picks[m]].kind === 'expert' && Gx.alloc[m] !== gg.player).length;
+            Gx.approval = clamp(Gx.approval + (c - 62) / 3, 0, 100);
+            Gx.stability = clamp(Gx.stability - experts * 2, 0, 100);
+            Gx.stage = 'bill';
+            chron(gg, 'gov', bi(`Cabinet sworn in (competence ${Math.round(c)})`, `Ministrų kabinetas prisiekė (kompetencija ${Math.round(c)})`));
+            SFX.play('gavel');
+            return null;
+          })}><UserCheck size={20} />{tt('Swear in the cabinet', 'Prisaikdinti kabinetą')}</Btn>
+        </Card>
+      )}
+      {G.stage === 'bill' && (
+        <Card className="p-4 mt-4 sbl-fade">
+          <div className="flex items-center gap-2 mb-1"><span className="cx-kicker text-xs">{tt(`Bill ${G.bill + 1} of ${BILLS.length}`, `${G.bill + 1} projektas iš ${BILLS.length}`)}</span></div>
+          <div className="flex items-start gap-3">
+            <span className="grid place-items-center rounded-xl shrink-0" style={{ width: 48, height: 48, background: ACC_BG }}><bill.icon size={24} /></span>
+            <div><div className="cx-title text-2xl leading-tight">{L(bill.title)}</div><p className="text-sm font-semibold t-muted mt-1">{L(bill.desc)}</p></div>
+          </div>
+          <div className="mt-3">
+            <div className="text-xs font-bold t-muted mb-1.5">{tt('How the parties are expected to vote', 'Kaip, tikėtina, balsuos partijos')}</div>
+            <div className="flex flex-wrap gap-1.5">
+              {preview.rows.map((r) => <span key={r.q} className="cx-chip px-2 py-0.5 text-xs" style={{ background: r.vote === 'yes' ? GOOD_BG : r.vote === 'no' ? BAD_BG : WARN_BG }}><PartyDot p={r.q} size={9} />{partyShort(r.q)} {r.seats} · {r.vote === 'yes' ? tt('for', 'už') : r.vote === 'no' ? tt('against', 'prieš') : tt('abstain', 'susilaiko')}</span>)}
+            </div>
+            <div className="text-sm font-bold mt-2">{tt(`Expected: ${preview.yes} for, ${preview.no} against`, `Tikėtina: ${preview.yes} už, ${preview.no} prieš`)} · {tt('amended:', 'sušvelnintas:')} {previewA.yes}–{previewA.no}</div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-3">
+            <Btn className="h-12" onClick={() => { act((gg) => govVote(gg, 'full')); SFX.play('gavel'); }}><Gavel size={18} />{tt('Put it to a vote', 'Teikti balsuoti')}</Btn>
+            <Btn kind="white" className="h-12" onClick={() => { act((gg) => govVote(gg, 'amend')); SFX.play('gavel'); }}><Scale size={18} />{tt('Amend, then vote', 'Sušvelninti ir balsuoti')}</Btn>
+            <Btn kind="pale" className="h-12" onClick={() => act((gg) => govVote(gg, 'drop'))}><X size={18} />{tt('Withdraw', 'Atsiimti')}</Btn>
+          </div>
+          <div className="text-[11px] t-muted mt-2">{tt('Amending wins more votes but halves the effect. Forcing partners to vote against their positions costs stability.', 'Sušvelnintas projektas surenka daugiau balsų, bet poveikis perpus mažesnis. Priversti partnerius balsuoti prieš savo pozicijas kainuoja stabilumą.')}</div>
+        </Card>
+      )}
+      {G.stage === 'result' && G.last && (
+        <Card className="p-4 mt-4 sbl-pop text-center">
+          <div className="cx-kicker text-xs">{L(BILLS.find((b) => b.id === G.last.id).title)}</div>
+          {G.last.res === 'dropped' ? <div className="cx-title text-3xl mt-2">{tt('Withdrawn', 'Atsiimta')}</div> : (
+            <>
+              <div className="cx-logo cx-slam mt-2" style={{ fontSize: 44, color: G.last.res === 'passed' ? GREEN : RED }}>{G.last.res === 'passed' ? tt('PASSED', 'PRIIMTA') : tt('REJECTED', 'ATMESTA')}</div>
+              <div className="flex justify-center gap-5 mt-2 cx-num text-xl"><span style={{ color: GREEN }}><CountUp to={G.last.yes} from={0} /> {tt('for', 'už')}</span><span style={{ color: RED }}><CountUp to={G.last.no} from={0} /> {tt('against', 'prieš')}</span><span className="t-muted"><CountUp to={G.last.abst} from={0} /> {tt('abst.', 'susil.')}</span></div>
+              <div className="mx-auto mt-3 flex rounded-md overflow-hidden" style={{ height: 14, maxWidth: 420 }}><div style={{ width: `${(G.last.yes / 141) * 100}%`, background: GREEN }} /><div style={{ width: `${(G.last.abst / 141) * 100}%`, background: '#64748B' }} /><div style={{ flex: 1, background: RED }} /></div>
+            </>
+          )}
+          {G.bill < BILLS.length - 1
+            ? <Btn className="h-12 w-full mt-4" onClick={() => act((gg) => { gg.gov.bill += 1; gg.gov.stage = 'bill'; return null; })}>{tt('Next bill', 'Kitas projektas')} <ArrowRight size={18} /></Btn>
+            : <Btn className="h-14 w-full mt-4 text-lg" onClick={onFinish}>{tt('See how the first 100 days went', 'Pirmųjų 100 dienų rezultatai')} <ArrowRight size={20} /></Btn>}
+        </Card>
+      )}
+      {G.laws.length > 0 && (
+        <Card className="p-4 mt-4">
+          <CardTitle>{tt('Record so far', 'Kol kas')}</CardTitle>
+          <div className="flex flex-col gap-1">
+            {G.laws.map((l) => <div key={l.id} className="flex items-center gap-2 text-sm"><span style={{ color: l.res === 'passed' ? GREEN : l.res === 'failed' ? RED : MUTED }}>{l.res === 'passed' ? '✔' : l.res === 'failed' ? '✖' : '–'}</span><span className="font-bold flex-1">{L(BILLS.find((b) => b.id === l.id).title)}{l.amended ? tt(' (amended)', ' (sušvelnintas)') : ''}</span>{l.yes != null && <span className="cx-num text-xs t-muted">{l.yes}–{l.no}</span>}</div>)}
+          </div>
+        </Card>
+      )}
+    </div>
+  );
+}
+function GovSummary({ g }) {
+  const G = g.gov;
+  if (!G) return null;
+  const passed = G.laws.filter((l) => l.res === 'passed').length;
+  return (
+    <Card className="mt-4 p-4 lg:col-span-2">
+      <CardTitle sub={tt('How your government started', 'Kaip pradėjo jūsų Vyriausybė')}>{tt('The first 100 days', 'Pirmosios 100 dienų')}</CardTitle>
+      <div className="grid grid-cols-3 gap-2">
+        {[[tt('Approval', 'Pritarimas'), `${Math.round(G.approval)}${LANG === 'lt' ? ' %' : '%'}`], [tt('Stability', 'Stabilumas'), `${Math.round(G.stability)}${LANG === 'lt' ? ' %' : '%'}`], [tt('Laws passed', 'Priimta įstatymų'), `${passed}/${BILLS.length}`]].map(([l, v]) => <div key={l} className="cx-soft p-2.5"><div className="text-[11px] font-bold t-muted">{l}</div><div className="cx-num text-2xl">{v}</div></div>)}
+      </div>
+      <div className="flex flex-col gap-1 mt-3">{G.laws.map((l) => <div key={l.id} className="flex items-center gap-2 text-sm"><span style={{ color: l.res === 'passed' ? GREEN : l.res === 'failed' ? RED : MUTED }}>{l.res === 'passed' ? '✔' : l.res === 'failed' ? '✖' : '–'}</span><span className="font-semibold">{L(BILLS.find((b) => b.id === l.id).title)}</span></div>)}</div>
+    </Card>
+  );
 }
 function HQTab({ g, act, openSheet, sub = 'media', setSub = () => {} }) {
   const P = PARTIES[g.player];
@@ -6820,6 +7284,7 @@ function HQTab({ g, act, openSheet, sub = 'media', setSub = () => {} }) {
       {sub === 'team' && (<>
       <StaffRoom g={g} act={act} />
       </>)}
+      {sub === 'list' && <PartyListCard g={g} act={act} />}
       {sub === 'promises' && (<>
       <PromisesCard g={g} />
       <Card className="p-4">
@@ -8218,6 +8683,7 @@ function ElectionNight({ g, onFinish, onDeals }) {
             <p className="font-semibold mt-2">{tt(`You got ${fmtPct(E.natShares[me])} of the national vote${E.natShares[me] < 5 ? ' (under 5%, so no list seats)' : ''} and ${E.seats[me]} seats.`, `Gavote ${fmtPct(E.natShares[me])} balsų${E.natShares[me] < 5 ? ' (mažiau nei 5 %, todėl sąrašo vietų nėra)' : ''} ir ${E.seats[me]} ${seatsWord(E.seats[me])}.`)}{E.seats[me] < MAJORITY ? tt(' Nobody has 71 alone, so it’s time to build a team.', ' Niekas neturi 71 vienas – laikas burti koaliciją.') : ''}</p>
             <div className="mt-3"><SeatTable seats={E.seats} pr={E.pr} smd={E.smdSeats} highlight={me} /></div>
           </Card>
+          <PrefVotesCard g={g} />
           <NewSeimasButton />
           <Btn kind="pale" className="h-12 w-full" onClick={() => setShowAll(!showAll)}>{showAll ? tt('Hide the 71 districts', 'Slėpti 71 apygardą') : tt('Show all 71 local districts', 'Rodyti visas 71 apygardą')}</Btn>
           {showAll && (
@@ -8515,6 +8981,7 @@ function ResultScreen({ g, onRestart }) {
           [tt('Gambling', 'Lošimai'), g.stats.gambles ? `${g.stats.gambleNet >= 0 ? '+' : '−'}${fmtEur(Math.abs(g.stats.gambleNet))}` : tt('Stayed clean', 'Nelošta')],
         ].map(([l, v]) => <div key={l} className="cx-card p-3" style={{ boxShadow: SHADOW }}><div className="text-xs font-extrabold t-muted">{l}</div><div className="cx-num text-2xl">{v}</div></div>)}
       </div>
+      <GovSummary g={g} />
       <div className="mt-4 lg:col-span-2"><NewSeimasButton /></div>
       <Chronicle g={g} />
       <Card className="mt-4 p-4"><CardTitle>{tt('Final Seimas', 'Naujasis Seimas')}</CardTitle><SeatTable seats={E.seats} pr={E.pr} smd={E.smdSeats} highlight={me} /></Card>
@@ -8727,12 +9194,14 @@ export default function SeimasGame({ hotData } = {}) {
           if (!V.passed) g.result = { kind: 'failed', members: V.members };
           else if (V.members.length === 1) g.result = { kind: 'majority' };
           else g.result = { kind: 'pm', partners: V.members.slice(1), stability: V.stability, cabinet: cabinet(g, V.members.slice(1)) };
-          g.phase = 'result';
+          if (V.passed) { g.gov = initGov(g, V.members, V.members.length === 1 ? 85 : V.stability); g.phase = 'gov'; } else g.phase = 'result';
           try { window.scrollTo({ top: 0 }); } catch (e) { /* ignore */ }
           return null;
         })}
       />
     );
+  } else if (game.phase === 'gov' && game.gov) {
+    body = <GovScreen g={game} act={act} onFinish={() => act((g) => { if (g.result.kind === 'pm') g.result.stability = Math.round(g.gov.stability); g.phase = 'result'; try { window.scrollTo({ top: 0 }); } catch (e) { /* ignore */ } return null; })} />;
   } else {
     body = <ResultScreen g={game} onRestart={restart} />;
   }

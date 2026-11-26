@@ -29,6 +29,28 @@ A political-drama strategy game about the **2028 Lithuanian Seimas election**, p
   - **Current Seimas** (Polls › Seats, or the finder): all 141 real members elected in 2024, by party, with district or list position.
   - **New Seimas** (election night and the final screen): all 141 members after your election. District winners are your game's candidates. List seats go to the party leader, then the party's real 2024 list members, then fictional names.
 
+## Party list, district debates and governing
+
+- **Party list (HQ › List).** Order your national list until week 4, when you register it with the VRK; otherwise it is registered automatically in its default order. The pool is:
+  - your leader;
+  - your party's real 2024 list members;
+  - your district candidates, by fame.
+
+  Live scores show the top 10's fame, how many women it has, how many regions it covers and how many experienced members it includes. When you register:
+  - a famous top 10 adds buzz;
+  - four or more women please teachers, doctors and young voters;
+  - every region in the top 10 gets a small boost;
+  - experienced members add credibility;
+  - dropping sitting MPs from the top 15 costs party unity.
+- **Preference votes.** On election night your list is reordered by preference votes, plus a small bonus for list position. A card shows who moved up or down and who takes your list seats. The new Seimas uses this order.
+- **Local TV debates.** On any district card you can send your candidate into a one-on-one debate with the strongest rival (1 energy, once per district). There are two local questions, chosen from the region's issues: roads, clinics, jobs, emigration, housing, milk prices, buses and civil defence. Your candidate's charisma counts. Winning adds recognition, local ties and a small regional boost.
+- **The first 100 days.** If you form a government:
+  - **Swear in a cabinet** for all 14 ministries, with each ministry going to a coalition party. Choose between party colleagues and outside experts. Experts are often more competent but annoy partners. Competence scores are game estimates, and real MPs get a neutral 65.
+  - **Take six bills through the Seimas:** Budget 2029, defence at 4% of GDP, a €1,300 minimum wage, a civil partnership law, offshore wind and a progressive income tax. Each party votes according to its positions; you see the expected count first.
+  - **For each bill,** put it to a vote, amend it (more votes, half the effect) or withdraw it. Passing bills moves your approval. Forcing partners against their positions, or losing the budget, costs stability.
+
+  Your final stability decides the Prime Minister grade, and the result screen shows a 100-day summary.
+
 ## Finding things
 
 - **Where is it?** The magnifier button in the top bar ("Where is it?" on desktop) lists everything you can do, grouped by section, with a search box. Matching ignores Lithuanian accents, so "kazino" and "pazadai" both work. Tapping an entry jumps straight to that action or opens it.
