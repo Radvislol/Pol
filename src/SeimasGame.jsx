@@ -9,6 +9,7 @@
  */
 import React, { useState, useEffect, useMemo, useRef, useId } from 'react';
 import { createPortal } from 'react-dom';
+import { PHOTOS } from './portraits.js';
 import {
   Map as MapIcon, BarChart3, Building2, Newspaper, ChevronRight, ChevronDown, X, Zap, Wallet,
   Megaphone, Smartphone, Radio, DoorOpen, Swords, Users, Shield, Home, HeartPulse, Truck,
@@ -346,6 +347,13 @@ const PARTIES = {
   },
 };
 const partyShort = (p) => (p === 'KITI' ? tt('Others', 'Kiti') : PARTIES[p].short);
+const PARTY_EN = {
+  LSDP: 'Social Democratic Party of Lithuania', TS: 'Homeland Union – Lithuanian Christian Democrats', NA: 'Dawn of Nemunas', DSVL: 'Union of Democrats “For Lithuania”',
+  LS: 'Liberal Movement', LVZS: 'Lithuanian Farmers and Greens Union', LP: 'Freedom Party', LLRA: 'Electoral Action of Poles in Lithuania – Christian Families Alliance',
+  DP: 'Labour Party', LIT: 'Freedom and Justice', KS: 'Christian Union', LZP: 'Lithuanian Green Party', KITI: 'Small parties and independents',
+};
+// Full official party name, for places with enough room.
+const partyName = (p) => (LANG === 'lt' ? (PARTIES[p] || PARTIES.KITI).full : PARTY_EN[p] || PARTY_EN.KITI);
 const leaderSurname = (p) => {
   const n = PARTIES[p].leader;
   return n ? n.split(' ').slice(-1)[0] : '';
@@ -3277,7 +3285,7 @@ function CardTitle({ children, sub, right, info }) {
   );
 }
 function PartyDot({ p, size = 14 }) {
-  return <span className="inline-block rounded-full shrink-0" style={{ width: size, height: size, background: PARTIES[p].color, boxShadow: '0 0 0 1.5px rgba(255,255,255,.55)' }} />;
+  return <span className="inline-block rounded-full shrink-0" title={partyName(p)} style={{ width: size, height: size, background: (PARTIES[p] || PARTIES.KITI).color, boxShadow: '0 0 0 1.5px rgba(255,255,255,.55)' }} />;
 }
 function PartyEmblem({ p, size = 48, label }) {
   const P = PARTIES[p];
@@ -3303,7 +3311,7 @@ function PartyEmblem({ p, size = 48, label }) {
   );
 }
 function PartyChip({ p, children }) {
-  return <span className="cx-chip px-2 py-0.5 text-sm"><PartyDot p={p} size={12} />{partyShort(p)}{children}</span>;
+  return <span className="cx-chip px-2 py-0.5 text-sm" title={partyName(p)}><PartyDot p={p} size={12} />{partyShort(p)}{children}</span>;
 }
 function Bar({ value, max = 100, color = SUN, mark, h = 14 }) {
   return (
@@ -3318,7 +3326,7 @@ function Delta({ v, d = 1, pct }) {
   return <span style={{ color: v > 0 ? GREEN : RED }}>{v > 0 ? '▲' : '▼'}{pct ? fmtPct(Math.abs(v), d) : nf(Math.abs(v), d)}</span>;
 }
 /* ============================================================
-   Cartoon portraits. Original drawings: stylised avatars, not photos or likenesses.
+   Portraits. Five party leaders use supplied photos (src/portraits.js); everyone else is an original cartoon drawing.
    ============================================================ */
 const SKIN = ['#FBD9BE', '#F4C29F', '#E5A77D', '#C68B63'];
 const LOOKS = {
@@ -3386,7 +3394,20 @@ const HAIR_FRONT = {
   bob: 'M18.8 30 C18.6 21 25 16.8 32 16.8 C39 16.8 45.4 21 45.2 30 C44 26.2 42 24.6 40 24.6 L24 24.6 C22 24.6 20 26.2 18.8 30 Z',
   bun: 'M18.8 30 C18.6 21 25 17 32 17 C39 17 45.4 21 45.2 30 C42 25.4 37.6 23.4 32 23.4 C26.4 23.4 22 25.4 18.8 30 Z',
 };
+function PhotoArt({ who, ring, uid, shape }) {
+  const P = PARTIES[who];
+  const clip = shape === 'circle' ? <circle cx="32" cy="32" r="29.5" /> : shape === 'sq' ? <rect x="2" y="2" width="60" height="60" rx="9" /> : <rect x="0" y="0" width="64" height="64" />;
+  return (
+    <>
+      <defs><clipPath id={`ph${uid}`}>{clip}</clipPath></defs>
+      <image href={PHOTOS[who]} x="0" y="0" width="64" height="64" preserveAspectRatio="xMidYMid slice" clipPath={`url(#ph${uid})`} />
+      {shape === 'circle' && <circle cx="32" cy="32" r="29.5" fill="none" stroke={ring || 'rgba(255,255,255,0.6)'} strokeWidth={ring ? 3 : 1.6} />}
+      {shape === 'sq' && <rect x="2" y="2" width="60" height="60" rx="9" fill="none" stroke={ring || (P ? P.color : 'rgba(255,255,255,0.6)')} strokeWidth={ring ? 3 : 2.2} />}
+    </>
+  );
+}
 function FaceArt({ who, mood = 'happy', ring, uid, shape = 'circle' }) {
+  if (PHOTOS[who]) return <PhotoArt who={who} ring={ring} uid={uid} shape={shape} />;
   const P = PARTIES[who];
   const lk = LOOKS[who] || LOOKS.KITI;
   const acc = lk.acc || (P ? P.color : SUN);
@@ -4186,16 +4207,20 @@ function Hemicycle({ seats, highlight, dim, label = '', showCount = true }) {
     </svg>
   );
 }
-function PollBars({ shares, highlight, threshold, deltas, minShow = 0 }) {
+function PollBars({ shares, highlight, threshold, deltas, minShow = 0, full }) {
   const ids = ALL_IDS.filter((p) => p === highlight || p === 'KITI' || shares[p] >= minShow)
     .sort((a, b) => (a === 'KITI' ? 1 : 0) - (b === 'KITI' ? 1 : 0) || shares[b] - shares[a]);
   const max = Math.max(30, ...ids.map((p) => shares[p]));
   const cols = deltas ? '84px 1fr 52px 50px' : '84px 1fr 56px';
+  const colsCls = full ? (deltas ? 'grid-cols-[84px_1fr_52px_50px] lg:grid-cols-[190px_1fr_52px_50px]' : 'grid-cols-[84px_1fr_56px] lg:grid-cols-[190px_1fr_56px]') : '';
   return (
     <div className="flex flex-col gap-2">
       {ids.map((p) => (
-        <div key={p} className="grid items-center gap-2" style={{ gridTemplateColumns: cols }}>
-          <span className={`text-sm truncate inline-flex items-center gap-1.5 ${p === highlight ? 'font-black' : 'font-bold'}`}><PartyDot p={p} size={11} />{partyShort(p)}</span>
+        <div key={p} className={`grid items-center gap-2 ${colsCls}`} style={full ? undefined : { gridTemplateColumns: cols }} title={partyName(p)}>
+          <span className="min-w-0">
+            <span className={`text-sm truncate flex items-center gap-1.5 ${p === highlight ? 'font-black' : 'font-bold'}`}><PartyDot p={p} size={11} />{partyShort(p)}</span>
+            {full && <span className="hidden lg:block text-[10.5px] font-semibold t-muted truncate leading-tight pl-[17px]">{partyName(p)}</span>}
+          </span>
           <div className="cx-track relative" style={{ height: 16 }}>
             <div className="h-full" style={{ width: `${(shares[p] / max) * 100}%`, background: PARTIES[p].color, borderRight: `1px solid ${LINE}` }} />
             {threshold && <div className="absolute top-0 bottom-0" style={{ left: `${(5 / max) * 100}%`, borderLeft: `2px dashed ${INK}` }} />}
@@ -4223,7 +4248,7 @@ function SeatTable({ seats, pr, smd, highlight }) {
       <tbody className="cx-num">
         {ids.map((p) => (
           <tr key={p} style={{ borderTop: '2px solid #E3EDF5' }} className={p === highlight ? 'font-black' : ''}>
-            <td className="py-1.5"><span className="inline-flex items-center gap-2" style={{ fontFamily: F_BODY, fontWeight: 800 }}><PartyDot p={p} size={11} />{partyShort(p)}</span></td>
+            <td className="py-1.5"><span className="inline-flex items-center gap-2 min-w-0" style={{ fontFamily: F_BODY, fontWeight: 800 }} title={partyName(p)}><PartyDot p={p} size={11} />{partyShort(p)}<span className="hidden sm:inline text-xs font-semibold t-muted truncate" style={{ maxWidth: 260 }}>{partyName(p)}</span></span></td>
             <td className="text-right">{pr[p] || 0}</td>
             <td className="text-right">{smd[p] || 0}</td>
             <td className="text-right">{seats[p]}</td>
@@ -4807,6 +4832,7 @@ function DesktopHud({ g, proj, onHelp, lang, setLang, onEnd, glowEnd, onFind }) 
           <Portrait who={g.player} size={64} square badge />
           <div className="min-w-0">
             <div className="cx-title text-xl leading-none whitespace-nowrap">{P.leader} <span className="t-muted">({P.short})</span></div>
+            <div className="text-[11px] font-semibold t-muted truncate mt-0.5" style={{ maxWidth: 320 }}>{partyName(g.player)}</div>
             <div className="flex items-center gap-1.5 mt-2"><HudPills g={g} seats={seats} /></div>
           </div>
         </div>
@@ -5080,7 +5106,8 @@ function RivalsCard({ g, nat }) {
             <button type="button" key={q} onClick={() => { setOpen(q); SFX.play('tap'); }} aria-label={tt(`${partyShort(q)} dossier`, `${partyShort(q)} dosjė`)} className="cx-tap w-full text-left flex items-center gap-3 py-2" style={{ borderTop: `1px solid ${LINE}` }}>
               <Portrait who={q} size={42} square mood={hits ? 'grr' : mom > 0.5 ? 'grin' : 'ok'} />
               <div className="min-w-0 flex-1">
-                <div className="flex items-baseline gap-2"><span className="cx-title text-lg leading-none">{partyShort(q)}</span><span className="cx-num">{fmtPct(nat[q])}</span><span className="text-xs"><Delta v={nat[q] - prev[q]} pct /></span></div>
+                <div className="flex items-baseline gap-2"><span className="cx-title text-lg leading-none whitespace-nowrap">{partyShort(q)}</span><span className="cx-num">{fmtPct(nat[q])}</span><span className="text-xs"><Delta v={nat[q] - prev[q]} pct /></span></div>
+                <div className="text-[11px] font-semibold t-muted truncate">{partyName(q)}</div>
                 <div className="text-xs t-muted truncate mt-0.5">{mv && mv.list.length ? mv.list.map((x) => `${moveWord(x, me)} – ${rs(x.rid)}`).join(' · ') : tt('Quiet week', 'Rami savaitė')}</div>
               </div>
               <div className="text-right shrink-0">
@@ -5764,7 +5791,7 @@ function PollsTab({ g, nat, proj, sub = 'seats', setSub = () => {} }) {
       {sub === 'polls' && (<>
       <Card className="p-4">
         <CardTitle sub={tt('Arrows show the change since last week’s poll', 'Rodyklės – pokytis nuo praėjusios savaitės apklausos')}>{tt('Who’s ahead nationally', 'Kas pirmauja šalyje')}</CardTitle>
-        <PollBars shares={nat} highlight={p} threshold deltas={deltas} />
+        <PollBars shares={nat} highlight={p} threshold deltas={deltas} full />
         {last.pol != null && <div className="text-xs font-bold t-muted mt-2">{tt('Last published poll:', 'Paskutinė paskelbta apklausa:')} {POLLSTERS[last.pol].name}, n={POLLSTERS[last.pol].n}, {tt('margin of error', 'paklaida')} ±{nf(moe(last.shares[p], POLLSTERS[last.pol].n))} {tt('pts for you', 'proc. p. jums')}. {tt('Pollsters are fictional and each leans a little.', 'Apklausų bendrovės išgalvotos, kiekviena šiek tiek „kreivoja“.')}</div>}
       </Card>
       <Card className="p-4"><CardTitle sub={tt('Weekly published polls. LRT = debate weeks.', 'Savaitinės apklausos. LRT – debatų savaitės.')}>{tt('Week by week', 'Savaitė po savaitės')}</CardTitle><TrendChart history={g.history} player={p} /></Card>
@@ -5790,7 +5817,7 @@ function PollsTab({ g, nat, proj, sub = 'seats', setSub = () => {} }) {
       <RivalsCard g={g} nat={nat} />
       <Card className="p-4">
         <CardTitle sub={tt('Arrows show the change since last week’s poll', 'Rodyklės – pokytis nuo praėjusios savaitės apklausos')}>{tt('Who’s ahead nationally', 'Kas pirmauja šalyje')}</CardTitle>
-        <PollBars shares={nat} highlight={p} threshold deltas={deltas} />
+        <PollBars shares={nat} highlight={p} threshold deltas={deltas} full />
         {last.pol != null && <div className="text-xs font-bold t-muted mt-2">{tt('Last published poll:', 'Paskutinė paskelbta apklausa:')} {POLLSTERS[last.pol].name}, n={POLLSTERS[last.pol].n}, {tt('margin of error', 'paklaida')} ±{nf(moe(last.shares[p], POLLSTERS[last.pol].n))} {tt('pts for you', 'proc. p. jums')}. {tt('Pollsters are fictional and each leans a little.', 'Apklausų bendrovės išgalvotos, kiekviena šiek tiek „kreivoja“.')}</div>}
       </Card>
       </>)}
@@ -6104,7 +6131,7 @@ function RivalSheet({ g, q, onClose }) {
       </div>
       <div style={GUTTER} className="pt-14 flex flex-col gap-4">
         <div>
-          <div className="font-black">{P.full}</div>
+          <div className="font-black">{partyName(q)}{LANG !== 'lt' ? <span className="t-muted font-semibold"> · {P.full}</span> : null}</div>
           <div className="text-sm t-muted font-semibold mt-0.5">{L(P.ideology)} · {L(P.blurb)}</div>
         </div>
         <div className="grid grid-cols-3 gap-2">
@@ -6788,7 +6815,7 @@ function CandidateSheet({ g, cid, p, onClose, onBack }) {
       </div>
       <div style={GUTTER} className="pt-14 flex flex-col gap-4">
         <div className="flex flex-wrap gap-1.5">
-          <span className="cx-chip px-2.5 py-1 text-sm" style={{ background: tint(P.color, 0.3), borderColor: P.color }}><PartyDot p={p} size={10} />{partyLabel(c)}</span>
+          <span className="cx-chip px-2.5 py-1 text-sm" style={{ background: tint(P.color, 0.3), borderColor: P.color }}><PartyDot p={p} size={10} />{partyLabel(c)}{p !== 'KITI' ? <span className="font-semibold opacity-80"> · {partyName(p)}</span> : null}</span>
           {c.real && <span className="cx-chip px-2.5 py-1 text-sm" style={{ color: SUN }}><Landmark size={14} />{tt('Real Seimas member (2024–2028)', c.fem ? 'Tikra Seimo narė (2024–2028)' : 'Tikras Seimo narys (2024–2028)')}</span>}
           {c.leader && <span className="cx-chip px-2.5 py-1 text-sm"><Crown size={14} />{tt('Party leader', c.fem ? 'Partijos pirmininkė' : 'Partijos pirmininkas')}</span>}
           {!c.real && <span className="cx-chip px-2.5 py-1 text-sm t-muted"><Sparkles size={14} />{tt('Fictional candidate', c.fem ? 'Išgalvota kandidatė' : 'Išgalvotas kandidatas')}</span>}
@@ -6873,7 +6900,7 @@ function MembersSheet({ g, kind, onClose }) {
         </label>
         {order.map((p) => (
           <div key={p}>
-            <div className="flex items-center gap-2 mb-1.5"><PartyDot p={p} size={12} /><span className="cx-title text-lg">{p === 'KITI' ? tt('Others & independents', 'Kiti ir nepriklausomi') : partyShort(p)}</span><span className="cx-num t-muted">{byParty[p].length}</span></div>
+            <div className="flex items-center gap-2 mb-1.5"><PartyDot p={p} size={12} /><span className="cx-title text-lg">{p === 'KITI' ? tt('Others & independents', 'Kiti ir nepriklausomi') : partyShort(p)}</span><span className="cx-num t-muted">{byParty[p].length}</span>{p !== 'KITI' && <span className="text-xs font-semibold t-muted truncate">{partyName(p)}</span>}</div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
               {byParty[p].map((m, i) => {
                 const clickable = m.how === 'smd' && m.cid && candOf(g, m.cid, m.p);
@@ -8920,7 +8947,7 @@ function HelpSheet({ onClose }) {
     [Gavel, tt('VRK spending limit', 'VRK išlaidų limitas'), tt(`The electoral commission lets you spend ${fmtEur(VRK_LIMIT)} in total. Spend more and you are fined.`, `Rinkimų komisija leidžia išleisti iš viso ${fmtEur(VRK_LIMIT)}. Išleidus daugiau – bauda.`)],
     [Dices, tt('Risky money', 'Rizikingi pinigai'), tt('The casino and sports bets can refill your budget fast, but you usually lose, and every bet can leak to the press.', 'Kazino ir lažybos gali greitai papildyti biudžetą, bet dažniausiai pralošiate, o kiekvienas statymas gali nutekėti žiniasklaidai.')],
     [Lightbulb, tt('Thinking tips', 'Kaip mąstyti'), tt('Close races (stripes) swing the most seats. Big regions matter for the national vote too. Watch your money, the VRK limit and scandal risk, and keep potential partners happy with your promises.', 'Lygios kovos (juostos) nulemia daugiausia mandatų. Dideli regionai svarbūs ir bendram balsų skaičiui. Stebėkite pinigus, VRK limitą ir skandalo riziką, o pažadais neatstumkite būsimų partnerių.')],
-    [Info, tt('About this game', 'Apie žaidimą'), tt('A fictional simulation of the 2028 Seimas election. Real parties and leaders appear for context; every event, quote and result is invented. Party emblems are original designs, not official logos.', 'Išgalvota 2028 m. Seimo rinkimų simuliacija. Tikros partijos ir lyderiai naudojami tik kontekstui; visi įvykiai, citatos ir rezultatai išgalvoti. Partijų ženkliukai sukurti žaidimui, tai ne oficialūs logotipai.')],
+    [Info, tt('About this game', 'Apie žaidimą'), tt('A fictional simulation of the 2028 Seimas election. Real parties and leaders appear for context; every event, quote and result is invented. Party emblems are original designs, not official logos. Five leaders are shown with photos; all other portraits are drawings.', 'Išgalvota 2028 m. Seimo rinkimų simuliacija. Tikros partijos ir lyderiai naudojami tik kontekstui; visi įvykiai, citatos ir rezultatai išgalvoti. Partijų ženkliukai sukurti žaidimui, tai ne oficialūs logotipai. Penki lyderiai rodomi nuotraukose, kiti portretai – piešti.')],
   ];
   const more = [
     [Landmark, tt('71 districts & candidates', '71 apygarda ir kandidatai'), tt('Each district has named candidates. Real 2024 winners run again; challengers are fictional. A candidate’s recognition, charisma and local ties change the local result. Find them in Map › Districts.', 'Kiekvienoje apygardoje – konkretūs kandidatai. 2024 m. laimėtojai kandidatuoja vėl, varžovai – išgalvoti. Kandidato žinomumas, charizma ir vietos ryšiai keičia rezultatą apygardoje. Ieškokite: Žemėlapis › Apygardos.')],
@@ -9011,7 +9038,7 @@ function TitleScreen({ saved, onNew, onContinue, lang, setLang }) {
           <div className="flex gap-2.5 overflow-x-auto cx-layers pb-2">{PARTY_IDS.map((p) => <CandidateCard key={p} p={p} w={92} />)}</div>
           {ach && <AchievementsSheet onClose={() => setAch(false)} />}
           {career && <CareerSheet onClose={() => setCareer(false)} />}
-          <p className="text-xs t-muted mt-3 max-w-3xl leading-relaxed">{tt('A fictional simulation. Real parties and leaders appear for context; all events, quotes and results are invented. Emblems are not official logos and portraits are drawings, not photos.', 'Išgalvota simuliacija. Tikros partijos ir lyderiai naudojami kontekstui; visi įvykiai, citatos ir rezultatai išgalvoti. Ženkliukai – ne oficialūs logotipai, portretai – piešti, ne nuotraukos.')}</p>
+          <p className="text-xs t-muted mt-3 max-w-3xl leading-relaxed">{tt('A fictional simulation. Real parties and leaders appear for context; all events, quotes and results are invented. Emblems are not official logos. Five party leaders are shown with photos; everyone else is drawn.', 'Išgalvota simuliacija. Tikros partijos ir lyderiai naudojami kontekstui; visi įvykiai, citatos ir rezultatai išgalvoti. Ženkliukai – ne oficialūs logotipai. Penki partijų lyderiai rodomi nuotraukose, kiti – piešti.')}</p>
         </div>
       </div>
     </div>
@@ -9100,6 +9127,7 @@ function PartySelect({ onPick, onBack }) {
                 <div className="flex items-center gap-3 px-5 py-3" style={{ background: `linear-gradient(90deg, ${P.color}, ${mixHex(P.color, '#000000', 0.45)})` }}>
                   <Handshake size={26} color="#fff" />
                   <div className="cx-title text-3xl leading-none text-white">{P.leader} <span style={{ color: 'rgba(255,255,255,.75)' }}>({P.short})</span></div>
+                  <div className="text-sm font-semibold mt-1" style={{ color: 'rgba(255,255,255,.85)' }}>{partyName(P.id)}</div>
                 </div>
                 <div className="p-5 flex flex-col gap-3">
                   <PartyStats p={sel} startNat={startNat} />
@@ -9126,7 +9154,7 @@ function PartySelect({ onPick, onBack }) {
             ))}
             <div className="grid grid-cols-2 gap-3 items-start"><RutaSwitch helper={helper} setHelper={setHelper} /><SettingsCard diff={diff} setDiff={setDiff} scen={scen} setScen={setScen} /></div>
             {startBtn}
-            <p className="text-xs t-muted">{tt('Starting polls roughly follow late-2026 averages. Portraits are drawings, not photos.', 'Pradiniai reitingai apytiksliai atitinka 2026 m. pabaigos vidurkius. Portretai – piešti, ne nuotraukos.')}</p>
+            <p className="text-xs t-muted">{tt('Starting polls roughly follow late-2026 averages. Five leaders have photos; the rest are drawn.', 'Pradiniai reitingai apytiksliai atitinka 2026 m. pabaigos vidurkius. Penki lyderiai – nuotraukose, kiti – piešti.')}</p>
           </div>
         </div>
       </div>
@@ -9155,6 +9183,7 @@ function PartySelect({ onPick, onBack }) {
                         <span className="text-xs font-semibold t-muted truncate hidden min-[400px]:inline">{L(P.ideology)}</span>
                       </div>
                       <div className="text-sm font-semibold mt-0.5 truncate" style={{ color: '#D5DBE5' }}>{P.leader}</div>
+                      <div className="text-[11px] font-semibold truncate" style={{ color: 'rgba(213,219,229,.75)' }}>{partyName(P.id)}</div>
                       <div className="mt-1.5"><PartyStats p={p} startNat={startNat} /></div>
                     </div>
                   </div>
@@ -9171,7 +9200,7 @@ function PartySelect({ onPick, onBack }) {
           </React.Fragment>
         ))}
       </div>
-      <p className="text-xs t-muted mt-4">{tt('Starting polls roughly follow late-2026 averages. Portraits are drawings, not photos.', 'Pradiniai reitingai apytiksliai atitinka 2026 m. pabaigos vidurkius. Portretai – piešti, ne nuotraukos.')}</p>
+      <p className="text-xs t-muted mt-4">{tt('Starting polls roughly follow late-2026 averages. Five leaders have photos; the rest are drawn.', 'Pradiniai reitingai apytiksliai atitinka 2026 m. pabaigos vidurkius. Penki lyderiai – nuotraukose, kiti – piešti.')}</p>
       <div className="mt-4 flex flex-col gap-3"><RutaSwitch helper={helper} setHelper={setHelper} /><SettingsCard diff={diff} setDiff={setDiff} scen={scen} setScen={setScen} /></div>
       <div className="fixed bottom-0 inset-x-0 z-20" style={{ background: 'rgba(8,10,15,.96)', borderTop: `1px solid ${LINE}`, paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 14px)', backdropFilter: 'blur(8px)' }}>
         <div className="max-w-lg mx-auto pt-3" style={GUTTER}>{startBtn}</div>
@@ -9389,7 +9418,7 @@ function ElectionNight({ g, onFinish, onDeals }) {
       </Card>
       <Card className="mt-4 p-4">
         <CardTitle sub={tt('Shares out 70 seats. Under 5% gets nothing.', 'Paskirsto 70 vietų. Mažiau nei 5 % – nieko.')}>{tt('National vote', 'Daugiamandatė apygarda')}</CardTitle>
-        <PollBars shares={live.shares} highlight={me} threshold />
+        <PollBars shares={live.shares} highlight={me} threshold full />
       </Card>
       {stage === 'r1' && (
         <Card className="mt-4 p-4 sbl-pop cx-cream">
@@ -9520,7 +9549,7 @@ function CoalitionTalks({ g, act }) {
                 <Portrait who={p} size={56} badge mood={w >= 65 ? 'grin' : w >= 50 ? 'happy' : w >= 35 ? 'ok' : 'grr'} />
                 <div className="min-w-0 flex-1">
                   <div className="cx-title text-lg leading-tight truncate">{p === 'KITI' ? tt('Independents', 'Nepriklausomi') : P.short} <span className="cx-num text-base t-muted">· {S[p]}</span></div>
-                  {P.leader && <div className="text-xs font-bold t-muted truncate">{P.leader}</div>}
+                  <div className="text-xs font-bold t-muted truncate">{p === 'KITI' ? partyName(p) : `${P.leader} · ${partyName(p)}`}</div>
                   <div className="inline-flex items-center gap-1.5 text-sm font-extrabold"><Mood w={w} size={18} />{mood}</div>
                 </div>
                 <Btn kind={inC ? 'white' : 'sun'} className="h-11 px-4 text-sm shrink-0" onClick={() => toggle(p)}>{inC ? tt('Remove', 'Pašalinti') : tt('Invite', 'Kviesti')}</Btn>
