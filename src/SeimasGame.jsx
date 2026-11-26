@@ -16,6 +16,7 @@ import {
   Languages, PiggyBank, Trophy, Music, Mail, SkipForward, Check, Tv, Target, Briefcase, Play, Sparkles,
   ShieldAlert, Siren, Flag, Star, Smile, Meh, Frown, Lightbulb, Medal, Landmark, Heart, Sprout,
   Wheat, LockOpen, Rocket, Hammer, Church, Bus, MessageCircle, ShieldCheck, TrendingUp, Route, Layers, Clock, Dices, Search, Cloud, CloudRain, Sun, Gavel, Ticket, Eye,
+  ThumbsUp, ThumbsDown, Volume2, VolumeX,
 } from 'lucide-react';
 
 /* ============================================================
@@ -167,8 +168,33 @@ const GLOBAL_CSS = `
 .cx-travel { transition: transform .9s cubic-bezier(.5,0,.3,1) }
 .cx-dash { stroke-dasharray: 10 9; animation: cx-dash 1.2s linear infinite }
 .cx-layers { scrollbar-width: none } .cx-layers::-webkit-scrollbar { display: none }
+@keyframes cx-kb { 0% { transform: scale(1) translate(0, 0) } 100% { transform: scale(1.12) translate(-2%, -1.5%) } }
+@keyframes cx-beam { 0%, 100% { transform: rotate(-9deg); opacity: .55 } 50% { transform: rotate(9deg); opacity: 1 } }
+@keyframes cx-rise { 0% { transform: translateY(0) scale(.6); opacity: 0 } 15% { opacity: 1 } 100% { transform: translateY(-55vh) scale(1.15); opacity: 0 } }
+@keyframes cx-slam { 0% { transform: scale(2.4); opacity: 0; filter: blur(8px) } 60% { transform: scale(.96); opacity: 1; filter: none } 100% { transform: scale(1) } }
+@keyframes cx-wipe { from { transform: scaleX(0) } to { transform: scaleX(1) } }
+@keyframes cx-chyron { from { transform: translateY(26px); opacity: 0 } to { transform: none; opacity: 1 } }
+@keyframes cx-caret { 0%, 100% { opacity: 1 } 50% { opacity: 0 } }
+@keyframes cx-float { 0% { transform: translateY(8px); opacity: 0 } 15% { transform: translateY(0); opacity: 1 } 75% { opacity: 1 } 100% { transform: translateY(-70px); opacity: 0 } }
+@keyframes cx-ripple { 0% { transform: scale(.6); opacity: .9 } 100% { transform: scale(3); opacity: 0 } }
+@keyframes cx-tabin { from { transform: translateY(10px); opacity: 0 } to { transform: none; opacity: 1 } }
+@keyframes cx-flashbulb { 0%, 100% { opacity: 0 } 50% { opacity: .9 } }
+.cx-kb { animation: cx-kb 22s ease-in-out infinite alternate; transform-origin: 50% 60%; }
+.cx-beam { animation: cx-beam 7s ease-in-out infinite; transform-origin: 50% 0; mix-blend-mode: screen; }
+.cx-rise { animation: cx-rise 2.2s ease-out both; }
+.cx-slam { animation: cx-slam .7s cubic-bezier(.2,.9,.25,1) both; }
+.cx-wipe { animation: cx-wipe .6s .45s cubic-bezier(.2,.8,.2,1) both; transform-origin: left; }
+.cx-chyron { animation: cx-chyron .35s cubic-bezier(.2,.9,.3,1.1) both; }
+.cx-caret { animation: cx-caret .8s steps(1) infinite; }
+.cx-pop-in { animation: cx-pop .45s cubic-bezier(.2,.9,.3,1.3) both; }
+.cx-float { animation: cx-float 2.1s ease-out forwards; transform-box: fill-box; }
+.cx-ripple { animation: cx-ripple 1.1s ease-out 2 forwards; transform-box: fill-box; transform-origin: center; }
+.cx-tabin { animation: cx-tabin .32s ease both; }
+.cx-weekintro { animation: cx-fade .25s ease both; }
+.cx-flashbulb { position: absolute; border-radius: 999px; background: radial-gradient(circle, #fff, rgba(255,255,255,0) 70%); animation: cx-flashbulb .5s ease-out both; pointer-events: none; }
 @media (prefers-reduced-motion: reduce) {
-  .sbl-sheet, .sbl-fade, .sbl-pop, .sbl-toast, .sbl-blink, .cx-bob, .cx-glow, .cx-shake, .cx-ping, .cx-pop-svg, .cx-dash { animation: none !important }
+  .sbl-sheet, .sbl-fade, .sbl-pop, .sbl-toast, .sbl-blink, .cx-bob, .cx-glow, .cx-shake, .cx-ping, .cx-pop-svg, .cx-dash, .cx-kb, .cx-beam, .cx-slam, .cx-wipe, .cx-chyron, .cx-caret, .cx-pop-in, .cx-tabin, .cx-weekintro { animation: none !important }
+  .cx-rise, .cx-float, .cx-ripple, .cx-flashbulb { display: none }
   .cx-travel { transition: none }
   .cx-ticker { animation: none; padding-left: 0; }
   .cx-confetti { display: none; }
@@ -3679,12 +3705,12 @@ function SceneArt({ kind, uid, parties }) {
     </g>
   );
 }
-function Scene({ kind, h = 128, caption = true, className = '', parties, children, flush }) {
+function Scene({ kind, h = 128, caption = true, className = '', parties, children, flush, kb }) {
   const uid = useId().replace(/:/g, '');
   const cap = caption && SCENE_CAP[kind] ? L(SCENE_CAP[kind]) : null;
   return (
     <div className={`cx-scene relative overflow-hidden ${className}`} style={{ height: h == null ? undefined : h, border: flush ? 'none' : `1px solid ${LINE2}`, borderRadius: flush ? 0 : 14, background: '#0B0F16', boxShadow: flush ? 'none' : SHADOW }}>
-      <svg viewBox="0 0 360 140" preserveAspectRatio="xMidYMid slice" width="100%" height="100%" role="img" aria-label={cap || ''} style={{ display: 'block' }}>
+      <svg viewBox="0 0 360 140" preserveAspectRatio="xMidYMid slice" width="100%" height="100%" role="img" aria-label={cap || ''} style={{ display: 'block' }} className={kb ? 'cx-kb' : undefined}>
         <SceneArt kind={kind} uid={uid} parties={parties} />
       </svg>
       <div className="absolute inset-0 pointer-events-none" style={{ background: 'linear-gradient(180deg, rgba(40,60,110,.22), rgba(150,80,30,.14))', mixBlendMode: 'multiply' }} />
@@ -3795,9 +3821,9 @@ function HudPills({ g, seats, big }) {
   return (
     <>
       <StatPill big={big} icon={Zap} iconStyle={{ fill: SUN, color: '#7A4E00' }} label={tt(`${g.ap} of ${g.apMax} energy left`, `Liko ${g.ap} iš ${g.apMax} energijos`)}>{g.ap}<span style={{ color: '#6B7280' }}>/{g.apMax}</span></StatPill>
-      <StatPill big={big} icon={Wallet} iconStyle={{ color: '#15803D' }} label={tt(`Money ${fmtEur(g.money)}`, `Pinigai ${fmtEur(g.money)}`)}>{fmtEurShort(g.money)}</StatPill>
-      <StatPill big={big} icon={Landmark} iconStyle={{ color: '#1D4ED8' }} bg={seats >= MAJORITY ? '#BBF7D0' : undefined} label={tt(`${seats} projected seats, 71 needed`, `Numatoma ${seats} mandatų, reikia 71`)}>{seats}<span style={{ color: '#6B7280' }}>/71</span></StatPill>
-      <StatPill big={big} icon={ShieldCheck} iconStyle={{ color: g.cred >= 60 ? '#15803D' : g.cred >= 40 ? AMBER : RED }} bg={g.cred < 40 ? '#FECACA' : undefined} label={tt(`Reputation ${Math.round(g.cred)} of 100`, `Reputacija ${Math.round(g.cred)} iš 100`)}>{Math.round(g.cred)}</StatPill>
+      <StatPill big={big} icon={Wallet} iconStyle={{ color: '#15803D' }} label={tt(`Money ${fmtEur(g.money)}`, `Pinigai ${fmtEur(g.money)}`)}>{<CountUp to={g.money} fmt={(v) => fmtEurShort(Math.round(v))} />}</StatPill>
+      <StatPill big={big} icon={Landmark} iconStyle={{ color: '#1D4ED8' }} bg={seats >= MAJORITY ? '#BBF7D0' : undefined} label={tt(`${seats} projected seats, 71 needed`, `Numatoma ${seats} mandatų, reikia 71`)}>{<CountUp to={seats} />}<span style={{ color: '#6B7280' }}>/71</span></StatPill>
+      <StatPill big={big} icon={ShieldCheck} iconStyle={{ color: g.cred >= 60 ? '#15803D' : g.cred >= 40 ? AMBER : RED }} bg={g.cred < 40 ? '#FECACA' : undefined} label={tt(`Reputation ${Math.round(g.cred)} of 100`, `Reputacija ${Math.round(g.cred)} iš 100`)}>{<CountUp to={g.cred} />}</StatPill>
     </>
   );
 }
@@ -4120,7 +4146,7 @@ function layerValue(layer, id, ctx) {
   }
 }
 const MOVE_ICON = { rally: Megaphone, digital: Smartphone, tv: Radio, door: DoorOpen, star: Star, attack: Swords, backfire: Swords };
-function CartoonMap({ shares, sel, onSelect, g, proj, layer = 'lead', live }) {
+function CartoonMap({ shares, sel, onSelect, g, proj, layer = 'lead', live, fx }) {
   const key = (id) => (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(id); } };
   const txt = { fill: '#fff', stroke: '#05070B', strokeWidth: 6, paintOrder: 'stroke', strokeLinejoin: 'round', style: { fontFamily: FONT_TITLE }, fontWeight: 700, fontStyle: 'italic' };
   const me = g ? g.player : null;
@@ -4291,6 +4317,19 @@ function CartoonMap({ shares, sel, onSelect, g, proj, layer = 'lead', live }) {
           <Bus x={16} y={14} width={20} height={20} strokeWidth={2.6} color={INK} />
         </g>
       )}
+      {fx && !live && (() => {
+        const [x, y] = anchorOf(fx.rid);
+        const c = fx.who === me ? (fx.d >= 0 ? '#4ADE80' : '#F87171') : '#F87171';
+        return (
+          <g key={fx.n} pointerEvents="none" aria-hidden="true">
+            <circle className="cx-ripple" cx={x} cy={y} r="34" fill="none" stroke={fx.who === me ? c : PARTIES[fx.who].color} strokeWidth="6" />
+            <g className="cx-float">
+              <text x={x} y={y - 44} textAnchor="middle" fontSize="44" {...txt} fill={c}>{fmtSignedPct(fx.d)}</text>
+              {fx.who !== me && <text x={x} y={y - 8} textAnchor="middle" fontSize="24" {...txt}>{partyShort(fx.who)}</text>}
+            </g>
+          </g>
+        );
+      })()}
     </svg>
   );
 }
@@ -4431,7 +4470,7 @@ function RegionDrawer({ g, rid, proj, onClose, onAction, onTravel, tutStep, onSk
     <Wrap onClose={onClose} label={rl(r)}>
       <SheetHead kicker={tt(`${r.seats} ${seatsWord(r.seats)} to win here`, `Čia galima laimėti: ${r.seats} ${seatsWord(r.seats)}`)} title={rl(r)} onClose={onClose} />
       <div className="flex flex-col gap-4 pt-4" style={GUTTER}>
-        <Scene kind={REGION_SCENE[rid] || 'town'} h={112} />
+        <Scene kind={REGION_SCENE[rid] || 'town'} h={112} kb />
         <LeaderCard g={g} r={r} onTravel={onTravel} />
         <RegionIntel g={g} r={r} />
         <div className="cx-soft p-3">
@@ -4533,6 +4572,7 @@ function Header({ g, proj, onHelp, lang, setLang }) {
             <div className="text-xs font-semibold t-muted mt-1 truncate">{fmtDay(weekStartDate(g.week))} · {nextUp(g)}</div>
           </div>
           <LangToggle lang={lang} setLang={setLang} />
+          <SoundToggle size={38} />
           <button type="button" onClick={onHelp} aria-label={tt('How to play', 'Kaip žaisti')} className="cx-btn shrink-0" style={{ width: 38, height: 38, borderRadius: 999, background: 'rgba(255,255,255,.07)' }}><HelpCircle size={19} /></button>
         </div>
         <div className="flex items-center gap-1.5 mt-2">
@@ -4566,6 +4606,7 @@ function DesktopHud({ g, proj, onHelp, lang, setLang, onEnd, glowEnd }) {
         </div>
         <div className="flex items-center gap-2 ml-auto">
           <LangToggle lang={lang} setLang={setLang} />
+          <SoundToggle size={42} />
           <button type="button" onClick={onHelp} aria-label={tt('How to play', 'Kaip žaisti')} className="cx-btn shrink-0" style={{ width: 42, height: 42, borderRadius: 999, background: 'rgba(255,255,255,.07)' }}><HelpCircle size={20} /></button>
           <Btn className={`h-14 px-6 text-xl ${glowEnd ? 'cx-glow' : ''}`} onClick={onEnd}>{last ? <Vote size={22} /> : <Play size={20} style={{ fill: '#1B1204' }} />}{last ? tt('Vote!', 'Balsuoti!') : tt('Next week', 'Kita savaitė')}</Btn>
         </div>
@@ -4845,7 +4886,7 @@ function TourCard({ g, onSelect }) {
   );
 }
 const LAYER_KEY = 'seimas-bfl-layer';
-function MapTab({ g, shares, proj, sel, onSelect, skipTips, wide, act }) {
+function MapTab({ g, shares, proj, sel, onSelect, skipTips, wide, act, fx }) {
   const rows = REGIONS.slice().sort((a, b) => b.seats - a.seats);
   const p = g.player;
   const [layer, setLayer] = useState(() => { try { return window.localStorage.getItem(LAYER_KEY) || 'lead'; } catch (e) { return 'lead'; } });
@@ -4881,7 +4922,7 @@ function MapTab({ g, shares, proj, sel, onSelect, skipTips, wide, act }) {
             return <button key={Ly.id} type="button" role="tab" aria-selected={on} onClick={() => pickLayer(Ly.id)} className="cx-chip shrink-0 px-3 py-1 text-xs" style={{ background: on ? '#F3F4F6' : 'rgba(255,255,255,.06)', color: on ? '#0B0E14' : TEXT, borderColor: on ? '#F3F4F6' : LINE2, minHeight: 32 }}><Icon size={13} strokeWidth={2.6} />{L(Ly.label)}</button>;
           })}
         </div>
-        <div style={{ padding: 6 }}><CartoonMap shares={shares} sel={sel} onSelect={onSelect} g={g} proj={proj} layer={layer} /></div>
+        <div style={{ padding: 6 }}><CartoonMap shares={shares} sel={sel} onSelect={onSelect} g={g} proj={proj} layer={layer} fx={fx} /></div>
         <div style={{ borderTop: `1px solid ${LINE}`, background: 'rgba(7,9,13,.55)' }}><MapLegend layer={layer} g={g} shares={shares} /></div>
       </div>
       {!wide && <TourCard g={g} onSelect={onSelect} />}
@@ -5455,6 +5496,8 @@ function ReportModal({ g, item, onClose }) {
   const upcoming = g.queue.slice(1).map((x) => x.type);
   const attacks = item.moves.flatMap((m) => m.list.filter((x) => x.type === 'attack' && x.target === p).map((x) => ({ p: m.p, rid: x.rid })));
   const riser = PARTY_IDS.filter((q) => q !== p).map((q) => ({ q, d: cur[q] - prev[q] })).sort((a, b) => b.d - a.d)[0];
+  const [intro, setIntro] = useState(true);
+  if (intro) return <WeekIntro g={g} item={item} onDone={() => setIntro(false)} />;
   return (
     <Sheet label={tt(`Week ${item.week} recap`, `${item.week} savaitės apžvalga`)}>
       <div style={GUTTER} className="pt-6 flex flex-col gap-4">
@@ -5528,7 +5571,7 @@ function EventModal({ g, item, onChoose, onClose }) {
   const Icon = ev.icon;
   return (
     <Sheet label={tt('Breaking news', 'Skubi naujiena')}>
-      <Scene kind={ev.scene || 'town'} h={null} caption={false} flush className="h-[230px] lg:h-[310px]">
+      <Scene kind={ev.scene || 'town'} h={null} caption={false} flush kb className="h-[230px] lg:h-[310px]">
         <div className="absolute left-3 top-3 flex items-center gap-1.5">
           <span className={`cx-chip px-3 py-1 text-xs text-white ${done ? '' : 'sbl-blink'}`} style={{ background: '#DC2626', borderColor: 'transparent' }}>{ev.scandal ? tt('SCANDAL!', 'SKANDALAS!') : tt('BREAKING NEWS', 'SKUBI NAUJIENA')}</span>
           <span className="cx-chip px-2.5 py-1 text-xs" style={{ background: 'rgba(7,9,13,.78)' }}><Icon size={13} strokeWidth={2.6} />{L(ev.cat)}</span>
@@ -5570,7 +5613,7 @@ function EncounterModal({ g, item, onChoose, onClose }) {
   const mood = done ? (done.after.share - done.before.share >= 0.01 || (done.after.cred || 0) > (done.before.cred || 0) ? 'happy' : 'grr') : 'ok';
   return (
     <Sheet label={tt('A voter stops you', 'Jus sustabdo rinkėjas')}>
-      <Scene kind={REGION_SCENE[item.rid] || 'town'} h={null} caption={false} flush className="h-[230px] lg:h-[300px]">
+      <Scene kind={REGION_SCENE[item.rid] || 'town'} h={null} caption={false} flush kb className="h-[230px] lg:h-[300px]">
         <span className="absolute left-3 top-3 cx-chip px-2.5 py-1 text-xs" style={{ background: 'rgba(7,9,13,.78)' }}><MessageCircle size={13} />{rl(item.rid)}{G ? ` · ${L(G.name)}` : ''}</span>
         <div className="absolute right-4 bottom-4"><Portrait who={enc.who} size={110} square mood={mood} title={G ? L(G.name) : ''} /></div>
         <div className="absolute left-0 bottom-0 cx-bar px-4 py-3" style={{ maxWidth: '64%', borderTopRightRadius: 10 }}>
@@ -5607,115 +5650,401 @@ function reactionLabel(s) {
   if (s >= 4.6) return [tt('Hmm, a bit flat', 'Hmm, blankoka'), AMBER];
   return [tt('Ouch. That went badly', 'Oi. Nepavyko'), RED];
 }
-function DebateModal({ g, item, onFinish, onClose }) {
+/* ============================================================
+   Immersion: sound effects, typewriter, count-ups, debate broadcast, week intro
+   ============================================================ */
+const REDUCED = () => { try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; } };
+// Tiny synthesised sound effects (no audio files). Muted state is remembered per browser.
+const SFX = (() => {
+  let ctx = null;
+  let on = true;
+  try { on = window.localStorage.getItem('seimas-bfl-sfx') !== '0'; } catch (e) { /* default on */ }
+  const ac = () => {
+    try {
+      if (!ctx) { const C = window.AudioContext || window.webkitAudioContext; if (!C) return null; ctx = new C(); }
+      if (ctx.state === 'suspended') ctx.resume();
+      return ctx;
+    } catch (e) { return null; }
+  };
+  const tone = (c, f, t0, d, type = 'sine', v = 0.06, f2) => {
+    const o = c.createOscillator();
+    const gn = c.createGain();
+    o.type = type;
+    o.frequency.setValueAtTime(f, t0);
+    if (f2) o.frequency.exponentialRampToValueAtTime(f2, t0 + d);
+    gn.gain.setValueAtTime(0.0001, t0);
+    gn.gain.exponentialRampToValueAtTime(v, t0 + 0.015);
+    gn.gain.exponentialRampToValueAtTime(0.0001, t0 + d);
+    o.connect(gn).connect(c.destination);
+    o.start(t0);
+    o.stop(t0 + d + 0.05);
+  };
+  const noise = (c, t0, d, v, freq, q = 0.8, type = 'bandpass') => {
+    const len = Math.floor(c.sampleRate * d);
+    const buf = c.createBuffer(1, len, c.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
+    const src = c.createBufferSource();
+    src.buffer = buf;
+    const f = c.createBiquadFilter();
+    f.type = type; f.frequency.value = freq; f.Q.value = q;
+    const gn = c.createGain();
+    gn.gain.setValueAtTime(0.0001, t0);
+    gn.gain.exponentialRampToValueAtTime(v, t0 + d * 0.2);
+    gn.gain.exponentialRampToValueAtTime(0.0001, t0 + d);
+    src.connect(f).connect(gn).connect(c.destination);
+    src.start(t0);
+    src.stop(t0 + d);
+  };
+  const play = (name) => {
+    if (!on) return;
+    const c = ac();
+    if (!c) return;
+    const t = c.currentTime + 0.01;
+    try {
+      switch (name) {
+        case 'tap': tone(c, 520, t, 0.07, 'triangle', 0.035, 760); break;
+        case 'bad': tone(c, 220, t, 0.2, 'sawtooth', 0.025, 140); break;
+        case 'sting': tone(c, 392, t, 0.16, 'square', 0.03); tone(c, 523, t + 0.14, 0.16, 'square', 0.03); tone(c, 784, t + 0.28, 0.45, 'square', 0.03); break;
+        case 'whoosh': noise(c, t, 0.7, 0.1, 900, 0.6); break;
+        case 'applause': for (let i = 0; i < 5; i++) noise(c, t + i * 0.16, 0.9, 0.07, 2000 + Math.random() * 900, 0.5); break;
+        case 'boo': noise(c, t, 1.1, 0.07, 260, 1.2, 'lowpass'); tone(c, 130, t, 1.0, 'sawtooth', 0.018, 95); break;
+        case 'win': [523, 659, 784, 1046].forEach((f, i) => tone(c, f, t + i * 0.11, 0.38, 'triangle', 0.045)); break;
+        case 'lose': [392, 349, 311].forEach((f, i) => tone(c, f, t + i * 0.16, 0.4, 'triangle', 0.04)); break;
+        case 'pop': tone(c, 880, t, 0.09, 'sine', 0.05, 1320); break;
+        case 'gavel': noise(c, t, 0.12, 0.2, 400, 2, 'lowpass'); noise(c, t + 0.22, 0.12, 0.2, 400, 2, 'lowpass'); break;
+        default: break;
+      }
+    } catch (e) { /* audio unavailable */ }
+  };
+  // Browsers only allow audio after a user gesture: unlock on the first tap.
+  try { window.addEventListener('pointerdown', () => { if (on) ac(); }, { once: true }); } catch (e) { /* no window */ }
+  return { play, isOn: () => on, set: (v) => { on = v; try { window.localStorage.setItem('seimas-bfl-sfx', v ? '1' : '0'); } catch (e) { /* storage unavailable */ } } };
+})();
+function SoundToggle({ size = 38 }) {
+  const [on, setOn] = useState(SFX.isOn());
+  return (
+    <button type="button" onClick={() => { SFX.set(!on); setOn(!on); if (!on) SFX.play('pop'); }} aria-pressed={on} aria-label={on ? tt('Mute sound', 'Išjungti garsą') : tt('Turn sound on', 'Įjungti garsą')} className="cx-btn shrink-0" style={{ width: size, height: size, borderRadius: 999, background: 'rgba(255,255,255,.07)' }}>
+      {on ? <Volume2 size={18} /> : <VolumeX size={18} />}
+    </button>
+  );
+}
+function useTypewriter(text, speed = 18, run = true) {
+  const [st, setSt] = useState(() => ({ text, n: REDUCED() ? text.length : 0 }));
+  const cur = st.text === text ? st.n : (REDUCED() ? text.length : 0);
+  if (st.text !== text) setSt({ text, n: cur });
+  useEffect(() => {
+    if (!run || cur >= text.length) return undefined;
+    const id = setTimeout(() => setSt((s) => (s.text === text ? { text, n: Math.min(text.length, s.n + 2) } : s)), speed);
+    return () => clearTimeout(id);
+  }, [cur, text, run, speed]);
+  return [text.slice(0, cur), cur >= text.length, () => setSt({ text, n: text.length })];
+}
+function CountUp({ to, from, fmt = (v) => String(Math.round(v)), dur = 750 }) {
+  const start = from == null ? to : from;
+  const [v, setV] = useState(start);
+  const last = useRef(start);
+  useEffect(() => {
+    const a = last.current, b = to;
+    if (a === b || REDUCED()) { setV(b); last.current = b; return undefined; }
+    const t0 = performance.now();
+    let raf;
+    const step = (t) => {
+      const k = Math.min(1, (t - t0) / dur);
+      const e = 1 - Math.pow(1 - k, 3);
+      setV(a + (b - a) * e);
+      if (k < 1) raf = requestAnimationFrame(step); else last.current = b;
+    };
+    raf = requestAnimationFrame(step);
+    return () => { cancelAnimationFrame(raf); last.current = b; };
+  }, [to]);
+  return <>{fmt(v)}</>;
+}
+function Worm({ data, w = 240, h = 64 }) {
+  const last = data[data.length - 1];
+  const pts = data.map((v, i) => `${((i / Math.max(1, data.length - 1)) * w).toFixed(1)},${(h - (v / 10) * h).toFixed(1)}`).join(' ');
+  const c = last >= 6 ? '#4ADE80' : last >= 5 ? SUN : '#F87171';
+  return (
+    <svg width="100%" viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" style={{ display: 'block', height: h }} aria-hidden="true">
+      <line x1="0" x2={w} y1={h / 2} y2={h / 2} stroke="rgba(255,255,255,.22)" strokeDasharray="3 5" />
+      <polyline points={`0,${h} ${pts} ${w},${h}`} fill={c} opacity="0.12" />
+      <polyline points={pts} fill="none" stroke={c} strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />
+    </svg>
+  );
+}
+function StageBeams() {
+  return (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
+      {[18, 50, 82].map((x, i) => (
+        <div key={x} className="absolute top-[-10%] cx-beam" style={{ left: `${x - 14}%`, width: '28%', height: '120%', animationDelay: `${i * -2.3}s`, background: 'linear-gradient(180deg, rgba(255,236,190,.20), rgba(255,236,190,0) 85%)', clipPath: 'polygon(44% 0, 56% 0, 100% 100%, 0 100%)' }} />
+      ))}
+    </div>
+  );
+}
+function CrowdBurst({ burst }) {
+  if (!burst) return null;
+  const Icon = burst.good ? ThumbsUp : ThumbsDown;
+  return (
+    <div className="absolute inset-x-0 bottom-0 h-full pointer-events-none overflow-hidden" aria-hidden="true">
+      {Array.from({ length: 16 }).map((_, i) => (
+        <span key={`${burst.n}-${i}`} className="absolute cx-rise" style={{ left: `${6 + ((i * 37) % 88)}%`, bottom: '6%', animationDelay: `${(i % 8) * 0.12}s` }}>
+          {i % 3 === 0 ? <Heart size={20} color={burst.good ? '#F472B6' : '#64748B'} fill={burst.good ? '#F472B6' : 'none'} /> : <Icon size={22} color={burst.good ? '#4ADE80' : '#F87171'} />}
+        </span>
+      ))}
+    </div>
+  );
+}
+function DebateBroadcast({ g, item, onFinish, onClose }) {
   const D = DEBATES[item.id];
+  const res = item.done;
+  const me = g.player;
+  const [phase, setPhase] = useState(res ? 'results' : 'intro');
   const [qi, setQi] = useState(0);
   const [picks, setPicks] = useState([]);
   const [reveal, setReveal] = useState(null);
   const [meter, setMeter] = useState(5);
-  const res = item.done;
+  const [worm, setWorm] = useState([5, 5]);
+  const [burst, setBurst] = useState(null);
   const qs = (g.debateQs && g.debateQs[item.id]) || D.questions.map((_, i) => i).slice(0, 3);
-  const rivalsOnStage = useMemo(() => { const n = nationalShares(g); return PARTY_IDS.filter((q) => q !== g.player).sort((a, b) => n[b] - n[a]).slice(0, 4); }, []);
-  // A rival attacks you mid-debate; low reputation invites the "flip-flopper" attack.
+  const rivalsOnStage = useMemo(() => { const n = nationalShares(g); return PARTY_IDS.filter((q) => q !== me).sort((a, b) => n[b] - n[a]).slice(0, 4); }, []);
   const clashIdx = useMemo(() => ((g.cred == null ? 65 : g.cred) < 55 ? 2 : Math.floor(Math.random() * 2)), []);
   const steps = useMemo(() => { const base = qs.map((i) => ({ qi: i })); return [...base.slice(0, 2), { clash: clashIdx }, ...base.slice(2)]; }, [qs.join(','), clashIdx]);
   const st = steps[Math.min(qi, steps.length - 1)];
   const attacker = rivalsOnStage[0];
   const Q = st.clash != null ? CLASHES[st.clash] : D.questions[st.qi];
   const qText = st.clash != null ? L(Q.q).replace('{R}', tt(`The ${partyShort(attacker)} leader`, `${partyShort(attacker)} lyderis`)) : L(Q.q);
+  const stage = [me, ...rivalsOnStage];
+  const rivalReply = useMemo(() => {
+    if (!reveal) return null;
+    const q = st.clash != null ? attacker : rivalsOnStage[qi % rivalsOnStage.length];
+    const opts = Q.answers.map((a, i) => ({ a, i, s: a.base + ((STYLE_BONUS[q] || {})[a.style] || 0) + Math.random() * 1.2 })).filter((x) => x.i !== reveal.ai).sort((a, b) => b.s - a.s);
+    const best = opts[0];
+    return { q, text: L(best.a.t), score: clamp(best.s * 0.85 + 0.5, 2, 9.4) };
+  }, [reveal, qi]);
+  const speakText = reveal ? L(Q.answers[reveal.ai].t) : '';
+  const [askTyped, askDone, finishAsk] = useTypewriter(qText, 16, phase === 'ask');
+  const [meTyped, meDone, finishMe] = useTypewriter(speakText, 16, phase === 'speak');
+  const [rvTyped, rvDone, finishRv] = useTypewriter(rivalReply ? rivalReply.text : '', 16, phase === 'rival');
+  // Intro card, then the first question.
+  useEffect(() => {
+    if (phase !== 'intro') return undefined;
+    SFX.play('sting');
+    const t = setTimeout(() => setPhase('ask'), REDUCED() ? 100 : 2800);
+    return () => clearTimeout(t);
+  }, [phase]);
+  // After your answer has been spoken, hand over to a rival.
+  useEffect(() => {
+    if (phase === 'speak' && meDone) { const t = setTimeout(() => setPhase('rival'), REDUCED() ? 50 : 1100); return () => clearTimeout(t); }
+    return undefined;
+  }, [phase, meDone]);
+  // The audience "worm" drifts towards the reaction to whoever is speaking.
+  useEffect(() => {
+    if (phase !== 'speak' && phase !== 'rival') return undefined;
+    const target = phase === 'speak' ? meter : (meter * 0.6 + (10 - (rivalReply ? rivalReply.score : 5)) * 0.4);
+    const id = setInterval(() => setWorm((w) => {
+      const lastV = w[w.length - 1];
+      const nv = clamp(lastV + (target - lastV) * 0.22 + (Math.random() - 0.5) * 0.8, 0, 10);
+      return [...w, nv].slice(-48);
+    }), 110);
+    return () => clearInterval(id);
+  }, [phase, meter, rivalReply]);
+  useEffect(() => { if (res) { setPhase('results'); SFX.play(res.won ? 'win' : res.avg > 6 ? 'applause' : 'lose'); } }, [!!res]);
   const choose = (ai) => {
     if (reveal) return;
     const sc = scoreAnswer(g, Q.answers[ai]);
     setMeter(sc.score);
     setReveal({ ai, ...sc });
     setPicks([...picks, { qi: st.qi != null ? st.qi : -1, clash: st.clash, ai, score: sc.score }]);
+    setPhase('speak');
+    setBurst({ good: sc.score >= 5.6, n: Date.now() });
+    SFX.play(sc.score >= 5.6 ? 'applause' : 'boo');
   };
-  const next = () => { if (qi < steps.length - 1) { setQi(qi + 1); setReveal(null); } else onFinish(picks); };
+  const next = () => {
+    if (qi < steps.length - 1) { setQi(qi + 1); setReveal(null); setBurst(null); setPhase('ask'); SFX.play('tap'); }
+    else onFinish(picks);
+  };
+  const skipTyping = () => {
+    if (phase === 'intro') setPhase('ask');
+    else if (phase === 'ask') finishAsk();
+    else if (phase === 'speak') finishMe();
+    else if (phase === 'rival') finishRv();
+  };
+  const speaker = phase === 'ask' ? (st.clash != null ? attacker : 'host') : phase === 'speak' ? me : phase === 'rival' && rivalReply ? rivalReply.q : null;
+  const chyron = phase === 'ask'
+    ? { who: st.clash != null ? attacker : 'host', label: st.clash != null ? tt(`ATTACK! · ${PARTIES[attacker].leader}`, `KIRTIS! · ${PARTIES[attacker].leader}`) : tt('LRT host', 'LRT laidos vedėjas'), text: askTyped, done: askDone, accent: st.clash != null ? '#DC2626' : '#0B5CAD' }
+    : phase === 'speak' ? { who: me, label: `${PARTIES[me].leader} · ${partyShort(me)}`, text: meTyped, done: meDone, accent: PARTIES[me].color }
+      : phase === 'rival' && rivalReply ? { who: rivalReply.q, label: `${PARTIES[rivalReply.q].leader} · ${partyShort(rivalReply.q)}`, text: rvTyped, done: rvDone, accent: PARTIES[rivalReply.q].color } : null;
+  const mins = 5 + qi * 9 + (phase === 'speak' ? 3 : phase === 'rival' ? 5 : 0);
+  const clock = `20:${String(Math.min(59, mins)).padStart(2, '0')}`;
+  const moodOf = (q) => (q === me && reveal ? (reveal.score >= 6.6 ? 'grin' : reveal.score >= 5.6 ? 'happy' : reveal.score >= 4.6 ? 'ok' : 'sad') : speaker === q ? 'happy' : 'ok');
   return (
-    <Sheet label={tt('LRT debate', 'LRT debatai')}>
-      <div style={GUTTER} className="pt-6 flex flex-col gap-4">
-        <div className="flex items-center gap-2">
-          <span className="cx-chip px-3 py-1 text-sm text-white" style={{ background: '#07090D' }}>LRT</span>
-          <span className="cx-chip px-3 py-1 text-sm" style={{ background: BAD_BG }}><span className="w-2.5 h-2.5 rounded-full sbl-blink" style={{ background: RED }} />{tt('LIVE', 'TIESIOGIAI')}</span>
-          <span className="text-sm font-extrabold t-muted ml-auto">{tt(`Debate ${item.id + 1} of 3`, `${item.id + 1} iš 3 debatų`)}</span>
+    <div className="fixed inset-0 z-50 flex flex-col overflow-hidden" role="dialog" aria-modal="true" aria-label={tt('LRT debate', 'LRT debatai')} style={{ background: '#04060A' }}>
+      <div className="relative flex-1 min-h-0 overflow-hidden" onClick={skipTyping}>
+        <svg className="absolute inset-0 cx-kb" viewBox="0 0 360 140" preserveAspectRatio="xMidYMid slice" width="100%" height="100%" aria-hidden="true"><SceneArt kind="studio" uid="debate" parties={stage} /></svg>
+        <StageBeams />
+        <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 50% 38%, rgba(0,0,0,0) 25%, rgba(0,0,0,.78) 100%), linear-gradient(0deg, rgba(4,6,10,.85), rgba(4,6,10,0) 40%)' }} />
+        <div className="absolute top-0 inset-x-0 flex items-center gap-2 px-3 lg:px-6" style={{ paddingTop: 'max(10px, env(safe-area-inset-top))', paddingBottom: 8 }}>
+          <span className="cx-title text-white px-2 text-xl leading-tight" style={{ background: '#0B5CAD' }}>LRT</span>
+          <span className="flex items-center gap-1.5 px-2 py-0.5 text-xs font-extrabold text-white" style={{ background: '#DC2626' }}><span className="w-2 h-2 rounded-full bg-white sbl-blink" />{tt('LIVE', 'TIESIOGIAI')}</span>
+          <span className="cx-title text-white text-lg truncate hidden sm:inline">{tt('Debate', 'Debatai')}: {L(D.title)}</span>
+          <span className="ml-auto flex items-center gap-1">{steps.map((x, i) => <span key={i} className="rounded-full" style={{ width: 18, height: 5, background: i < qi || (i === qi && reveal) ? (x.clash != null ? '#F87171' : SUN) : i === qi ? 'rgba(255,255,255,.7)' : 'rgba(255,255,255,.2)' }} />)}</span>
+          <span className="cx-num text-white/85 text-lg ml-2">{clock}</span>
         </div>
-        <h2 className="cx-title text-3xl leading-none">{L(D.title)}</h2>
-        {!res && (
-          <Scene kind="studio" h={118} caption={false} parties={[g.player, ...rivalsOnStage]}>
-            <div className="absolute inset-x-0 flex justify-around px-1" style={{ top: 30 }} aria-label={tt('On stage', 'Studijoje')}>
-              {[g.player, ...rivalsOnStage].map((q, i) => {
-                const mood = !reveal || i > 0 ? 'ok' : reveal.score >= 6.6 ? 'grin' : reveal.score >= 5.6 ? 'happy' : reveal.score >= 4.6 ? 'ok' : 'sad';
-                return (
-                  <span key={q} className="flex flex-col items-center" style={{ width: 62 }}>
-                    <Portrait who={q} size={i === 0 ? 46 : 40} mood={mood} ring={i === 0 ? SUN : undefined} />
-                    <span className="text-[10px] font-black leading-tight mt-0.5 px-1 rounded-full cx-panel2 truncate max-w-full" style={{ border: `1px solid ${LINE}` }}>{i === 0 ? tt('You', 'Jūs') : leaderSurname(q)}</span>
-                  </span>
-                );
-              })}
-            </div>
-          </Scene>
-        )}
-        {!res ? (
-          <>
-            <div className="flex gap-1.5" aria-label={tt(`Question ${qi + 1} of ${steps.length}`, `${qi + 1} klausimas iš ${steps.length}`)}>
-              {steps.map((x, i) => <span key={i} className="flex-1 rounded-full" style={{ height: 10, border: `1px solid ${LINE}`, background: i < qi || (i === qi && reveal) ? (x.clash != null ? '#F87171' : SUN) : i === qi ? ACC_BG : PANEL2 }} />)}
-            </div>
-            <div className={`flex gap-2.5 items-start ${st.clash != null && !reveal ? 'cx-shake' : ''}`}>
-              <Portrait who={st.clash != null ? attacker : 'host'} size={52} mood={st.clash != null ? 'grr' : 'ok'} ring={st.clash != null ? RED : undefined} />
-              <div className="cx-card p-3 flex-1 min-w-0 relative" style={{ background: st.clash != null ? BAD_BG : 'rgba(96,165,250,0.14)' }}>
-                <div className="text-xs font-extrabold mb-0.5" style={{ color: st.clash != null ? RED : MUTED }}>{st.clash != null ? tt('ATTACK! A rival goes after you:', 'KIRTIS! Varžovas puola jus:') : tt('The LRT host asks:', 'LRT laidos vedėjas klausia:')}</div>
-                <p className="cx-title text-lg leading-snug">{qText}</p>
-              </div>
-            </div>
-            <Gauge value={meter} max={10} low={tt('Audience hates it', 'Žiūrovams nepatinka')} high={tt('Audience loves it', 'Žiūrovai sužavėti')} />
-            {item.id === 0 && qi === 0 && !reveal && g.tut !== 99 && <Coach title={tt('How debates work', 'Kaip vyksta debatai')}>{tt('Answers that fit your party’s style and your promises go down best. Contradicting your own promises costs you.', 'Geriausiai vertinami atsakymai, atitinkantys jūsų partijos stilių ir pažadus. Prieštaraujant savo pažadams – prarasite.')}</Coach>}
-            <div className="flex flex-col gap-3">
-              {Q.answers.map((a, i) => {
-                const chosen = reveal && reveal.ai === i;
-                return (
-                  <button key={i} type="button" disabled={!!reveal && !chosen} onClick={() => choose(i)} className={`cx-btn cx-quote ${chosen ? 'cx-sun' : ''} w-full items-center text-left px-4 py-3`} style={{ gap: 10, minHeight: 60 }}>
-                    <span className="cx-num grid place-items-center rounded-full shrink-0" style={{ width: 28, height: 28, background: '#11141B', color: '#fff' }}>{String.fromCharCode(65 + i)}</span>
-                    <span className="font-black text-base leading-snug flex-1">{L(a.t)}</span>
-                  </button>
-                );
-              })}
-            </div>
-            {reveal && (
-              <div className="cx-card p-3 flex items-center gap-3 sbl-pop" style={{ boxShadow: SHADOW }}>
-                <div className="cx-num text-4xl leading-none">{nf(reveal.score)}</div>
-                <div className="flex-1 min-w-0">
-                  <div className="font-black" style={{ color: reactionLabel(reveal.score)[1] }}>{reactionLabel(reveal.score)[0]}</div>
-                  {reveal.note && <div className="text-xs font-extrabold" style={{ color: reveal.note === 'fits' ? GREEN : RED }}>{reveal.note === 'fits' ? tt('Fits your promises', 'Atitinka jūsų pažadus') : tt('Clashes with your promises', 'Prieštarauja jūsų pažadams')}</div>}
+        {phase !== 'intro' && phase !== 'results' && (
+          <div className="absolute inset-x-0 flex justify-center items-end gap-1.5 sm:gap-4 lg:gap-8 px-2" style={{ bottom: chyron ? 'clamp(110px, 26%, 190px)' : '16%' }}>
+            {stage.map((q, i) => {
+              const active = speaker === q;
+              const sz = i === 0 ? 'clamp(58px, 15vw, 120px)' : 'clamp(48px, 12vw, 100px)';
+              return (
+                <div key={q} className="relative flex flex-col items-center transition-all duration-500" style={{ transform: `translateY(${active ? -10 : 0}px) scale(${active ? 1.12 : 1})`, opacity: speaker && !active ? 0.5 : 1, filter: speaker && !active ? 'saturate(.5) brightness(.8)' : 'none' }}>
+                  {active && <span className="absolute rounded-full cx-ping" style={{ inset: -6, background: `radial-gradient(circle, ${SUN}55, transparent 70%)` }} />}
+                  <Portrait who={q} size={sz} mood={moodOf(q)} ring={active ? SUN : PARTIES[q].color} />
+                  <span className="mt-1 px-1.5 text-[10px] lg:text-xs font-extrabold text-white rounded-sm whitespace-nowrap" style={{ background: PARTIES[q].color }}>{i === 0 ? tt('YOU', 'JŪS') : leaderSurname(q)}</span>
+                  <span className="mt-0.5 rounded-t-md" style={{ width: 'clamp(44px, 12vw, 110px)', height: 'clamp(16px, 4vh, 40px)', background: `linear-gradient(180deg, ${mixHex(PARTIES[q].color, '#000000', 0.15)}, ${mixHex(PARTIES[q].color, '#000000', 0.65)})`, borderTop: '2px solid rgba(255,255,255,.55)' }} />
                 </div>
-                <Btn className="h-12 px-4" onClick={next}>{qi < steps.length - 1 ? tt('Next', 'Toliau') : tt('Results', 'Rezultatai')} <ArrowRight size={18} /></Btn>
-              </div>
-            )}
-          </>
-        ) : (
-          <div className="flex flex-col gap-3 sbl-fade">
-            <div className="cx-card p-4" style={{ boxShadow: SHADOW }}>
-              <div className="cx-title text-lg mb-2">{tt('Viewers’ vote: who won?', 'Žiūrovų balsavimas: kas laimėjo?')}</div>
-              <div className="flex flex-col gap-2">
-                {res.poll.map((x, i) => (
-                  <div key={x.p} className="grid items-center gap-2" style={{ gridTemplateColumns: '26px 118px 1fr 48px' }}>
-                    <span className="cx-num">{i === 0 ? <Trophy size={20} style={{ color: AMBER }} /> : `#${i + 1}`}</span>
-                    <span className={`text-sm truncate inline-flex items-center gap-1.5 ${x.p === g.player ? 'font-black' : 'font-bold'}`}><Portrait who={x.p} size={26} mood={i === 0 ? 'grin' : 'ok'} />{x.p === g.player ? tt('You', 'Jūs') : `${leaderSurname(x.p)}`}</span>
-                    <Bar value={x.pct} max={100} color={PARTIES[x.p].color} h={16} />
-                    <span className="cx-num text-sm text-right">{fmtPct(x.pct, 0)}</span>
-                  </div>
-                ))}
+              );
+            })}
+          </div>
+        )}
+        {chyron && (
+          <div key={`${phase}-${qi}`} className={`absolute left-3 right-3 lg:left-[12%] lg:right-[12%] cx-chyron ${phase === 'ask' && st.clash != null ? 'cx-shake' : ''}`} style={{ bottom: 12 }}>
+            <div className="flex items-stretch rounded-md overflow-hidden" style={{ boxShadow: '0 12px 30px rgba(0,0,0,.6)' }}>
+              <div className="shrink-0" style={{ width: 6, background: chyron.accent }} />
+              {chyron.who === 'host' && <div className="shrink-0 pl-2 lg:pl-3 flex items-center" style={{ background: 'rgba(6,8,12,.93)' }}><Portrait who="host" size={'clamp(44px, 11vw, 64px)'} square mood="ok" /></div>}
+              <div className="flex-1 px-3 py-2 lg:px-5 lg:py-3" style={{ background: 'rgba(6,8,12,.93)' }}>
+                <div className="cx-kicker text-[11px] lg:text-xs" style={{ color: chyron.accent === '#0B5CAD' ? '#7DB8F0' : chyron.accent }}>{chyron.label}</div>
+                <div className="cx-title text-lg lg:text-3xl leading-snug text-white" style={{ minHeight: '1.4em' }}>{chyron.text}{!chyron.done && <span className="cx-caret" style={{ color: SUN }}>▌</span>}</div>
               </div>
             </div>
-            <div className="cx-soft p-3 font-bold">
-              {res.won ? tt('You won the debate! You get 2 favours and a big burst of buzz.', 'Laimėjote debatus! Gaunate 2 ryšius ir didelį pagreitį.') : res.avg > 6 ? tt('A good night. The pundits liked you: +1 favour.', 'Geras vakaras. Komentatoriams patikote: +1 ryšys.') : tt('Not your best night. Rivals will replay your weakest moment.', 'Ne pats geriausias vakaras. Varžovai kartos jūsų silpniausią akimirką.')}
-              <div className="mt-1">{tt('Your poll:', 'Jūsų reitingas:')} <Delta v={res.delta} pct /></div>
+          </div>
+        )}
+        {(phase === 'speak' || phase === 'rival') && (
+          <div className="absolute right-3 lg:right-8 w-[46%] max-w-[300px] rounded-lg p-2 lg:p-3 cx-pop-in" style={{ top: 'calc(max(10px, env(safe-area-inset-top)) + 44px)', background: 'rgba(6,8,12,.82)', border: `1px solid ${LINE2}` }}>
+            <div className="flex items-baseline justify-between"><span className="cx-kicker text-[10px]">{tt('Audience reaction', 'Žiūrovų reakcija')}</span><span className="cx-num text-white">{nf(worm[worm.length - 1])}</span></div>
+            <Worm data={worm} h={48} />
+          </div>
+        )}
+        <CrowdBurst burst={burst} />
+        {phase === 'intro' && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-6" style={{ background: 'rgba(4,6,10,.55)' }}>
+            <div className="flex items-center gap-2 cx-pop-in"><span className="cx-title text-white px-3 text-3xl" style={{ background: '#0B5CAD' }}>LRT</span><span className="cx-kicker text-lg">{tt(`Election debate ${item.id + 1} of 3`, `Rinkimų debatai ${item.id + 1} iš 3`)}</span></div>
+            <div className="cx-logo cx-slam mt-3" style={{ fontSize: 'clamp(44px, 12vw, 120px)', lineHeight: 0.95 }}>{L(D.title)}</div>
+            <div className="h-1 w-48 mt-4 cx-wipe" style={{ background: SUN }} />
+            <div className="flex gap-3 mt-7 flex-wrap justify-center">
+              {stage.map((q, i) => (
+                <div key={q} className="flex flex-col items-center cx-pop-in" style={{ animationDelay: `${0.5 + i * 0.14}s` }}>
+                  <Portrait who={q} size={'clamp(52px, 14vw, 96px)'} square mood="happy" />
+                  <span className="mt-1 text-xs font-bold text-white">{i === 0 ? tt('You', 'Jūs') : leaderSurname(q)}</span>
+                </div>
+              ))}
             </div>
-            <ConsList items={res.cons} />
-            <Btn className="h-14 text-lg" onClick={onClose}>{tt('Back to the campaign', 'Atgal į kampaniją')} <ArrowRight size={20} /></Btn>
+            <div className="text-xs t-muted mt-8">{tt('Tap to start', 'Paspauskite, kad pradėtumėte')}</div>
+          </div>
+        )}
+        {phase === 'results' && res && (
+          <div className="absolute inset-0 overflow-y-auto sbl-scroll" style={{ background: 'rgba(4,6,10,.72)' }} onClick={(e) => e.stopPropagation()}>
+            {res.won && <Confetti />}
+            <div className="max-w-2xl mx-auto px-4 flex flex-col items-center gap-4" style={{ paddingTop: 'calc(max(10px, env(safe-area-inset-top)) + 64px)', paddingBottom: 24 }}>
+              <div className="cx-kicker text-sm">{tt('Viewers’ vote', 'Žiūrovų balsavimas')}</div>
+              <div className="relative cx-pop-in">
+                <span className="absolute rounded-full" style={{ inset: -30, background: `radial-gradient(circle, ${SUN}66, transparent 70%)` }} />
+                <Portrait who={res.poll[0].p} size={'clamp(110px, 30vw, 170px)'} square mood="grin" />
+              </div>
+              <div className="cx-logo cx-slam text-center" style={{ fontSize: 'clamp(30px, 8vw, 60px)', lineHeight: 1 }}>{res.poll[0].p === me ? tt('You won the debate!', 'Laimėjote debatus!') : tt(`${PARTIES[res.poll[0].p].leader} wins`, `Laimėjo ${PARTIES[res.poll[0].p].leader}`)}</div>
+              <div className="w-full flex flex-col gap-2 mt-1">
+                {res.poll.map((x, i) => <PollRaceRow key={x.p} x={x} i={i} me={me} />)}
+              </div>
+              <div className="cx-card p-3 w-full font-semibold">
+                {res.won ? tt('You get 2 favours and a big burst of buzz.', 'Gaunate 2 ryšius ir didelį pagreitį.') : res.avg > 6 ? tt('A good night. The pundits liked you: +1 favour.', 'Geras vakaras. Komentatoriams patikote: +1 ryšys.') : tt('Not your best night. Rivals will replay your weakest moment.', 'Ne pats geriausias vakaras. Varžovai kartos jūsų silpniausią akimirką.')}
+                <div className="mt-1">{tt('Your poll:', 'Jūsų reitingas:')} <Delta v={res.delta} pct /></div>
+              </div>
+              <div className="w-full"><ConsList items={res.cons} /></div>
+              <Btn className="h-14 w-full text-lg" onClick={onClose}>{tt('Back to the campaign', 'Atgal į kampaniją')} <ArrowRight size={20} /></Btn>
+            </div>
           </div>
         )}
       </div>
-    </Sheet>
+      {phase !== 'results' && phase !== 'intro' && (
+        <div className="relative shrink-0" style={{ background: 'linear-gradient(180deg, #0B0E14, #06080C)', borderTop: `1px solid ${LINE}`, paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}>
+          <div className="max-w-3xl mx-auto px-3 pt-3 flex flex-col gap-2">
+            {phase === 'ask' && !askDone && <button type="button" onClick={finishAsk} className="text-sm t-muted text-left py-3">{st.clash != null ? tt('A rival is attacking you… (tap to skip)', 'Varžovas puola jus… (paspauskite, kad praleistumėte)') : tt('The host is asking… (tap to skip)', 'Vedėjas klausia… (paspauskite, kad praleistumėte)')}</button>}
+            {phase === 'ask' && askDone && (
+              <>
+                <div className="cx-kicker text-xs">{tt('Your answer', 'Jūsų atsakymas')}</div>
+                {Q.answers.map((a, i) => (
+                  <button key={i} type="button" onClick={() => choose(i)} className="cx-btn cx-quote cx-answer w-full items-center text-left px-4 py-2.5 cx-pop-in" style={{ gap: 12, minHeight: 52, justifyContent: 'flex-start', animationDelay: `${i * 0.07}s` }}>
+                    <span className="cx-num grid place-items-center rounded-full shrink-0" style={{ width: 26, height: 26, background: '#11141B', color: '#fff' }}>{String.fromCharCode(65 + i)}</span>
+                    <span className="font-bold text-[15px] leading-snug flex-1">{L(a.t)}</span>
+                  </button>
+                ))}
+                {item.id === 0 && qi === 0 && g.tut !== 99 && <div className="text-xs t-muted">{tt('Tip: answers that fit your party’s style and your promises go down best.', 'Patarimas: geriausiai vertinami atsakymai, atitinkantys jūsų partijos stilių ir pažadus.')}</div>}
+              </>
+            )}
+            {(phase === 'speak' || phase === 'rival') && reveal && (
+              <div className="flex items-center gap-3 py-1">
+                <div className="cx-num text-4xl leading-none" style={{ color: reactionLabel(reveal.score)[1] }}>{nf(reveal.score)}</div>
+                <div className="flex-1 min-w-0">
+                  <div className="font-extrabold" style={{ color: reactionLabel(reveal.score)[1] }}>{reactionLabel(reveal.score)[0]}</div>
+                  {reveal.note && <div className="text-xs font-bold" style={{ color: reveal.note === 'fits' ? GREEN : RED }}>{reveal.note === 'fits' ? tt('Fits your promises', 'Atitinka jūsų pažadus') : tt('Clashes with your promises', 'Prieštarauja jūsų pažadams')}</div>}
+                  {phase === 'rival' && rivalReply && <div className="text-xs t-muted mt-0.5">{tt(`${leaderSurname(rivalReply.q)} responds…`, `${leaderSurname(rivalReply.q)} atsako…`)}</div>}
+                </div>
+                <Btn className="h-12 px-5 shrink-0" disabled={phase !== 'rival'} onClick={next}>{qi < steps.length - 1 ? tt('Next', 'Toliau') : tt('Results', 'Rezultatai')} <ArrowRight size={18} /></Btn>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+function PollRaceRow({ x, i, me }) {
+  const [w, setW] = useState(0);
+  useEffect(() => { const t = setTimeout(() => setW(x.pct), 200 + i * 160); return () => clearTimeout(t); }, [x.pct]);
+  return (
+    <div className="grid items-center gap-2 rounded-lg px-2 py-1.5" style={{ gridTemplateColumns: '28px 1fr 52px', background: x.p === me ? ACC_BG : 'rgba(255,255,255,.04)' }}>
+      <span className="cx-num text-center">{i === 0 ? <Trophy size={18} style={{ color: SUN }} /> : `#${i + 1}`}</span>
+      <div className="min-w-0">
+        <div className="flex items-center gap-1.5 text-sm font-bold"><Portrait who={x.p} size={24} mood={i === 0 ? 'grin' : 'ok'} />{x.p === me ? tt('You', 'Jūs') : PARTIES[x.p].leader}</div>
+        <div className="cx-track mt-1" style={{ height: 10 }}><div className="h-full" style={{ width: `${w}%`, background: PARTIES[x.p].color, transition: 'width 1s cubic-bezier(.2,.8,.2,1)' }} /></div>
+      </div>
+      <span className="cx-num text-right"><CountUp to={w} from={0} fmt={(v) => fmtPct(v, 0)} /></span>
+    </div>
+  );
+}
+function WeekIntro({ g, item, onDone }) {
+  useEffect(() => {
+    SFX.play('whoosh');
+    const t = setTimeout(onDone, REDUCED() ? 50 : 3000);
+    return () => clearTimeout(t);
+  }, []);
+  const p = g.player;
+  const H = g.history;
+  const cur = H[H.length - 1].shares[p];
+  const prev = H.length > 1 ? H[H.length - 2].shares[p] : cur;
+  const movers = item.moves.filter((m) => m.list.length).sort((a, b) => b.list.length - a.list.length).slice(0, 5);
+  return (
+    <div className="fixed inset-0 z-[60] cx-weekintro flex flex-col items-center justify-center overflow-hidden text-center px-4" onClick={onDone} role="presentation" style={{ background: 'radial-gradient(ellipse at center, #151B28, #04060A 72%)' }}>
+      <StageBeams />
+      <div className="relative cx-kicker text-sm cx-pop-in">{fmtDay(weekStartDate(g.week))} · {tt(`${WEEKS - g.week + 1} weeks to the vote`, `iki rinkimų ${WEEKS - g.week + 1} sav.`)}</div>
+      <div className="relative cx-logo cx-slam mt-2" style={{ fontSize: 'clamp(64px, 19vw, 170px)', lineHeight: 0.88 }}>{tt(`WEEK ${g.week}`, `${g.week} SAVAITĖ`)}</div>
+      <div className="relative h-1 w-44 mt-4 cx-wipe" style={{ background: SUN }} />
+      <div className="relative mt-7 flex gap-2.5 flex-wrap justify-center max-w-2xl">
+        {movers.map((m, i) => (
+          <div key={m.p} className="cx-pop-in flex items-center gap-2 rounded-xl px-2.5 py-1.5 text-left" style={{ animationDelay: `${0.45 + i * 0.16}s`, background: 'rgba(255,255,255,.06)', border: `1px solid ${LINE}` }}>
+            <Portrait who={m.p} size={34} square mood={m.list.some((x) => x.target === p) ? 'grr' : 'ok'} />
+            <div className="text-xs"><div className="font-bold">{partyShort(m.p)}</div><div className="t-muted">{m.list.some((x) => x.target === p) ? tt('attacked you', 'puolė jus') : tt(`${m.list.length} moves`, `${m.list.length} ėjimai`)}</div></div>
+          </div>
+        ))}
+      </div>
+      <div className="relative mt-7 cx-pop-in flex items-center gap-3" style={{ animationDelay: '1.3s' }}>
+        <Portrait who={p} size={52} badge />
+        <div className="text-left">
+          <div className="text-xs t-muted">{tt('Your new poll', 'Jūsų nauja apklausa')}</div>
+          <div className="cx-num text-5xl leading-none"><CountUp to={cur} from={prev} fmt={(v) => fmtPct(v)} dur={1400} /> <span className="text-2xl"><Delta v={cur - prev} /></span></div>
+        </div>
+      </div>
+      <div className="absolute bottom-8 text-xs t-muted">{tt('Tap to continue', 'Paspauskite, kad tęstumėte')}</div>
+    </div>
   );
 }
 function HelpSheet({ onClose }) {
@@ -5890,7 +6219,7 @@ function PartySelect({ onPick, onBack }) {
           <section className="cx-card overflow-hidden self-start sticky top-6" style={{ padding: 0 }}>
             {P ? (
               <>
-                <Scene kind="seimas" h={320} caption={false} flush>
+                <Scene kind="seimas" h={320} caption={false} flush kb>
                   <div className="absolute left-6 bottom-0"><Portrait who={sel} size={250} frameless mood="grin" /></div>
                   <div className="absolute right-5 top-5"><PartyEmblem p={sel} size={70} /></div>
                 </Scene>
@@ -6528,7 +6857,7 @@ function QueueModal({ g, item, act, nat, proj }) {
   if (item.type === 'report') return <ReportModal g={g} item={item} onClose={shift} />;
   if (item.type === 'event') return <EventModal g={g} item={item} onChoose={(i) => act((gg) => { resolveEvent(gg, i); return null; })} onClose={shift} />;
   if (item.type === 'encounter') return <EncounterModal g={g} item={item} onChoose={(i) => act((gg) => { resolveEncounter(gg, i); return null; })} onClose={shift} />;
-  if (item.type === 'debate') return <DebateModal key={`d${item.id}`} g={g} item={item} onFinish={(picks) => act((gg) => { gg.queue[0].done = resolveDebate(gg, item.id, picks); return null; })} onClose={shift} />;
+  if (item.type === 'debate') return <DebateBroadcast key={`d${item.id}`} g={g} item={item} onFinish={(picks) => act((gg) => { gg.queue[0].done = resolveDebate(gg, item.id, picks); return null; })} onClose={shift} />;
   return null;
 }
 const LANG_KEY = 'seimas-bfl-lang';
@@ -6547,6 +6876,8 @@ export default function SeimasGame({ hotData } = {}) {
   const [toast, setToast] = useState(null);
   const [confirmEnd, setConfirmEnd] = useState(false);
   const [help, setHelp] = useState(false);
+  const [fx, setFx] = useState(null);
+  const fxTimer = useRef(null);
   const wide = useWide();
   const gameRef = useRef(game);
   gameRef.current = game;
@@ -6566,6 +6897,7 @@ export default function SeimasGame({ hotData } = {}) {
   useEffect(() => { if (game) writeSave(game); }, [game]);
   const flash = (res) => {
     if (!res || !res.msg) return;
+    SFX.play(res.ok === false || res.tone === 'bad' ? 'bad' : 'pop');
     setToast({ ...res, id: Date.now() });
     clearTimeout(toastTimer.current);
     toastTimer.current = setTimeout(() => setToast(null), 2800);
@@ -6615,19 +6947,19 @@ export default function SeimasGame({ hotData } = {}) {
     const onEnd = () => (game.ap > 0 ? setConfirmEnd(true) : doEnd());
     const tabBody = (
       <>
-        {tab === 'map' && <MapTab g={game} shares={shares} proj={proj} sel={sel} onSelect={openRegion} skipTips={skipTips} wide={wide} act={act} />}
+        {tab === 'map' && <MapTab g={game} shares={shares} proj={proj} sel={sel} onSelect={openRegion} skipTips={skipTips} wide={wide} act={act} fx={fx} />}
         {tab === 'polls' && <PollsTab g={game} nat={nat} proj={proj} />}
         {tab === 'hq' && <HQTab g={game} act={act} openSheet={openSheet} />}
         {tab === 'news' && <NewsTab g={game} />}
       </>
     );
-    const drawer = sel && <RegionDrawer g={game} rid={sel} proj={proj} docked={wide} onClose={closeRegion} onAction={(rid, type) => { const first = gameRef.current.tut === 2; act((g) => doRegionAction(g, rid, type)); if (first && !wide) setSel(null); }} onTravel={(rid) => act((g) => travel(g, rid))} tutStep={game.tut} onSkipTips={skipTips} />;
+    const drawer = sel && <RegionDrawer g={game} rid={sel} proj={proj} docked={wide} onClose={closeRegion} onAction={(rid, type) => { const g0 = gameRef.current; const first = g0.tut === 2; const b4 = regionShares(g0, REG[rid]); const res = act((g) => doRegionAction(g, rid, type)); if (res && res.ok) { const af = regionShares(gameRef.current, REG[rid]); const me = g0.player; let d = af[me] - b4[me], who = me; if (type === 'attack') { const drop = PARTY_IDS.filter((q) => q !== me).map((q) => [q, af[q] - b4[q]]).sort((x, y) => x[1] - y[1])[0]; if (drop && drop[1] < d) { d = drop[1]; who = drop[0]; } } setFx({ rid, d, who, n: Date.now() }); clearTimeout(fxTimer.current); fxTimer.current = setTimeout(() => setFx(null), 2400); } if (first && !wide) setSel(null); }} onTravel={(rid) => act((g) => travel(g, rid))} tutStep={game.tut} onSkipTips={skipTips} />;
     body = wide ? (
       <>
         <DesktopHud g={game} proj={proj} onHelp={() => setHelp(true)} lang={lang} setLang={setLang} onEnd={onEnd} glowEnd={glowEnd} />
         <div className="grid gap-5 px-5 pt-1" style={{ gridTemplateColumns: '84px minmax(0, 1fr) 410px', paddingBottom: 56 }}>
           <div className="pt-4"><NavRail tab={tab} setTab={goTab} /></div>
-          <main className="min-w-0 pb-4">{tabBody}</main>
+          <main key={tab} className="min-w-0 pb-4 cx-tabin">{tabBody}</main>
           <aside className="min-w-0 pt-4">{drawer || <SidePanel g={game} shares={shares} onSelect={openRegion} act={act} />}</aside>
         </div>
         <div className="fixed bottom-0 inset-x-0 z-30"><NewsTicker g={game} /></div>
@@ -6641,7 +6973,7 @@ export default function SeimasGame({ hotData } = {}) {
     ) : (
       <>
         <Header g={game} proj={proj} onHelp={() => setHelp(true)} lang={lang} setLang={setLang} />
-        <main className="max-w-lg mx-auto" style={{ ...GUTTER, paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 150px)' }}>{tabBody}</main>
+        <main key={tab} className="max-w-lg mx-auto cx-tabin" style={{ ...GUTTER, paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 150px)' }}>{tabBody}</main>
         <BottomNav tab={tab} setTab={goTab} g={game} glowEnd={glowEnd} onEnd={onEnd} />
         {drawer}
         {sheet === 'casino' && <CasinoSheet g={game} act={act} onClose={() => setSheet(null)} />}

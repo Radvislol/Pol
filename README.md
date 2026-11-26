@@ -10,6 +10,13 @@ A political-drama strategy game about the **2028 Lithuanian Seimas election**, p
 - **Phones**: a compact top bar with the leader's card, stat pills and a campaign timeline (months, debates, endorsements, election day), and a bottom bar with the news ticker and sections.
 - **Desktop (1024 px and wider)**: a command-centre layout with a full-width top bar (leader card, timeline, Next week), a navigation rail on the left, the large campaign map in the centre and a docked side panel on the right that shows region details or the latest news. News, debates and voters open as centred cinematic cards. Candidate selection becomes a two-pane screen with a large preview.
 
+## Immersion
+
+- **Live LRT debates in full screen.** Each debate is a TV broadcast: an opening title card, the studio with sweeping spotlights, the leaders at their podiums, an "LRT · LIVE" bug with the studio clock and a lower-third caption. The host's question (or a rival's attack) types out on screen, then you pick your answer. Your leader steps forward and delivers it, the audience-reaction line ("worm") climbs or sinks, thumbs and hearts fly up from the crowd, and you hear applause or booing. A rival then replies. At the end the viewers' vote is counted live, with bars filling up and confetti if you win.
+- **Week intro.** Each new week opens with a short title sequence ("WEEK 3"), showing which rivals campaigned or attacked you and counting your new poll up from last week's.
+- **Animated feedback.** The money, seats and reputation counters count up and down. A campaign move makes a ripple and a floating "+0.8%" (or the rival's loss after an attack ad) appear on the map. Sections fade in, and news, voter and region pictures slowly pan and zoom.
+- **Sound.** Short synthesised effects (taps, stings, applause, boos, whooshes and win or loss fanfares) with no audio files. Mute them with the speaker button in the top bar; the setting is remembered. All motion respects the system's "reduce motion" setting.
+
 ## Playing
 
 - **Rūta, your campaign manager (optional).** On the party screen, choose *With Rūta* or *Play solo*. With Rūta, she walks you through the first week, explains the rules and gives rough forecasts on region moves. She never picks moves, news answers or debate answers for you. In solo mode there is no tutorial, no tips and no forecasts.
