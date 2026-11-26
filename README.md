@@ -51,6 +51,16 @@ A political-drama strategy game about the **2028 Lithuanian Seimas election**, p
 
   Your final stability decides the Prime Minister grade, and the result screen shows a 100-day summary.
 
+## The President and rival district campaigns
+
+- **The President** (shown by title only, as a generic cartoon) appoints your ministers and signs your laws:
+  - When you swear in the cabinet, he refuses nominees with competence under 50. The rejected person is greyed out and the ministry opens so you can choose someone else. A refusal costs a little approval.
+  - He can veto a passed bill. Bills that clash with his positions are vetoed most often (for example civil partnership); unpopular ones sometimes, and amended ones half as often. You then choose:
+    - **override the veto:** it needs 71 votes; if the override fails, the law dies;
+    - **accept his amendments:** half the effect, a little more stability.
+- **Ministers are unique:** a person can only be offered for one ministry.
+- **Rivals campaign in districts too.** Each week the five biggest rival parties pour money into their candidates in the closest races, where they are first or second within 8 points. This raises their recognition and local ties, up to four times per district. District cards show where rivals have been spending, and your weekly recap counts it.
+
 ## In the Seimas when you don't lead, and candidate scandals
 
 - **Opposition or junior partner.** If you go into opposition or join someone else's government, you vote on the new government's six bills. For each bill you see how every party is expected to vote, and when your seats decide the outcome. Voting in line with your promises raises your rating.
