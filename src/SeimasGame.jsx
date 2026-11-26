@@ -16,7 +16,7 @@ import {
   Languages, PiggyBank, Trophy, Music, Mail, SkipForward, Check, Tv, Target, Briefcase, Play, Sparkles,
   ShieldAlert, Siren, Flag, Star, Smile, Meh, Frown, Lightbulb, Medal, Landmark, Heart, Sprout,
   Wheat, LockOpen, Rocket, Hammer, Church, Bus, MessageCircle, ShieldCheck, TrendingUp, Route, Layers, Clock, Dices, Search, Cloud, CloudRain, Sun, Gavel, Ticket, Eye,
-  ThumbsUp, ThumbsDown, Volume2, VolumeX,
+  ThumbsUp, ThumbsDown, Volume2, VolumeX, Plus, Minus, Maximize2, LocateFixed, Menu, Repeat2, MessageSquare, Hash, Camera, BadgeCheck,
 } from 'lucide-react';
 
 /* ============================================================
@@ -818,7 +818,7 @@ const NATIONAL_ACTIONS = [
   { id: 'small', group: 'fund', icon: Coins, ap: 1, label: bi('Small donations', 'Smulkios aukos'), desc: bi('Ask fans for €5 each. Less money, but some buzz.', 'Paprašyti rėmėjų po 5 €. Mažiau pinigų, bet daugiau pagreičio.') },
   { id: 'lobby', group: 'fund', icon: Briefcase, ap: 0, pc: 2, label: bi('Shady business deal', 'Abejotinas verslo sandoris'), desc: bi('Swap 2 favours for a big cheque. Could turn into a scandal!', 'Iškeisti 2 ryšius į didelį čekį. Gali kilti skandalas!') },
   { id: 'tvspot', group: 'nat', icon: Tv, ap: 2, cost: 200, label: bi('Nationwide TV ad', 'Nacionalinė TV reklama'), desc: bi('A small boost in every region at once.', 'Nedidelis postūmis visuose regionuose iš karto.') },
-  { id: 'presser', group: 'nat', icon: Mic, ap: 1, cost: 5, label: bi('Press conference', 'Spaudos konferencija'), desc: bi('Get in the news. Adds buzz, less each time.', 'Patekti į žinias. Didina pagreitį, kaskart mažiau.') },
+  { id: 'presser', group: 'nat', icon: Mic, ap: 1, cost: 5, label: bi('Press conference', 'Spaudos konferencija'), desc: bi('Take two reporters’ questions live. Adds buzz, less each time.', 'Atsakykite į žurnalistų klausimus. Didina pagreitį, kaskart mažiau.') },
   { id: 'backchannel', group: 'nat', icon: Handshake, ap: 1, cost: 0, label: bi('Coffee with rivals', 'Kava su varžovais'), desc: bi('Earn favours to spend on building a team after the vote.', 'Užsitarnauti ryšių, kurių prireiks formuojant koaliciją.') },
   { id: 'kompro', group: 'nat', icon: Search, ap: 1, cost: 60, label: bi('Dig up dirt', 'Ieškoti kompromato'), desc: bi('Pay investigators to find dirt on a rival. Might blow up in your face.', 'Samdyti tyrėjus ieškoti kompromato apie varžovą. Gali atsisukti prieš jus.') },
 ];
@@ -4146,7 +4146,8 @@ function layerValue(layer, id, ctx) {
   }
 }
 const MOVE_ICON = { rally: Megaphone, digital: Smartphone, tv: Radio, door: DoorOpen, star: Star, attack: Swords, backfire: Swords };
-function CartoonMap({ shares, sel, onSelect, g, proj, layer = 'lead', live, fx }) {
+function CartoonMap({ shares, sel, onSelect, g, proj, layer = 'lead', live, fx, view, onHover, hover }) {
+  const hv = (id) => (onHover ? { onMouseEnter: () => onHover(id), onMouseLeave: () => onHover(null) } : {});
   const key = (id) => (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onSelect(id); } };
   const txt = { fill: '#fff', stroke: '#05070B', strokeWidth: 6, paintOrder: 'stroke', strokeLinejoin: 'round', style: { fontFamily: FONT_TITLE }, fontWeight: 700, fontStyle: 'italic' };
   const me = g ? g.player : null;
@@ -4188,7 +4189,7 @@ function CartoonMap({ shares, sel, onSelect, g, proj, layer = 'lead', live, fx }
   if (g && lay === 'rivals') (g.rivalMoves || []).forEach((m) => m.list.forEach((x) => { if (x.type === 'attack' && x.target === me) hits[x.rid] = (hits[x.rid] || 0) + 1; }));
   const [lx0, ly0] = g && g.leaderAt && !live ? leaderSpot(g.leaderAt) : [0, 0];
   return (
-    <svg viewBox="-40 -26 870 660" className="cx-map w-full h-auto block select-none" role="group" aria-label={tt('Map of Lithuania’s electoral regions', 'Lietuvos rinkimų regionų žemėlapis')}>
+    <svg viewBox={(view || MAP_VB).join(' ')} className="cx-map w-full h-auto block select-none" role="group" aria-label={tt('Map of Lithuania’s electoral regions', 'Lietuvos rinkimų regionų žemėlapis')}>
       <defs>
         <pattern id="cx-stripes" width="16" height="16" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
           <rect x="0" y="0" width="6" height="16" fill="#fff" fillOpacity="0.26" />
@@ -4209,12 +4210,13 @@ function CartoonMap({ shares, sel, onSelect, g, proj, layer = 'lead', live, fx }
       {COUNTY_IDS.map((id) => {
         const look = regionLook(shares[id]);
         return (
-          <g key={id} role="button" tabIndex={0} aria-label={aria(id, look)} onClick={() => onSelect(id)} onKeyDown={key(id)} style={{ cursor: 'pointer', outline: 'none' }}>
+          <g key={id} role="button" tabIndex={0} aria-label={aria(id, look)} onClick={() => onSelect(id)} onKeyDown={key(id)} style={{ cursor: 'pointer', outline: 'none' }} {...hv(id)}>
             <path d={COUNTY_SHAPES[id].d} fill={layerFill(lay, id, ctx)} stroke="rgba(255,255,255,0.7)" strokeWidth="2.5" strokeLinejoin="round" />
             {lay === 'lead' && !live && look.tossup && <path d={COUNTY_SHAPES[id].d} fill="url(#cx-stripes)" pointerEvents="none" />}
           </g>
         );
       })}
+      {hover && hover !== sel && COUNTY_SHAPES[hover] && <path d={COUNTY_SHAPES[hover].d} fill="rgba(255,255,255,.14)" stroke="#fff" strokeWidth="6" strokeLinejoin="round" pointerEvents="none" />}
       {sel && COUNTY_SHAPES[sel] && <path d={COUNTY_SHAPES[sel].d} fill="none" stroke={SUN} strokeWidth="9" strokeLinejoin="round" pointerEvents="none" />}
       {sel && COUNTY_SHAPES[sel] && <path d={COUNTY_SHAPES[sel].d} fill="none" stroke={INK} strokeWidth="3" strokeLinejoin="round" pointerEvents="none" />}
       {route.length > 1 && (
@@ -4228,7 +4230,7 @@ function CartoonMap({ shares, sel, onSelect, g, proj, layer = 'lead', live, fx }
         const [x, y] = t.pos;
         const val = layerValue(lay, id, ctx);
         return (
-          <g key={id} role="button" tabIndex={0} aria-label={aria(id, look)} onClick={() => onSelect(id)} onKeyDown={key(id)} style={{ cursor: 'pointer', outline: 'none' }}>
+          <g key={id} role="button" tabIndex={0} aria-label={aria(id, look)} onClick={() => onSelect(id)} onKeyDown={key(id)} style={{ cursor: 'pointer', outline: 'none' }} {...hv(id)}>
             <circle cx={x} cy={y + 6} r={t.r} fill="#03050A" opacity="0.9" />
             <circle cx={x} cy={y} r={t.r} fill={layerFill(lay, id, ctx)} stroke={sel === id ? SUN : 'rgba(255,255,255,0.85)'} strokeWidth={sel === id ? 7 : 3} />
             {lay === 'lead' && !live && look.tossup && <circle cx={x} cy={y} r={t.r - 4} fill="url(#cx-stripes)" pointerEvents="none" />}
@@ -4256,6 +4258,11 @@ function CartoonMap({ shares, sel, onSelect, g, proj, layer = 'lead', live, fx }
       })}
       {/* markers */}
       <g pointerEvents="none">
+        {g && !live && (lay === 'lead' || lay === 'battle') && REGIONS.filter((r) => raceInfo(g, r, shares[r.id]).status === 'close').map((r) => {
+          const [x, y] = anchorOf(r.id);
+          const rr = TOKENS[r.id] ? TOKENS[r.id].r + 6 : 26;
+          return <circle key={`hot-${r.id}`} className="cx-ping" cx={x} cy={y} r={rr} fill="none" stroke="#FB923C" strokeWidth="5" />;
+        })}
         {waiting.map((id) => {
           const [x, y] = anchorOf(id);
           const [bx, by] = TOKENS[id] ? [x - TOKENS[id].r - 4, y + TOKENS[id].r - 4] : [x - 44, y - 30];
@@ -4378,8 +4385,12 @@ function RegionRow({ r, g, s, mySeats, onClick }) {
         {r.seats}
       </div>
       <div className="min-w-0 flex-1">
-        <div className="cx-title text-lg leading-tight truncate inline-flex items-center gap-1.5 max-w-full">{g.leaderAt === r.id && <Bus size={16} className="shrink-0" />}<span className="truncate">{rl(r)}</span>{(g.newsPins || []).some((x) => x.rid === r.id) && <span className="grid place-items-center rounded-full text-white font-black shrink-0" style={{ width: 18, height: 18, background: '#E5484D', fontSize: 12 }}>!</span>}</div>
-        <div className="text-sm font-semibold t-muted truncate">{raceText(info)}</div>
+        <div className="cx-title text-lg leading-tight truncate inline-flex items-center gap-1.5 max-w-full">{g.leaderAt === r.id && <Bus size={16} className="shrink-0" />}<span className="truncate lg:hidden">{rs(r)}</span><span className="truncate hidden lg:inline">{rl(r)}</span>{(g.newsPins || []).some((x) => x.rid === r.id) && <span className="grid place-items-center rounded-full text-white font-black shrink-0" style={{ width: 18, height: 18, background: '#E5484D', fontSize: 12 }}>!</span>}</div>
+        <div className="text-[13px] font-semibold t-muted leading-snug">{raceText(info)}</div>
+        <div className="flex items-center gap-1.5 mt-1" aria-hidden="true">
+          <span className="flex-1 rounded-full overflow-hidden" style={{ height: 5, background: 'rgba(0,0,0,.35)' }}><span className="block h-full rounded-full" style={{ width: `${clamp((s[g.player] / Math.max(1, s[info.ord[0]])) * 100, 3, 100)}%`, background: info.lead === g.player ? '#fff' : PARTIES[g.player].color, transition: 'width .6s ease' }} /></span>
+          <span className="text-[11px] font-extrabold cx-num">{fmtPct(s[g.player], 1)}</span>
+        </div>
       </div>
       <div className="flex flex-col items-end gap-1 shrink-0">
         <StatusPill status={info.status} />
@@ -4563,17 +4574,16 @@ function Header({ g, proj, onHelp, lang, setLang }) {
     <header className="sticky z-30" style={{ top: 'env(safe-area-inset-top, 0px)', background: 'linear-gradient(180deg, rgba(7,9,13,.97), rgba(12,15,22,.94))', borderBottom: `1px solid ${LINE}`, backdropFilter: 'blur(8px)', WebkitBackdropFilter: 'blur(8px)' }}>
       <div className="max-w-lg mx-auto pt-2.5" style={GUTTER}>
         <div className="flex items-center gap-2.5">
-          <Portrait who={g.player} size={50} square badge />
+          <Portrait who={g.player} size={48} square badge />
           <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-1.5 min-w-0">
-              <span className="cx-title text-lg leading-none truncate">{P.leader}</span>
+            <div className="cx-title text-xl leading-none truncate">{P.leader}</div>
+            <div className="flex items-center gap-1.5 mt-1 min-w-0">
               <span className="shrink-0 rounded px-1.5 text-xs font-extrabold" style={{ background: P.color, color: '#fff', lineHeight: '18px' }}>{P.short}</span>
+              <span className="shrink-0 cx-title text-sm" style={{ color: SUN }}>{tt(`Week ${g.week}/12`, `${g.week}/12 sav.`)}</span>
+              <span className="text-xs font-semibold t-muted truncate">· {nextUp(g)}</span>
             </div>
-            <div className="text-xs font-semibold t-muted mt-1 truncate">{fmtDay(weekStartDate(g.week))} · {nextUp(g)}</div>
           </div>
-          <LangToggle lang={lang} setLang={setLang} />
-          <SoundToggle size={38} />
-          <button type="button" onClick={onHelp} aria-label={tt('How to play', 'Kaip žaisti')} className="cx-btn shrink-0" style={{ width: 38, height: 38, borderRadius: 999, background: 'rgba(255,255,255,.07)' }}><HelpCircle size={19} /></button>
+          <HeaderMenu lang={lang} setLang={setLang} onHelp={onHelp} />
         </div>
         <div className="flex items-center gap-1.5 mt-2">
           <HudPills g={g} seats={seats} />
@@ -4886,11 +4896,453 @@ function TourCard({ g, onSelect }) {
   );
 }
 const LAYER_KEY = 'seimas-bfl-layer';
+/* ============================================================
+   Map board: zoom, pan, pinch, hover card, overlays, seat strip
+   ============================================================ */
+const MAP_VB = [-40, -26, 870, 660];
+function clampView(v) {
+  const [X, Y, W, H] = MAP_VB;
+  const w = clamp(v[2], W / 3.6, W);
+  const h = (w * H) / W;
+  return [clamp(v[0], X, X + W - w), clamp(v[1], Y, Y + H - h), w, h];
+}
+function SeatStrip({ seats, me }) {
+  const order = SEAT_ORDER.filter((q) => (seats[q] || 0) > 0);
+  const mine = seats[me] || 0;
+  return (
+    <div className="px-3 py-2.5" style={{ borderTop: `1px solid ${LINE}`, background: 'rgba(7,9,13,.55)' }}>
+      <div className="flex items-baseline justify-between gap-2 text-xs font-bold">
+        <span className="cx-kicker">{tt('Projected Seimas', 'Numatomas Seimas')}</span>
+        <span><span className="cx-num text-base" style={{ color: mine >= MAJORITY ? GREEN : TEXT }}><CountUp to={mine} /></span> <span className="t-muted">/ 141 · {mine >= MAJORITY ? tt('majority!', 'dauguma!') : tt(`${MAJORITY - mine} short of 71`, `iki 71 trūksta ${MAJORITY - mine}`)}</span></span>
+      </div>
+      <div className="relative mt-1.5 flex rounded-md overflow-hidden" style={{ height: 16, background: 'rgba(255,255,255,.06)' }} role="img" aria-label={tt(`Projected seats: you ${mine} of 141`, `Numatomi mandatai: jūs ${mine} iš 141`)}>
+        {order.map((q) => (
+          <div key={q} title={`${partyShort(q)} ${seats[q]}`} style={{ width: `${(seats[q] / 141) * 100}%`, background: PARTIES[q] ? PARTIES[q].color : '#64748B', opacity: q === me ? 1 : 0.62, boxShadow: q === me ? `inset 0 0 0 2px #fff` : 'inset -1px 0 0 rgba(0,0,0,.45)', transition: 'width .6s cubic-bezier(.2,.8,.2,1)' }} />
+        ))}
+        <span className="absolute top-[-3px] bottom-[-3px]" style={{ left: `${(MAJORITY / 141) * 100}%`, width: 2, background: '#fff', boxShadow: '0 0 0 1px #000' }} />
+      </div>
+      <div className="flex flex-wrap gap-x-2.5 gap-y-0.5 mt-1.5 text-[11px] font-bold t-muted">
+        {order.slice().sort((a, b) => seats[b] - seats[a]).slice(0, 6).map((q) => <span key={q} className="inline-flex items-center gap-1" style={{ color: q === me ? TEXT : undefined }}><span className="inline-block rounded-sm" style={{ width: 8, height: 8, background: PARTIES[q] ? PARTIES[q].color : '#64748B' }} />{partyShort(q)} {seats[q]}</span>)}
+        <span className="ml-auto">{tt('line = 71', 'linija – 71')}</span>
+      </div>
+    </div>
+  );
+}
+function RegionTip({ g, id, shares, proj }) {
+  const r = REG[id];
+  const s = shares[id];
+  const info = raceInfo(g, r, s);
+  const top = info.ord.slice(0, 3);
+  const mySeats = proj.smd.filter((e) => e.rid === id && e.winner === g.player).length;
+  const moves = (g.weekMoves || []).filter((m) => m.rid === id).length;
+  return (
+    <div className="rounded-xl p-3" style={{ width: 250, background: 'rgba(12,15,22,.96)', border: `1px solid ${LINE2}`, boxShadow: '0 18px 40px rgba(0,0,0,.55)' }}>
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <div className="cx-title text-lg leading-tight">{rl(id)}</div>
+          <div className="text-xs t-muted font-semibold">{r.seats} {seatsWord(r.seats)} · {tt(`you win ${mySeats}`, `laimėtumėte ${mySeats}`)}</div>
+        </div>
+        <StatusPill status={info.status} />
+      </div>
+      <div className="flex flex-col gap-1 mt-2">
+        {top.map((q) => (
+          <div key={q} className="grid items-center gap-2 text-xs font-bold" style={{ gridTemplateColumns: '58px 1fr 40px' }}>
+            <span className="truncate" style={{ color: q === g.player ? SUN : TEXT }}>{q === g.player ? tt('You', 'Jūs') : partyShort(q)}</span>
+            <span className="cx-track" style={{ height: 7 }}><span className="block h-full" style={{ width: `${clamp(s[q] / Math.max(1, s[top[0]]) * 100, 2, 100)}%`, background: PARTIES[q].color }} /></span>
+            <span className="text-right cx-num">{fmtPct(s[q], 1)}</span>
+          </div>
+        ))}
+      </div>
+      <div className="text-xs font-semibold mt-2 leading-snug">{raceText(info)}</div>
+      <div className="flex flex-wrap gap-1.5 mt-2 text-[11px] font-bold">
+        {g.leaderAt === id && <span className="cx-chip px-2 py-0.5" style={{ color: SUN }}><Bus size={11} />{tt('Leader here', 'Lyderis čia')}</span>}
+        {moves > 0 && <span className="cx-chip px-2 py-0.5"><Check size={11} />{tt(`${moves} moves this week`, `${moves} veiksm. šią sav.`)}</span>}
+        <span className="cx-chip px-2 py-0.5"><Users size={11} />{tt('Team', 'Komanda')} {Math.round(g.gg[id][g.player])}</span>
+      </div>
+      <div className="text-[11px] t-muted mt-2">{tt('Click to open the region', 'Spauskite, kad atvertumėte regioną')}</div>
+    </div>
+  );
+}
+function MapBoard({ g, shares, proj, sel, onSelect, fx, wide }) {
+  const me = g.player;
+  const [layer, setLayer] = useState(() => { try { return window.localStorage.getItem(LAYER_KEY) || 'lead'; } catch (e) { return 'lead'; } });
+  const pickLayer = (id) => { setLayer(id); SFX.play('tap'); try { window.localStorage.setItem(LAYER_KEY, id); } catch (e) { /* ignore */ } };
+  const [view, setView] = useState(MAP_VB);
+  const [hover, setHover] = useState(null);
+  const wrap = useRef(null);
+  const tip = useRef(null);
+  const ptrs = useRef(new Map());
+  const gest = useRef(null);
+  const suppress = useRef(false);
+  const viewRef = useRef(view);
+  viewRef.current = view;
+  const zoomed = view[2] < MAP_VB[2] - 1;
+  const zoomBy = (k, ax = 0.5, ay = 0.5) => setView((v) => { const w = v[2] * k, h = v[3] * k; return clampView([v[0] + (v[2] - w) * ax, v[1] + (v[3] - h) * ay, w, h]); });
+  const rel = (cx, cy) => { const r = wrap.current.getBoundingClientRect(); return [(cx - r.left) / r.width, (cy - r.top) / r.height, r]; };
+  useEffect(() => {
+    const el = wrap.current;
+    if (!el) return undefined;
+    const onWheel = (e) => {
+      if (!(e.ctrlKey || e.metaKey || viewRef.current[2] < MAP_VB[2] - 1)) return;
+      e.preventDefault();
+      const [ax, ay] = rel(e.clientX, e.clientY);
+      zoomBy(e.deltaY > 0 ? 1.15 : 1 / 1.15, ax, ay);
+    };
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
+  }, []);
+  const moveTip = (e) => {
+    if (!tip.current || !wrap.current) return;
+    const [, , r] = rel(e.clientX, e.clientY);
+    const x = e.clientX - r.left, y = e.clientY - r.top;
+    const left = x > r.width - 280 ? x - 266 : x + 16;
+    const top = clamp(y - 40, 6, Math.max(6, r.height - 230));
+    tip.current.style.transform = `translate(${left}px, ${top}px)`;
+  };
+  const onDown = (e) => {
+    suppress.current = false;
+    ptrs.current.set(e.pointerId, [e.clientX, e.clientY]);
+    if (ptrs.current.size === 1) gest.current = { x: e.clientX, y: e.clientY, v: viewRef.current, moved: false };
+    else if (ptrs.current.size === 2) {
+      const [a, b] = [...ptrs.current.values()];
+      const [mx, my] = rel((a[0] + b[0]) / 2, (a[1] + b[1]) / 2);
+      gest.current = { pinch: Math.hypot(a[0] - b[0], a[1] - b[1]), v: viewRef.current, mx, my, moved: true };
+    }
+  };
+  const onMove = (e) => {
+    if (e.pointerType === 'mouse') moveTip(e);
+    if (!ptrs.current.has(e.pointerId)) return;
+    ptrs.current.set(e.pointerId, [e.clientX, e.clientY]);
+    const G = gest.current;
+    if (!G) return;
+    if (G.pinch && ptrs.current.size === 2) {
+      const [a, b] = [...ptrs.current.values()];
+      const k = G.pinch / Math.max(20, Math.hypot(a[0] - b[0], a[1] - b[1]));
+      const w = G.v[2] * k, h = G.v[3] * k;
+      setView(clampView([G.v[0] + (G.v[2] - w) * G.mx, G.v[1] + (G.v[3] - h) * G.my, w, h]));
+      return;
+    }
+    const dx = e.clientX - G.x, dy = e.clientY - G.y;
+    if (!G.moved && Math.hypot(dx, dy) > 6) G.moved = true;
+    if (G.moved && G.v[2] < MAP_VB[2] - 1) {
+      const r = wrap.current.getBoundingClientRect();
+      setView(clampView([G.v[0] - (dx / r.width) * G.v[2], G.v[1] - (dy / r.height) * G.v[3], G.v[2], G.v[3]]));
+    }
+  };
+  const onUp = (e) => {
+    ptrs.current.delete(e.pointerId);
+    if (gest.current && gest.current.moved && (gest.current.pinch || gest.current.v[2] < MAP_VB[2] - 1)) suppress.current = true;
+    if (ptrs.current.size === 0) gest.current = null;
+  };
+  const onCancel = (e) => { ptrs.current.delete(e.pointerId); if (ptrs.current.size === 0) gest.current = null; };
+  const onClickCap = (e) => { if (suppress.current) { e.stopPropagation(); e.preventDefault(); suppress.current = false; } };
+  const onHover = wide ? setHover : undefined;
+  const lead = REGIONS.filter((r) => regionLook(shares[r.id]).lead === me).length;
+  const close = REGIONS.filter((r) => raceInfo(g, r, shares[r.id]).status === 'close').length;
+  const ctrl = (label, Icon, fn, dis) => (
+    <button type="button" aria-label={label} title={label} disabled={dis} onClick={(e) => { e.stopPropagation(); fn(); SFX.play('tap'); }} className="cx-btn grid place-items-center" style={{ width: wide ? 36 : 32, height: wide ? 36 : 32, borderRadius: 10, background: 'rgba(12,15,22,.85)', border: `1px solid ${LINE2}`, opacity: dis ? 0.4 : 1 }}><Icon size={17} /></button>
+  );
+  return (
+    <div className="cx-card overflow-hidden -mx-2 lg:mx-0" style={{ padding: 0, background: `radial-gradient(ellipse at 50% 40%, #13233A, ${MAP_SEA} 70%)` }}>
+      <div className="flex items-center gap-2 px-3 py-2.5 cx-bar">
+        <Layers size={18} strokeWidth={2.4} color={SUN} />
+        <span className="cx-title text-lg lg:text-xl leading-none whitespace-nowrap">{wide ? tt('Campaign map', 'Kampanijos žemėlapis') : tt('Map', 'Žemėlapis')}</span>
+        <span className="ml-auto flex items-center gap-1.5 text-xs font-bold">
+          <span className="cx-chip px-2 py-0.5"><Flag size={12} color={SUN} />{tt(`Lead ${lead}/12`, `Pirmaujate ${lead}/12`)}</span>
+          <span className="cx-chip px-2 py-0.5 hidden sm:inline-flex"><Swords size={12} color="#FB923C" />{tt(`${close} toss-ups`, `${close} lygios kovos`)}</span>
+        </span>
+      </div>
+      <div className="cx-layers flex gap-1.5 overflow-x-auto px-3 pt-2 pb-1" role="tablist" aria-label={tt('Map layers', 'Žemėlapio sluoksniai')}>
+        {MAP_LAYERS.map((Ly) => {
+          const Icon = Ly.icon;
+          const on = layer === Ly.id;
+          return <button key={Ly.id} type="button" role="tab" aria-selected={on} onClick={() => pickLayer(Ly.id)} className="cx-chip shrink-0 px-3 py-1 text-xs" style={{ background: on ? '#F3F4F6' : 'rgba(255,255,255,.06)', color: on ? '#0B0E14' : TEXT, borderColor: on ? '#F3F4F6' : LINE2, minHeight: 32 }}><Icon size={13} strokeWidth={2.6} />{L(Ly.label)}</button>;
+        })}
+      </div>
+      <div
+        ref={wrap}
+        className="relative"
+        style={{ padding: 4, touchAction: zoomed ? 'none' : 'pan-y', cursor: zoomed ? 'grab' : undefined }}
+        onPointerDown={onDown}
+        onPointerMove={onMove}
+        onPointerUp={onUp}
+        onPointerCancel={onCancel}
+        onPointerLeave={(e) => { if (e.pointerType === 'mouse') { onCancel(e); setHover(null); } }}
+        onClickCapture={onClickCap}
+        onDoubleClick={(e) => { const [ax, ay] = rel(e.clientX, e.clientY); zoomBy(0.6, ax, ay); }}
+      >
+        <CartoonMap shares={shares} sel={sel} onSelect={onSelect} g={g} proj={proj} layer={layer} fx={fx} view={view} onHover={onHover} hover={hover} />
+        <div className="absolute flex flex-col gap-1.5" style={{ top: 10, right: 10 }}>
+          {ctrl(tt('Zoom in', 'Priartinti'), Plus, () => zoomBy(0.7), view[2] <= MAP_VB[2] / 3.6 + 1)}
+          {ctrl(tt('Zoom out', 'Nutolinti'), Minus, () => zoomBy(1 / 0.7), !zoomed)}
+          {ctrl(tt('Show all of Lithuania', 'Rodyti visą Lietuvą'), Maximize2, () => setView(MAP_VB), !zoomed)}
+          {g.leaderAt && ctrl(tt('Find your leader', 'Rasti lyderį'), LocateFixed, () => { const [x, y] = anchorOf(g.leaderAt); const w = MAP_VB[2] / 2, h = (w * MAP_VB[3]) / MAP_VB[2]; setView(clampView([x - w / 2, y - h / 2, w, h])); })}
+        </div>
+        {zoomed && <div className="absolute left-3 top-3 text-[11px] font-bold px-2 py-1 rounded-md pointer-events-none" style={{ background: 'rgba(12,15,22,.8)', border: `1px solid ${LINE}` }}>{tt('Drag to move', 'Tempkite, kad judintumėte')} · {Math.round((MAP_VB[2] / view[2]) * 100)}%</div>}
+        {wide && (
+          <div ref={tip} className="absolute left-0 top-0 pointer-events-none z-10" style={{ transition: 'opacity .15s', opacity: hover ? 1 : 0 }}>
+            {hover && <RegionTip g={g} id={hover} shares={shares} proj={proj} />}
+          </div>
+        )}
+      </div>
+      <SeatStrip seats={proj.seats} me={me} />
+      <div style={{ borderTop: `1px solid ${LINE}`, background: 'rgba(7,9,13,.55)' }}><MapLegend layer={layer} g={g} shares={shares} /></div>
+    </div>
+  );
+}
+
+/* ============================================================
+   Phone header menu (language, sound, help)
+   ============================================================ */
+function HeaderMenu({ lang, setLang, onHelp }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="relative shrink-0">
+      <button type="button" aria-label={tt('Menu', 'Meniu')} aria-expanded={open} onClick={() => { setOpen(!open); SFX.play('tap'); }} className="cx-btn" style={{ width: 40, height: 40, borderRadius: 12, background: open ? '#F3F4F6' : 'rgba(255,255,255,.07)', color: open ? INK : TEXT }}><Menu size={20} /></button>
+      {open && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} aria-hidden="true" />
+          <div className="absolute right-0 z-50 mt-2 p-2 rounded-xl flex flex-col gap-1 sbl-pop" style={{ width: 230, background: '#1A202B', border: `1px solid ${LINE2}`, boxShadow: '0 18px 40px rgba(0,0,0,.6)' }}>
+            <div className="flex items-center justify-between px-2 py-1.5"><span className="font-bold text-sm">{tt('Language', 'Kalba')}</span><LangToggle lang={lang} setLang={setLang} /></div>
+            <div className="flex items-center justify-between px-2 py-1.5"><span className="font-bold text-sm">{tt('Sound', 'Garsas')}</span><SoundToggle size={36} /></div>
+            <button type="button" onClick={() => { setOpen(false); onHelp(); }} className="cx-btn justify-start gap-2 px-2 py-2.5 text-sm font-bold rounded-lg" style={{ background: 'rgba(255,255,255,.05)' }}><HelpCircle size={18} />{tt('How to play', 'Kaip žaisti')}</button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+/* ============================================================
+   Social media feed
+   ============================================================ */
+const FEED_PEOPLE = {
+  seniors: { name: bi('Ona, pensioner', 'Ona, pensininkė'), handle: '@ona_kaunas' },
+  youth: { name: bi('Mantas', 'Mantas'), handle: '@mantas.vln' },
+  farmers: { name: bi('Jonas, farmer', 'Jonas, ūkininkas'), handle: '@ukis_jonas' },
+  business: { name: bi('Tomas, founder', 'Tomas, įkūrėjas'), handle: '@tomas_startup' },
+  public: { name: bi('Dr Daiva', 'Dr. Daiva'), handle: '@dr_daiva' },
+  minority: { name: bi('Irena', 'Irena'), handle: '@irena_vilnius' },
+  anchor: { name: bi('Politics 360', 'Politika 360'), handle: '@politika360', verified: true },
+  pollst: { name: bi('Poll Watch LT', 'Apklausų stebėtojas'), handle: '@apklausos_lt', verified: true },
+};
+const FEED_MOVE = {
+  rally: bi('Went to {L}’s rally in {R}. Bigger crowd than I expected! 👏', 'Buvau {P} mitinge – {R}. Minia didesnė, nei tikėjausi! 👏'),
+  digital: bi('Third {P} ad in my feed today 🙄', 'Jau trečia {P} reklama mano sraute šiandien 🙄'),
+  tv: bi('Another {P} ad during the evening news. At least it was short.', 'Per vakaro žinias – vėl {P} reklama. Bent jau trumpa.'),
+  door: bi('{P} volunteers knocked on our door in {R}. Polite, left a leaflet.', '{R}: pas mus užsuko {P} savanoriai. Mandagūs, paliko lankstinuką.'),
+  attack: bi('That {P} attack ad in {R} is a bit much. Talk about ideas!', 'Ta {P} puolamoji reklama ({R}) – per daug. Kalbėkit apie idėjas!'),
+  star: bi('Heard a well-known name will run for {P} here in {R} 👀', 'Girdėjau, kad {R} už {P} kandidatuos žinomas žmogus 👀'),
+};
+const FEED_MOOD = {
+  good: [bi('First time in years {P} talks about people like me. Voting for them.', 'Pirmą kartą per daug metų {P} kalba apie tokius kaip aš. Balsuosiu.'), bi('{L} actually listens. Didn’t expect that.', '{L} tikrai klauso. Nesitikėjau.')],
+  bad: [bi('{P} doesn’t care about us at all. Not voting for them.', '{P} mumis visai nesidomi. Už juos nebalsuosiu.'), bi('Nice promises, {L}. We’ve heard them before.', '{P} gražiai žada, bet tai girdėjom jau ne kartą.')],
+};
+const FEED_TAKES = [bi('Let’s see what this does to the polls.', 'Pažiūrėsim, kaip tai atsilieps reitingams.'), bi('The campaign is heating up 🔥', 'Kampanija įkaista 🔥'), bi('Big week in Lithuanian politics.', 'Didelė savaitė Lietuvos politikoje.'), bi('Nobody saw that coming.', 'To niekas nesitikėjo.')];
+function feedRng(seed) { let s = seed >>> 0; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; }
+function feedPosts(g) {
+  const me = g.player;
+  const P = partyShort(me);
+  const Lname = PARTIES[me].leader;
+  const rnd = feedRng(g.week * 977 + (g.stats.actions || 0) * 31 + g.news.length * 7 + me.length);
+  const fill = (t, rid) => L(t).replace(/\{P\}/g, P).replace(/\{L\}/g, Lname).replace(/\{R\}/g, rid ? rs(rid) : '');
+  const big = (k) => Math.round((k * (0.5 + rnd())) / 10) * 10 + Math.round(rnd() * 9);
+  const posts = [];
+  (g.weekMoves || []).slice(-4).reverse().forEach((m, i) => {
+    const r = REG[m.rid];
+    const who = m.type === 'digital' || (r && r.urban > 0.6) ? (i % 2 ? 'business' : 'youth') : (i % 2 ? 'farmers' : 'seniors');
+    const t = FEED_MOVE[m.type] || FEED_MOVE.rally;
+    const tone = m.type === 'attack' || m.type === 'digital' ? 'bad' : 'good';
+    posts.push({ who, text: fill(t, m.rid), likes: big(tone === 'good' ? 300 : 180), shares: big(40), comments: big(25), tone, time: tt(`${i + 1}h`, `${i + 1} val.`) });
+  });
+  const H = g.history;
+  if (H.length > 1) {
+    const d = H[H.length - 1].shares[me] - H[H.length - 2].shares[me];
+    posts.push({ who: 'pollst', text: tt(`New poll: ${P} ${fmtPct(H[H.length - 1].shares[me])} (${d >= 0 ? '+' : '−'}${nf(Math.abs(d))} pts). Leader: ${partyShort(PARTY_IDS.slice().sort((a, b) => H[H.length - 1].shares[b] - H[H.length - 1].shares[a])[0])}. #Seimas2028`, `Nauja apklausa: ${P} ${fmtPct(H[H.length - 1].shares[me])} (${d >= 0 ? '+' : '−'}${nf(Math.abs(d))} proc. p.). Pirmauja ${partyShort(PARTY_IDS.slice().sort((a, b) => H[H.length - 1].shares[b] - H[H.length - 1].shares[a])[0])}. #Seimas2028`), likes: big(900), shares: big(220), comments: big(140), tone: d >= 0 ? 'good' : 'bad', time: tt('5h', '5 val.') });
+  }
+  const moods = GROUPS.map((G) => [G.id, (g.groupMood && g.groupMood[G.id]) || 0]).sort((a, b) => b[1] - a[1]);
+  if (moods[0][1] > 1.5) posts.push({ who: moods[0][0], text: fill(FEED_MOOD.good[Math.floor(rnd() * 2)]), likes: big(500), shares: big(60), comments: big(40), tone: 'good', time: tt('7h', '7 val.') });
+  const low = moods[moods.length - 1];
+  if (low[1] < -1.5) posts.push({ who: low[0], text: fill(FEED_MOOD.bad[Math.floor(rnd() * 2)]), likes: big(450), shares: big(80), comments: big(70), tone: 'bad', time: tt('8h', '8 val.') });
+  if (g.cred < 45) posts.push({ who: 'public', text: tt(`Does anyone still believe ${Lname}’s promises? #flipflop`, `Ar dar kas nors tiki ${P} pažadais? #pozicijoskeitimas`), likes: big(700), shares: big(160), comments: big(120), tone: 'bad', time: tt('9h', '9 val.') });
+  else if (g.cred > 75) posts.push({ who: 'public', text: tt(`Say what you like about ${P}, they keep their word.`, `Galima ginčytis dėl ${P}, bet žodį jie laiko.`), likes: big(420), shares: big(50), comments: big(30), tone: 'good', time: tt('9h', '9 val.') });
+  if (g.scandal > 35) posts.push({ who: 'youth', text: tt(`#${P.replace(/[^A-Za-z]/g, '')}scandal is trending again. Who funds these people?`, `#${P.replace(/[^A-Za-zĄČĘĖĮŠŲŪŽąčęėįšųūž]/g, '')}skandalas vėl populiarus. Kas finansuoja šiuos žmones?`), likes: big(1200), shares: big(400), comments: big(300), tone: 'bad', time: tt('10h', '10 val.') });
+  g.news.slice(0, 3).forEach((n, i) => {
+    const v = newsView(g, n);
+    posts.push({ who: 'anchor', text: `„${v.title}“ – ${L(FEED_TAKES[(n.id + i) % FEED_TAKES.length])}`, likes: big(600), shares: big(150), comments: big(90), tone: 'neutral', time: tt(`${12 + i * 3}h`, `${12 + i * 3} val.`) });
+  });
+  return posts;
+}
+function FeedPost({ post, compact }) {
+  const pp = FEED_PEOPLE[post.who] || FEED_PEOPLE.anchor;
+  const c = post.tone === 'good' ? GREEN : post.tone === 'bad' ? RED : MUTED;
+  return (
+    <article className="flex gap-2.5 py-2.5" style={{ borderTop: `1px solid ${LINE}` }}>
+      <Portrait who={post.who} size={compact ? 34 : 40} mood={post.tone === 'good' ? 'grin' : post.tone === 'bad' ? 'grr' : 'ok'} />
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-1 text-sm min-w-0">
+          <span className="font-extrabold truncate">{L(pp.name)}</span>
+          {pp.verified && <BadgeCheck size={14} color="#60A5FA" className="shrink-0" />}
+          <span className="t-muted text-xs truncate">{pp.handle} · {post.time}</span>
+        </div>
+        <div className="text-sm leading-snug mt-0.5">{post.text}</div>
+        <div className="flex items-center gap-4 mt-1.5 text-xs font-bold t-muted">
+          <span className="inline-flex items-center gap-1"><MessageSquare size={13} />{fmtNum(post.comments, 0)}</span>
+          <span className="inline-flex items-center gap-1"><Repeat2 size={13} />{fmtNum(post.shares, 0)}</span>
+          <span className="inline-flex items-center gap-1" style={{ color: post.tone === 'good' ? '#F472B6' : undefined }}><Heart size={13} fill={post.tone === 'good' ? '#F472B6' : 'none'} />{fmtNum(post.likes, 0)}</span>
+          <span className="ml-auto inline-block rounded-full" style={{ width: 8, height: 8, background: c }} title={post.tone} />
+        </div>
+      </div>
+    </article>
+  );
+}
+function SocialFeed({ g, limit = 8, compact }) {
+  const posts = useMemo(() => feedPosts(g), [g]).slice(0, limit);
+  const good = posts.filter((x) => x.tone === 'good').length;
+  const bad = posts.filter((x) => x.tone === 'bad').length;
+  const mood = good + bad ? Math.round((good / (good + bad)) * 100) : 50;
+  const theme = g.theme && THEMES.find((t) => t.id === g.theme);
+  const tags = ['#Seimas2028', `#${partyShort(g.player).replace(/[^A-Za-z0-9ĄČĘĖĮŠŲŪŽąčęėįšųūž]/g, '')}`, theme ? `#${L(theme.name).split(' ')[0]}` : null, DEBATE_WEEKS.includes(g.week) ? (LANG === 'lt' ? '#LRTdebatai' : '#LRTdebate') : null].filter(Boolean);
+  return (
+    <section className="cx-card p-4">
+      <div className="flex items-center gap-2">
+        <Hash size={18} color={SUN} />
+        <span className="cx-title text-xl">{tt('Social media', 'Socialiniai tinklai')}</span>
+        <span className="ml-auto text-xs font-bold" style={{ color: mood >= 55 ? GREEN : mood >= 45 ? SUN : RED }}>{tt(`Mood ${mood}% positive`, `Nuotaika: ${mood} % teigiama`)}</span>
+      </div>
+      <div className="flex flex-wrap gap-1.5 mt-2">{tags.map((t) => <span key={t} className="cx-chip px-2 py-0.5 text-xs" style={{ color: '#93C5FD' }}>{t}</span>)}</div>
+      <div className="mt-2">
+        {posts.length ? posts.map((p, i) => <FeedPost key={i} post={p} compact={compact} />) : <div className="text-sm t-muted py-3">{tt('Quiet online so far. Make some moves!', 'Internete kol kas tylu. Imkitės veiksmų!')}</div>}
+      </div>
+    </section>
+  );
+}
+
+/* ============================================================
+   Press conference
+   ============================================================ */
+const OUTLETS = ['Vakaro kurjeris', 'Portalas 24', 'Baltijos žinios', 'Radijas Aušra', 'Verslo dienraštis', 'Regionų balsas'];
+const PRESS_QS = [
+  { q: bi('Prices keep rising in the shops. What exactly will you do?', 'Kainos parduotuvėse auga. Ką konkrečiai darysite?'), answers: [
+    { t: bi('Cut VAT on basic food.', 'Sumažinsime PVM būtiniausiam maistui.'), buzz: 1.25, groups: { seniors: 2, business: -1 } },
+    { t: bi('First we balance the budget. No magic tricks.', 'Pirmiausia subalansuosime biudžetą. Jokių stebuklų.'), buzz: 0.7, cred: 2, groups: { business: 2, seniors: -1 } },
+    { t: bi('Ask the current government. It’s their mess.', 'Klauskite dabartinės Vyriausybės – tai jų netvarka.'), buzz: 1.0, cred: -1 } ] },
+  { q: bi('Do your donors expect something in return?', 'Ar jūsų rėmėjai tikisi ko nors mainais?'), answers: [
+    { t: bi('Every donor is public. We’ll publish the full list tomorrow.', 'Visi rėmėjai vieši. Rytoj paskelbsime visą sąrašą.'), buzz: 0.9, cred: 4, scandal: -4 },
+    { t: bi('No comment.', 'Be komentarų.'), buzz: 0.4, cred: -3, scandal: 3 },
+    { t: bi('Ask my rivals: their donors are far more interesting.', 'Paklauskite varžovų – jų rėmėjai daug įdomesni.'), buzz: 1.15, cred: -1 } ] },
+  { q: bi('Will you back 3% of GDP for defence?', 'Ar remiate 3 % BVP gynybai?'), answers: [
+    { t: bi('Yes, and more if needed.', 'Taip, ir daugiau, jei reikės.'), buzz: 1.0, groups: { business: 1, youth: 1, seniors: -1 } },
+    { t: bi('Yes, but not by cutting pensions.', 'Taip, bet ne pensijų sąskaita.'), buzz: 1.05, cred: 1, groups: { seniors: 1, public: 1 } },
+    { t: bi('That needs a wider discussion.', 'Tam reikia platesnės diskusijos.'), buzz: 0.5, cred: -1 } ] },
+  { q: bi('Why should young people stay in Lithuania?', 'Kodėl jaunimas turėtų likti Lietuvoje?'), answers: [
+    { t: bi('Affordable rent and better pay outside Vilnius.', 'Įperkama nuoma ir didesni atlyginimai ne tik Vilniuje.'), buzz: 1.1, groups: { youth: 2 } },
+    { t: bi('Because this is their home.', 'Nes čia jų namai.'), buzz: 0.6, groups: { seniors: 1, youth: -1 } },
+    { t: bi('Lower taxes for people starting their careers.', 'Mažesni mokesčiai pradedantiems karjerą.'), buzz: 1.0, groups: { youth: 1, business: 1 } } ] },
+  { q: bi('Farmers are threatening tractor protests. Will you meet them?', 'Ūkininkai grasina traktorių protestu. Ar susitiksite su jais?'), answers: [
+    { t: bi('Yes, this week, on a farm, not in an office.', 'Taip, dar šią savaitę – ūkyje, ne kabinete.'), buzz: 1.2, groups: { farmers: 3 } },
+    { t: bi('Blocking roads is no way to negotiate.', 'Kelių blokavimas – ne derybų būdas.'), buzz: 0.85, groups: { farmers: -2, business: 1 } },
+    { t: bi('After the election.', 'Po rinkimų.'), buzz: 0.4, cred: -1, groups: { farmers: -1 } } ] },
+  { q: bi('Patients wait months to see a doctor. Your plan?', 'Pas gydytojus laukiama mėnesiais. Jūsų planas?'), answers: [
+    { t: bi('More money for family doctors, starting next year.', 'Daugiau lėšų šeimos gydytojams – nuo kitų metų.'), buzz: 1.05, groups: { public: 2, seniors: 1 } },
+    { t: bi('Let private clinics take state-paid patients.', 'Leisti privačioms klinikoms priimti valstybės apmokamus pacientus.'), buzz: 0.95, groups: { business: 1, youth: 1, public: -1 } },
+    { t: bi('The whole system needs reform.', 'Visą sistemą reikia reformuoti.'), buzz: 0.6 } ] },
+  { q: bi('Do you support original spelling of minority surnames in passports?', 'Ar pritariate originaliai mažumų pavardžių rašybai pasuose?'), answers: [
+    { t: bi('Yes, it’s the European norm.', 'Taip, tai europinė norma.'), buzz: 1.0, groups: { minority: 3, youth: 1, seniors: -1 } },
+    { t: bi('No. There is one state language.', 'Ne. Valstybinė kalba – viena.'), buzz: 1.0, groups: { minority: -3, seniors: 1, farmers: 1 } },
+    { t: bi('The courts should settle it.', 'Tai turi išspręsti teismai.'), buzz: 0.5 } ] },
+  { q: bi('Who would you never form a coalition with?', 'Su kuo niekada nesudarytumėte koalicijos?'), answers: [
+    { t: bi('With anyone who denies the facts.', 'Su tais, kurie neigia faktus.'), buzz: 1.2, cred: 1 },
+    { t: bi('We’ll talk to everyone.', 'Kalbėsimės su visais.'), buzz: 0.65, cred: 1 },
+    { t: bi('We’ll answer that after the vote.', 'Į tai atsakysime po rinkimų.'), buzz: 0.4, cred: -1 } ] },
+  { q: bi('Locals oppose a new wind farm. Would you stop it?', 'Gyventojai prieš naują vėjo parką. Ar jį sustabdytumėte?'), answers: [
+    { t: bi('No. Clean energy is national security.', 'Ne. Švari energija – nacionalinis saugumas.'), buzz: 1.0, groups: { youth: 2, farmers: -1 } },
+    { t: bi('Yes, if the community says no.', 'Taip, jei bendruomenė prieš.'), buzz: 0.95, groups: { farmers: 2, youth: -1 } },
+    { t: bi('Locals should get a share of the profits.', 'Gyventojai turi gauti dalį pajamų.'), buzz: 1.15, groups: { farmers: 1, youth: 1 } } ] },
+];
+function resolvePresser(g, picks) {
+  const p = g.player;
+  const n = g.natActs.presser || 0;
+  if (g.ap < 1) return { ok: false, msg: tt('Needs 1 energy.', 'Reikia 1 energijos.') };
+  if (g.money < 5) return { ok: false, msg: tt(`Not enough money: ${fmtEur(5)} needed.`, `Trūksta pinigų: reikia ${fmtEur(5)}.`) };
+  g.ap -= 1; spend(g, 5); g.stats.actions += 1;
+  let m = 0, cr = 0;
+  picks.forEach(({ q, a }) => {
+    const A = PRESS_QS[q].answers[a];
+    m += A.buzz; cr += A.cred || 0;
+    if (A.groups) Object.entries(A.groups).forEach(([id, d]) => { g.groupMood[id] = clamp((g.groupMood[id] || 0) + d, -20, 20); });
+    if (A.scandal) addScandal(g, A.scandal);
+  });
+  m /= Math.max(1, picks.length);
+  const d = 0.9 * m * [1, 0.55, 0.3, 0.15][Math.min(n, 3)] * (hasStaff(g, 'press') ? 1.5 : 1);
+  g.momentum[p] = clamp(g.momentum[p] + d, -10, 10);
+  if (cr) addCred(g, cr);
+  g.natActs.presser = n + 1;
+  addCons(g, m >= 1 ? 'good' : 'warn', bi(`Press conference: buzz ${fmtSigned(d)}${cr ? `, credibility ${fmtSigned(cr)}` : ''}.`, `Spaudos konferencija: pagreitis ${fmtSigned(d)}${cr ? `, patikimumas ${fmtSigned(cr)}` : ''}.`));
+  return { ok: true, tone: m >= 1 ? 'good' : 'warn', msg: tt(`Press conference: buzz ${fmtSigned(d)}${cr ? ` · credibility ${fmtSigned(cr)}` : ''}`, `Spaudos konferencija: pagreitis ${fmtSigned(d)}${cr ? ` · patikimumas ${fmtSigned(cr)}` : ''}`) + (vrkCheck(g) || '') };
+}
+function PressSheet({ g, onDone, onClose }) {
+  const qs = useMemo(() => { const a = PRESS_QS.map((_, i) => i).sort(() => Math.random() - 0.5); return a.slice(0, 2); }, []);
+  const outlets = useMemo(() => qs.map(() => OUTLETS[Math.floor(Math.random() * OUTLETS.length)]), []);
+  const reporters = ['anchor', 'pressec'];
+  const [i, setI] = useState(0);
+  const [picks, setPicks] = useState([]);
+  const [chosen, setChosen] = useState(null);
+  const [flash, setFlash] = useState(0);
+  const Q = PRESS_QS[qs[i]];
+  const [typed, done, finish] = useTypewriter(L(Q.q), 18, true);
+  useEffect(() => { SFX.play('gavel'); }, []);
+  const choose = (a) => {
+    if (chosen != null) return;
+    setChosen(a);
+    setFlash((f) => f + 1);
+    SFX.play('pop');
+    setPicks([...picks, { q: qs[i], a }]);
+  };
+  const next = () => {
+    if (i < qs.length - 1) { setI(i + 1); setChosen(null); SFX.play('tap'); }
+    else onDone(picks);
+  };
+  return (
+    <Sheet label={tt('Press conference', 'Spaudos konferencija')} onClose={onClose} z="z-50">
+      <div className="relative">
+        <Scene kind="seimas" h={null} caption={false} flush kb className="h-[200px] lg:h-[260px]">
+          <div className="absolute inset-0 flex items-end justify-center pb-3">
+            <Portrait who={g.player} size={'clamp(84px, 24vw, 130px)'} square mood={chosen == null ? 'ok' : 'happy'} />
+          </div>
+          {flash > 0 && [0, 1, 2, 3].map((k) => <span key={`${flash}-${k}`} className="cx-flashbulb" style={{ left: `${10 + k * 24}%`, top: `${20 + (k % 2) * 30}%`, width: 90, height: 90, animationDelay: `${k * 0.12}s` }} />)}
+          <span className="absolute left-3 top-3 flex items-center gap-1.5 px-2 py-0.5 text-xs font-extrabold text-white rounded" style={{ background: '#DC2626' }}><Camera size={13} />{tt('PRESS CONFERENCE', 'SPAUDOS KONFERENCIJA')}</span>
+          <span className="absolute right-3 top-3 text-xs font-bold px-2 py-0.5 rounded" style={{ background: 'rgba(7,9,13,.8)' }}>{i + 1} / {qs.length}</span>
+        </Scene>
+        <button type="button" onClick={onClose} aria-label={tt('Close', 'Uždaryti')} className="cx-btn absolute right-3 bottom-3 grid place-items-center" style={{ width: 36, height: 36, borderRadius: 999, background: 'rgba(7,9,13,.8)' }}><X size={18} /></button>
+      </div>
+      <div style={GUTTER} className="pt-4 flex flex-col gap-3">
+        <div className="flex items-start gap-3" onClick={finish}>
+          <Portrait who={reporters[i % 2]} size={48} square mood="ok" />
+          <div className="min-w-0">
+            <div className="cx-kicker text-xs">{outlets[i]}</div>
+            <div className="cx-title text-xl leading-snug" style={{ minHeight: '2.6em' }}>{typed}{!done && <span className="cx-caret" style={{ color: SUN }}>▌</span>}</div>
+          </div>
+        </div>
+        {done && Q.answers.map((a, k) => (
+          <button key={k} type="button" onClick={() => choose(k)} disabled={chosen != null && chosen !== k} className="cx-btn cx-quote cx-answer w-full items-center text-left px-4 py-2.5 cx-pop-in" style={{ gap: 12, minHeight: 50, justifyContent: 'flex-start', animationDelay: `${k * 0.06}s`, outline: chosen === k ? `3px solid ${SUN}` : 'none' }}>
+            <span className="cx-num grid place-items-center rounded-full shrink-0" style={{ width: 26, height: 26, background: '#11141B', color: '#fff' }}>{String.fromCharCode(65 + k)}</span>
+            <span className="font-bold text-[15px] leading-snug flex-1">{L(a.t)}</span>
+          </button>
+        ))}
+        {chosen != null && (
+          <div className="flex items-center gap-3 sbl-fade">
+            <div className="text-sm font-semibold t-muted flex-1">{tt('Cameras flash. The reporters scribble it down.', 'Sužimba fotoaparatai. Žurnalistai užsirašo.')}</div>
+            <Btn className="h-12 px-5 shrink-0" onClick={next}>{i < qs.length - 1 ? tt('Next question', 'Kitas klausimas') : tt('Wrap up', 'Baigti')} <ArrowRight size={18} /></Btn>
+          </div>
+        )}
+      </div>
+    </Sheet>
+  );
+}
 function MapTab({ g, shares, proj, sel, onSelect, skipTips, wide, act, fx }) {
   const rows = REGIONS.slice().sort((a, b) => b.seats - a.seats);
   const p = g.player;
-  const [layer, setLayer] = useState(() => { try { return window.localStorage.getItem(LAYER_KEY) || 'lead'; } catch (e) { return 'lead'; } });
-  const pickLayer = (id) => { setLayer(id); try { window.localStorage.setItem(LAYER_KEY, id); } catch (e) { /* ignore */ } };
   return (
     <div className="flex flex-col gap-4 pt-4">
       {g.tut === 1 && (
@@ -4908,23 +5360,8 @@ function MapTab({ g, shares, proj, sel, onSelect, skipTips, wide, act, fx }) {
           {tt('Tap the big yellow Next week button at the bottom. Your rivals will react to what you did, and a new poll comes out.', 'Spauskite didelį geltoną mygtuką „Kita savaitė“ apačioje. Varžovai sureaguos į jūsų veiksmus, o mes gausime naują apklausą.')}
         </Coach>
       )}
+      <MapBoard g={g} shares={shares} proj={proj} sel={sel} onSelect={onSelect} fx={fx} wide={wide} />
       {!wide && <WeekPlan g={g} act={act} />}
-      <div className="cx-card overflow-hidden" style={{ padding: 0, background: `radial-gradient(ellipse at 50% 40%, #13233A, ${MAP_SEA} 70%)` }}>
-        <div className="flex items-center gap-2 px-3 py-2.5 cx-bar">
-          <Layers size={18} strokeWidth={2.4} color={SUN} />
-          <span className="cx-title text-xl leading-none">{tt('Campaign map', 'Kampanijos žemėlapis')}</span>
-          <span className="ml-auto text-xs font-semibold t-muted">{tt('tap a region', 'spauskite regioną')}</span>
-        </div>
-        <div className="cx-layers flex gap-1.5 overflow-x-auto px-3 pt-2 pb-1" role="tablist" aria-label={tt('Map layers', 'Žemėlapio sluoksniai')}>
-          {MAP_LAYERS.map((Ly) => {
-            const Icon = Ly.icon;
-            const on = layer === Ly.id;
-            return <button key={Ly.id} type="button" role="tab" aria-selected={on} onClick={() => pickLayer(Ly.id)} className="cx-chip shrink-0 px-3 py-1 text-xs" style={{ background: on ? '#F3F4F6' : 'rgba(255,255,255,.06)', color: on ? '#0B0E14' : TEXT, borderColor: on ? '#F3F4F6' : LINE2, minHeight: 32 }}><Icon size={13} strokeWidth={2.6} />{L(Ly.label)}</button>;
-          })}
-        </div>
-        <div style={{ padding: 6 }}><CartoonMap shares={shares} sel={sel} onSelect={onSelect} g={g} proj={proj} layer={layer} fx={fx} /></div>
-        <div style={{ borderTop: `1px solid ${LINE}`, background: 'rgba(7,9,13,.55)' }}><MapLegend layer={layer} g={g} shares={shares} /></div>
-      </div>
       {!wide && <TourCard g={g} onSelect={onSelect} />}
       {!wide && (g.tut === 0 || g.tut >= 5) && <Warnings g={g} />}
       {!wide && (g.tut === 0 || g.tut >= 5) && <RaceBriefing g={g} shares={shares} onOpen={onSelect} />}
@@ -5142,7 +5579,7 @@ function HQTab({ g, act, openSheet }) {
         <CardTitle sub={tt('Moves that work across the whole country', 'Veiksmai visai šaliai')}>{tt('Big moves', 'Dideli žingsniai')}</CardTitle>
         <div className="flex flex-col gap-3">
           {NATIONAL_ACTIONS.filter((a) => a.group === 'nat').map((a) => (
-            <MoveRow key={a.id} a={a} g={g} est={a.id === 'backchannel' ? tt('+Favours', '+Ryšiai') : a.id === 'presser' ? tt('+Buzz', '+Pagreitis') : a.id === 'kompro' ? tt('45% hit', '45 % sėkmė') : tt('All regions', 'Visi regionai')} onClick={() => (a.id === 'kompro' ? openSheet('kompro') : act((gg) => doNational(gg, a.id)))} />
+            <MoveRow key={a.id} a={a} g={g} est={a.id === 'backchannel' ? tt('+Favours', '+Ryšiai') : a.id === 'presser' ? tt('+Buzz', '+Pagreitis') : a.id === 'kompro' ? tt('45% hit', '45 % sėkmė') : tt('All regions', 'Visi regionai')} onClick={() => (a.id === 'kompro' ? openSheet('kompro') : a.id === 'presser' ? openSheet('presser') : act((gg) => doNational(gg, a.id)))} />
           ))}
         </div>
       </Card>
@@ -5416,11 +5853,13 @@ function KomproSheet({ g, act, onClose }) {
 /* ============================================================
    News tab
    ============================================================ */
-function NewsTab({ g }) {
+function NewsTab({ g, wide }) {
   let lastWeek = null;
   return (
-    <div className="flex flex-col gap-3 pt-4">
+    <div className="pt-4 flex flex-col gap-4 lg:grid lg:items-start" style={{ gridTemplateColumns: wide ? 'minmax(0, 1fr) minmax(0, 1fr)' : undefined }}>
+    <div className="flex flex-col gap-3 lg:order-1">
       <h2 className="cx-title text-4xl">{tt('News', 'Naujienos')}</h2>
+      {!wide && <SocialFeed g={g} limit={4} compact />}
       {g.news.map((n) => {
         const v = newsView(g, n);
         const Icon = v.icon;
@@ -5439,6 +5878,8 @@ function NewsTab({ g }) {
           </React.Fragment>
         );
       })}
+    </div>
+    {wide && <div className="lg:order-2 pt-1" style={{ position: 'sticky', top: 118 }}><SocialFeed g={g} limit={9} /></div>}
     </div>
   );
 }
@@ -6950,7 +7391,7 @@ export default function SeimasGame({ hotData } = {}) {
         {tab === 'map' && <MapTab g={game} shares={shares} proj={proj} sel={sel} onSelect={openRegion} skipTips={skipTips} wide={wide} act={act} fx={fx} />}
         {tab === 'polls' && <PollsTab g={game} nat={nat} proj={proj} />}
         {tab === 'hq' && <HQTab g={game} act={act} openSheet={openSheet} />}
-        {tab === 'news' && <NewsTab g={game} />}
+        {tab === 'news' && <NewsTab g={game} wide={wide} />}
       </>
     );
     const drawer = sel && <RegionDrawer g={game} rid={sel} proj={proj} docked={wide} onClose={closeRegion} onAction={(rid, type) => { const g0 = gameRef.current; const first = g0.tut === 2; const b4 = regionShares(g0, REG[rid]); const res = act((g) => doRegionAction(g, rid, type)); if (res && res.ok) { const af = regionShares(gameRef.current, REG[rid]); const me = g0.player; let d = af[me] - b4[me], who = me; if (type === 'attack') { const drop = PARTY_IDS.filter((q) => q !== me).map((q) => [q, af[q] - b4[q]]).sort((x, y) => x[1] - y[1])[0]; if (drop && drop[1] < d) { d = drop[1]; who = drop[0]; } } setFx({ rid, d, who, n: Date.now() }); clearTimeout(fxTimer.current); fxTimer.current = setTimeout(() => setFx(null), 2400); } if (first && !wide) setSel(null); }} onTravel={(rid) => act((g) => travel(g, rid))} tutStep={game.tut} onSkipTips={skipTips} />;
@@ -6966,6 +7407,7 @@ export default function SeimasGame({ hotData } = {}) {
         {sheet === 'casino' && <CasinoSheet g={game} act={act} onClose={() => setSheet(null)} />}
         {sheet === 'bet' && <BetSheet g={game} act={act} onClose={() => setSheet(null)} />}
         {sheet === 'kompro' && <KomproSheet g={game} act={act} onClose={() => setSheet(null)} />}
+        {sheet === 'presser' && <PressSheet g={game} onDone={(picks) => { setSheet(null); act((g) => resolvePresser(g, picks)); }} onClose={() => setSheet(null)} />}
         {confirmEnd && <ConfirmEnd g={game} onCancel={() => setConfirmEnd(false)} onConfirm={doEnd} />}
         {help && <HelpSheet onClose={() => setHelp(false)} />}
         {game.queue.length > 0 && <QueueModal g={game} item={game.queue[0]} act={act} nat={nat} proj={proj} />}
@@ -6979,6 +7421,7 @@ export default function SeimasGame({ hotData } = {}) {
         {sheet === 'casino' && <CasinoSheet g={game} act={act} onClose={() => setSheet(null)} />}
         {sheet === 'bet' && <BetSheet g={game} act={act} onClose={() => setSheet(null)} />}
         {sheet === 'kompro' && <KomproSheet g={game} act={act} onClose={() => setSheet(null)} />}
+        {sheet === 'presser' && <PressSheet g={game} onDone={(picks) => { setSheet(null); act((g) => resolvePresser(g, picks)); }} onClose={() => setSheet(null)} />}
         {confirmEnd && <ConfirmEnd g={game} onCancel={() => setConfirmEnd(false)} onConfirm={doEnd} />}
         {help && <HelpSheet onClose={() => setHelp(false)} />}
         {game.queue.length > 0 && <QueueModal g={game} item={game.queue[0]} act={act} nat={nat} proj={proj} />}
