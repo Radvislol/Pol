@@ -51,6 +51,19 @@ A political-drama strategy game about the **2028 Lithuanian Seimas election**, p
 
   Your final stability decides the Prime Minister grade, and the result screen shows a 100-day summary.
 
+## In the Seimas when you don't lead, and candidate scandals
+
+- **Opposition or junior partner.** If you go into opposition or join someone else's government, you vote on the new government's six bills. For each bill you see how every party is expected to vote, and when your seats decide the outcome. Voting in line with your promises raises your rating.
+  - As a junior partner, voting against costs the government stability. Voting against your own promises costs party unity. You can also walk out of the coalition, which brings the government down if it drops under 71 seats.
+  - In opposition, defeating bills shakes the coalition. Once the government's stability drops below 50 you can call a single no-confidence vote, which needs 71 votes.
+  - Bringing the government down earns the special *You brought the government down!* grade, and the result screen summarises your term.
+- **Candidate scandals.** From week 3, fictional candidates with a high scandal-risk score can get caught out, for example old posts, unpaid taxes or a viral row. A scandal weakens that candidate in their district and makes the news. When it hits one of yours, you choose:
+  - **defend them:** unity up, credibility down, the candidate stays weakened;
+  - **apologise:** smaller damage;
+  - **replace them:** €10k and 1 favour; a new, less known but clean candidate.
+
+  A lawyer and a press secretary make scandals rarer. Real incumbents are never targeted.
+
 ## Finding things
 
 - **Where is it?** The magnifier button in the top bar ("Where is it?" on desktop) lists everything you can do, grouped by section, with a search box. Matching ignores Lithuanian accents, so "kazino" and "pazadai" both work. Tapping an entry jumps straight to that action or opens it.
