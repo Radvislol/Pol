@@ -17,7 +17,7 @@ import {
   Languages, PiggyBank, Trophy, Music, Mail, SkipForward, Check, Tv, Target, Briefcase, Play, Sparkles,
   ShieldAlert, Siren, Flag, Star, Smile, Meh, Frown, Lightbulb, Medal, Landmark, Heart, Sprout,
   Wheat, LockOpen, Rocket, Hammer, Church, Bus, MessageCircle, ShieldCheck, TrendingUp, Route, Layers, Clock, Dices, Search, Cloud, CloudRain, Sun, Gavel, Ticket, Eye,
-  ThumbsUp, ThumbsDown, Volume2, VolumeX, Plus, Minus, Maximize2, LocateFixed, Menu, Repeat2, MessageSquare, Hash, Camera, BadgeCheck, Clapperboard, Share2,
+  ThumbsUp, ThumbsDown, Volume2, VolumeX, Plus, Minus, Maximize2, LocateFixed, Menu, Repeat2, MessageSquare, Hash, Camera, BadgeCheck, Clapperboard, Share2, Calendar,
 } from 'lucide-react';
 
 /* ============================================================
@@ -4573,7 +4573,7 @@ function nextUp(g) {
   }
   return g.week >= WEEKS ? tt('Early voting is open: moves are 15% weaker', 'Vyksta išankstinis balsavimas: veiksmai 15 % silpnesni') : tt('Next: election day', 'Toliau: rinkimų diena');
 }
-function Header({ g, proj, onHelp, lang, setLang }) {
+function Header({ g, proj, onHelp, lang, setLang, onFind }) {
   const P = PARTIES[g.player];
   const seats = proj.seats[g.player];
   return (
@@ -4589,6 +4589,7 @@ function Header({ g, proj, onHelp, lang, setLang }) {
               <span className="text-xs font-semibold t-muted truncate">· {nextUp(g)}</span>
             </div>
           </div>
+          <FindButton onClick={onFind} />
           <HeaderMenu lang={lang} setLang={setLang} onHelp={onHelp} />
         </div>
         <div className="flex items-center gap-1.5 mt-2">
@@ -4599,7 +4600,7 @@ function Header({ g, proj, onHelp, lang, setLang }) {
     </header>
   );
 }
-function DesktopHud({ g, proj, onHelp, lang, setLang, onEnd, glowEnd }) {
+function DesktopHud({ g, proj, onHelp, lang, setLang, onEnd, glowEnd, onFind }) {
   const P = PARTIES[g.player];
   const seats = proj.seats[g.player];
   const last = g.week >= WEEKS;
@@ -4621,6 +4622,7 @@ function DesktopHud({ g, proj, onHelp, lang, setLang, onEnd, glowEnd }) {
           <div className="mt-1"><WeekTimeline g={g} /></div>
         </div>
         <div className="flex items-center gap-2 ml-auto">
+          <FindButton onClick={onFind} wide />
           <LangToggle lang={lang} setLang={setLang} />
           <SoundToggle size={42} />
           <button type="button" onClick={onHelp} aria-label={tt('How to play', 'Kaip žaisti')} className="cx-btn shrink-0" style={{ width: 42, height: 42, borderRadius: 999, background: 'rgba(255,255,255,.07)' }}><HelpCircle size={20} /></button>
@@ -4643,13 +4645,15 @@ function NavRail({ tab, setTab }) {
   );
 }
 function SidePanel({ g, shares, onSelect, act }) {
+  const [pane, setPane] = useState('week');
   return (
     <div className="flex flex-col gap-4 sbl-scroll overflow-y-auto pr-1" style={{ position: 'sticky', top: 118, maxHeight: 'calc(100vh - 170px)' }}>
-      <WeekPlan g={g} act={act} />
-      <TourCard g={g} onSelect={onSelect} />
-      <Warnings g={g} />
-      <RaceBriefing g={g} shares={shares} onOpen={onSelect} />
-      <section className="cx-card p-4">
+      <SubTabs value={pane} onChange={setPane} label={tt('Side panel', 'Šoninis skydelis')} items={[['week', Calendar, tt('This week', 'Ši savaitė')], ['news', Newspaper, tt('News', 'Žinios'), g.news.filter((n) => n.week === g.week).length || null]]} />
+      {pane === 'week' && <WeekPlan g={g} act={act} />}
+      {pane === 'week' && <TourCard g={g} onSelect={onSelect} />}
+      {pane === 'week' && <Warnings g={g} />}
+      {pane === 'week' && <RaceBriefing g={g} shares={shares} onOpen={onSelect} />}
+      {pane === 'news' && <section className="cx-card p-4">
         <CardTitle>{tt('Latest news', 'Naujausios žinios')}</CardTitle>
         <div className="flex flex-col">
           {g.news.slice(0, 6).map((n) => {
@@ -4663,7 +4667,8 @@ function SidePanel({ g, shares, onSelect, act }) {
             );
           })}
         </div>
-      </section>
+      </section>}
+      {pane === 'news' && <SocialFeed g={g} limit={5} compact />}
     </div>
   );
 }
@@ -5349,7 +5354,104 @@ function PressSheet({ g, onDone, onClose }) {
     </Sheet>
   );
 }
-function MapTab({ g, shares, proj, sel, onSelect, skipTips, wide, act, fx }) {
+/* ============================================================
+   Navigation helpers: sub-tabs and the "Where is it?" finder
+   ============================================================ */
+function SubTabs({ value, onChange, items, label, className = '' }) {
+  return (
+    <div className={`cx-layers flex gap-1 p-1 rounded-2xl overflow-x-auto ${className}`} role="tablist" aria-label={label} style={{ background: 'rgba(255,255,255,.05)', border: `1px solid ${LINE}` }}>
+      {items.map(([id, Icon, text, badge]) => {
+        const on = value === id;
+        return (
+          <button key={id} type="button" role="tab" aria-selected={on} onClick={() => { if (!on) { onChange(id); SFX.play('tap'); } }} className="flex-1 shrink-0 inline-flex items-center justify-center gap-1.5 px-3 rounded-xl text-sm font-extrabold whitespace-nowrap" style={{ minHeight: 40, background: on ? '#F3F4F6' : 'transparent', color: on ? INK : TEXT, transition: 'background .2s' }}>
+            <Icon size={16} />{text}
+            {badge ? <span className="grid place-items-center rounded-full text-[10px] font-black" style={{ minWidth: 18, height: 18, padding: '0 4px', background: on ? INK : SUN, color: on ? '#fff' : INK }}>{badge}</span> : null}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+const HQ_SUBS = () => [
+  ['media', Megaphone, tt('Media', 'Žiniasklaida')],
+  ['money', Wallet, tt('Money', 'Pinigai')],
+  ['team', Users, tt('Team', 'Komanda')],
+  ['promises', ShieldCheck, tt('Promises', 'Pažadai')],
+];
+const POLL_SUBS = () => [
+  ['seats', Landmark, tt('Seats', 'Mandatai')],
+  ['polls', BarChart3, tt('Polls', 'Reitingai')],
+  ['rivals', Eye, tt('Rivals', 'Varžovai')],
+];
+// Everything you can do, and where it lives.
+const FINDER = [
+  { id: 'region', icon: MapIcon, label: bi('Rallies, ads and door-knocking in a region', 'Mitingai, reklama ir agitacija regione'), where: bi('Map › tap a region', 'Žemėlapis › paspauskite regioną'), kw: 'rally miting reklama durys door ads tv region regionas star kandidat attack puolim', go: { tab: 'map', sub: 'regions' } },
+  { id: 'travel', icon: Bus, label: bi('Move your leader (bus tour)', 'Perkelti lyderį (autobuso turas)'), where: bi('Map › region › Travel', 'Žemėlapis › regionas › Važiuoti'), kw: 'travel kelion autobus bus leader lyder', go: { tab: 'map', sub: 'regions' } },
+  { id: 'theme', icon: Megaphone, label: bi('Message of the week', 'Savaitės žinutė'), where: bi('Map › This week', 'Žemėlapis › Ši savaitė'), kw: 'theme tema zinute message week savait', go: { tab: 'map', sub: 'week' } },
+  { id: 'board', icon: Target, label: bi('Party board task and unity', 'Partijos tarybos užduotis ir vienybė'), where: bi('Map › This week', 'Žemėlapis › Ši savaitė'), kw: 'board taryb uzduot task unity vienyb', go: { tab: 'map', sub: 'week' } },
+  { id: 'ads', icon: Clapperboard, label: bi('Ad studio: make your own ad', 'Reklamos studija: sukurkite reklamą'), where: bi('HQ › Media', 'Štabas › Žiniasklaida'), kw: 'ad reklam studij tv internet stend radij billboard', go: { sheet: 'ads' } },
+  { id: 'presser', icon: Mic, label: bi('Press conference', 'Spaudos konferencija'), where: bi('HQ › Media', 'Štabas › Žiniasklaida'), kw: 'press spaud konferencij zurnalist journalist', go: { sheet: 'presser' } },
+  { id: 'tvspot', icon: Tv, label: bi('Nationwide TV ad', 'Nacionalinė TV reklama'), where: bi('HQ › Media', 'Štabas › Žiniasklaida'), kw: 'tv nacional reklam nationwide', go: { tab: 'hq', sub: 'media' } },
+  { id: 'kompro', icon: Search, label: bi('Dig up dirt on a rival', 'Ieškoti kompromato'), where: bi('HQ › Media', 'Štabas › Žiniasklaida'), kw: 'kompromat dirt detektyv detective investig', go: { sheet: 'kompro' } },
+  { id: 'backchannel', icon: Handshake, label: bi('Coffee with rivals (favours)', 'Kava su varžovais (ryšiai)'), where: bi('HQ › Media', 'Štabas › Žiniasklaida'), kw: 'kava coffee rysiai favours backchannel', go: { tab: 'hq', sub: 'media' } },
+  { id: 'fund', icon: Wallet, label: bi('Raise money: donors and small donations', 'Rinkti pinigus: rėmėjai ir aukos'), where: bi('HQ › Money', 'Štabas › Pinigai'), kw: 'pinig money aukos donor remej vakarien dinner verslo lobby', go: { tab: 'hq', sub: 'money' } },
+  { id: 'casino', icon: Dices, label: bi('Casino night', 'Vakaras kazino'), where: bi('HQ › Money', 'Štabas › Pinigai'), kw: 'kazino casino rulet roulette losim gamble', go: { sheet: 'casino' } },
+  { id: 'bet', icon: Ticket, label: bi('Bet on Žalgiris', 'Lažybos dėl „Žalgirio“'), where: bi('HQ › Money', 'Štabas › Pinigai'), kw: 'lazyb bet zalgir krepsin basketball', go: { sheet: 'bet' } },
+  { id: 'vrk', icon: Scale, label: bi('Spending limit (VRK)', 'Išlaidų limitas (VRK)'), where: bi('HQ › Money', 'Štabas › Pinigai'), kw: 'vrk limit islaid spending bauda fine', go: { tab: 'hq', sub: 'money' } },
+  { id: 'staff', icon: Users, label: bi('Hire campaign staff', 'Samdyti štabo komandą'), where: bi('HQ › Team', 'Štabas › Komanda'), kw: 'staff komand samdyt hire strateg spaudos sekretor lawyer teisinink', go: { tab: 'hq', sub: 'team' } },
+  { id: 'promises', icon: ShieldCheck, label: bi('Change your promises', 'Keisti pažadus'), where: bi('HQ › Promises', 'Štabas › Pažadai'), kw: 'pazad promise platform pozicij stance reputacij credib', go: { tab: 'hq', sub: 'promises' } },
+  { id: 'rep', icon: ShieldCheck, label: bi('Reputation and endorsements', 'Reputacija ir organizacijų parama'), where: bi('HQ › Promises', 'Štabas › Pažadai'), kw: 'reputac endors parama organizac', go: { tab: 'hq', sub: 'promises' } },
+  { id: 'seats', icon: Landmark, label: bi('Seat projection', 'Mandatų prognozė'), where: bi('Polls › Seats', 'Apklausos › Mandatai'), kw: 'mandat seats seim prognoz projection', go: { tab: 'polls', sub: 'seats' } },
+  { id: 'calc', icon: Handshake, label: bi('Coalition calculator', 'Koalicijų skaičiuoklė'), where: bi('Polls › Seats', 'Apklausos › Mandatai'), kw: 'koalicij coalition skaiciuokl calculator partner', go: { tab: 'polls', sub: 'seats' } },
+  { id: 'polls', icon: BarChart3, label: bi('National polls and trend', 'Šalies reitingai ir dinamika'), where: bi('Polls › Polls', 'Apklausos › Reitingai'), kw: 'reiting poll apklaus trend dinamik', go: { tab: 'polls', sub: 'polls' } },
+  { id: 'groups', icon: Smile, label: bi('Voter groups: who likes you', 'Rinkėjų grupės: kas jus palaiko'), where: bi('Polls › Polls', 'Apklausos › Reitingai'), kw: 'grup group senjor jaunim ukinink verslinink mokytoj', go: { tab: 'polls', sub: 'polls' } },
+  { id: 'rivals', icon: Eye, label: bi('Rival dossiers', 'Varžovų dosjė'), where: bi('Polls › Rivals', 'Apklausos › Varžovai'), kw: 'varzov rival dosj dossier opponent', go: { tab: 'polls', sub: 'rivals' } },
+  { id: 'news', icon: Newspaper, label: bi('News and social media', 'Naujienos ir socialiniai tinklai'), where: bi('News', 'Naujienos'), kw: 'naujien news social tinkl feed', go: { tab: 'news' } },
+  { id: 'help', icon: HelpCircle, label: bi('How to play', 'Kaip žaisti'), where: bi('Menu', 'Meniu'), kw: 'help pagalb kaip zaist rules taisykl', go: { help: true } },
+];
+const fold = (s) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+function FinderSheet({ onGo, onClose, wide }) {
+  const [q, setQ] = useState('');
+  const f = fold(q.trim());
+  const list = FINDER.filter((x) => !f || fold(`${L(x.label)} ${L(x.where)} ${x.kw}`).includes(f));
+  const groups = [];
+  list.forEach((x) => { const top = L(x.where).split(' › ')[0]; let gr = groups.find((g0) => g0.top === top); if (!gr) { gr = { top, items: [] }; groups.push(gr); } gr.items.push(x); });
+  return (
+    <Sheet label={tt('Where is it?', 'Kur rasti?')} onClose={onClose} z="z-50">
+      <SheetHead kicker={tt('Everything you can do', 'Viskas, ką galite daryti')} title={tt('Where is it?', 'Kur rasti?')} onClose={onClose} />
+      <div style={GUTTER} className="flex flex-col gap-3">
+        <label className="flex items-center gap-2 rounded-xl px-3" style={{ background: 'rgba(255,255,255,.06)', border: `1px solid ${LINE2}`, minHeight: 48 }}>
+          <Search size={18} className="t-muted shrink-0" />
+          <input value={q} onChange={(e) => setQ(e.target.value)} autoFocus={wide} placeholder={tt('Search: casino, ads, promises…', 'Ieškoti: kazino, reklama, pažadai…')} aria-label={tt('Search', 'Ieškoti')} className="flex-1 bg-transparent outline-none text-base font-semibold" style={{ color: TEXT, minWidth: 0 }} />
+          {q && <button type="button" onClick={() => setQ('')} aria-label={tt('Clear', 'Išvalyti')}><X size={16} /></button>}
+        </label>
+        {groups.length === 0 && <div className="text-sm t-muted py-4 text-center">{tt('Nothing found. Try another word.', 'Nieko nerasta. Pabandykite kitą žodį.')}</div>}
+        {groups.map((gr) => (
+          <div key={gr.top}>
+            <div className="cx-kicker text-xs mb-1.5">{gr.top}</div>
+            <div className="flex flex-col gap-1.5">
+              {gr.items.map((x) => (
+                <button key={x.id} type="button" onClick={() => onGo(x.go)} className="cx-tap w-full flex items-center gap-3 rounded-xl px-3 py-2.5 text-left" style={{ background: 'rgba(255,255,255,.04)', border: `1px solid ${LINE}` }}>
+                  <span className="grid place-items-center rounded-lg shrink-0" style={{ width: 36, height: 36, background: ACC_BG }}><x.icon size={18} /></span>
+                  <span className="min-w-0 flex-1"><span className="block font-bold leading-snug">{L(x.label)}</span><span className="block text-xs t-muted">{L(x.where)}</span></span>
+                  <ArrowRight size={16} className="shrink-0 t-muted" />
+                </button>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </Sheet>
+  );
+}
+function FindButton({ onClick, wide }) {
+  return wide ? (
+    <button type="button" onClick={onClick} className="cx-btn shrink-0 gap-2 px-3 text-sm font-extrabold" style={{ height: 42, borderRadius: 999, background: 'rgba(255,255,255,.07)' }}><Search size={17} />{tt('Where is it?', 'Kur rasti?')}</button>
+  ) : (
+    <button type="button" onClick={onClick} aria-label={tt('Where is it?', 'Kur rasti?')} className="cx-btn shrink-0" style={{ width: 40, height: 40, borderRadius: 12, background: 'rgba(255,255,255,.07)' }}><Search size={19} /></button>
+  );
+}
+function MapTab({ g, shares, proj, sel, onSelect, skipTips, wide, act, fx, sub = 'week', setSub = () => {} }) {
   const rows = REGIONS.slice().sort((a, b) => b.seats - a.seats);
   const p = g.player;
   return (
@@ -5370,14 +5472,15 @@ function MapTab({ g, shares, proj, sel, onSelect, skipTips, wide, act, fx }) {
         </Coach>
       )}
       <MapBoard g={g} shares={shares} proj={proj} sel={sel} onSelect={onSelect} fx={fx} wide={wide} />
-      {!wide && <WeekPlan g={g} act={act} />}
-      {!wide && <TourCard g={g} onSelect={onSelect} />}
-      {!wide && (g.tut === 0 || g.tut >= 5) && <Warnings g={g} />}
-      {!wide && (g.tut === 0 || g.tut >= 5) && <RaceBriefing g={g} shares={shares} onOpen={onSelect} />}
-      <div className="flex flex-col gap-2.5 lg:grid lg:grid-cols-2 lg:gap-3">
+      {!wide && <SubTabs value={sub} onChange={setSub} label={tt('Map sections', 'Žemėlapio skiltys')} items={[['week', Calendar, tt('This week', 'Ši savaitė'), g.ap > 0 ? `${g.ap}⚡` : null], ['regions', MapIcon, tt('Regions', 'Regionai')]]} />}
+      {!wide && sub === 'week' && <WeekPlan g={g} act={act} />}
+      {!wide && sub === 'week' && <TourCard g={g} onSelect={onSelect} />}
+      {!wide && sub === 'week' && (g.tut === 0 || g.tut >= 5) && <Warnings g={g} />}
+      {!wide && sub === 'week' && (g.tut === 0 || g.tut >= 5) && <RaceBriefing g={g} shares={shares} onOpen={onSelect} />}
+      {(wide || sub === 'regions') && <div className="flex flex-col gap-2.5 lg:grid lg:grid-cols-2 lg:gap-3">
         <h3 className="cx-title text-2xl lg:col-span-2">{tt('All regions', 'Visi regionai')}</h3>
         {rows.map((r) => <RegionRow key={r.id} r={r} g={g} s={shares[r.id]} mySeats={proj.smd.filter((e) => e.rid === r.id && e.winner === p).length} onClick={() => onSelect(r.id)} />)}
-      </div>
+      </div>}
     </div>
   );
 }
@@ -5385,7 +5488,7 @@ function MapTab({ g, shares, proj, sel, onSelect, skipTips, wide, act, fx }) {
 /* ============================================================
    Polls tab
    ============================================================ */
-function PollsTab({ g, nat, proj }) {
+function PollsTab({ g, nat, proj, sub = 'seats', setSub = () => {} }) {
   const p = g.player;
   const last = g.history[g.history.length - 1];
   const deltas = Object.fromEntries(ALL_IDS.map((q) => [q, nat[q] - last.shares[q]]));
@@ -5396,6 +5499,8 @@ function PollsTab({ g, nat, proj }) {
   return (
     <div className="flex flex-col gap-4 pt-4 lg:grid lg:grid-cols-2 lg:items-start">
       <h2 className="cx-title text-4xl lg:col-span-2">{tt('Polls', 'Apklausos')}</h2>
+      <SubTabs value={sub} onChange={setSub} items={POLL_SUBS()} label={tt('Poll sections', 'Apklausų skiltys')} className="lg:col-span-2" />
+      {sub === 'seats' && (<>
       <Card className="p-4">
         <CardTitle sub={tt('Each dot is one of the Seimas’ 141 seats. The dashed line marks 71.', 'Kiekvienas taškas – viena iš 141 Seimo vietos. Brūkšninė linija – 71.')} info={<InfoTip title={tt('Seats', 'Mandatai')}>{tt('The Seimas has 141 seats. 70 are shared by the national vote among parties over 5%. 71 go to local winners, one per district. To govern you need 71, alone or with partners.', 'Seime – 141 vieta. 70 paskirstoma pagal balsus visoje šalyje partijoms, surinkusioms daugiau nei 5 %. 71 tenka apygardų nugalėtojams. Valdyti reikia 71 – vieniems arba su partneriais.')}</InfoTip>}>{tt('If the vote were today', 'Jei rinkimai vyktų šiandien')}</CardTitle>
         <Hemicycle seats={proj.seats} highlight={p} label={`${partyShort(p)}`} />
@@ -5403,30 +5508,7 @@ function PollsTab({ g, nat, proj }) {
         <Btn kind="pale" className="h-11 w-full mt-3 text-sm" onClick={() => setTable(!table)}>{table ? tt('Hide seats by party', 'Slėpti mandatus pagal partijas') : tt('Show seats by party', 'Rodyti mandatus pagal partijas')}</Btn>
         {table && <div className="mt-3"><SeatTable seats={proj.seats} pr={proj.pr} smd={proj.smdSeats} highlight={p} /></div>}
       </Card>
-      <Card className="p-4">
-        <CardTitle sub={tt('Arrows show the change since last week’s poll', 'Rodyklės – pokytis nuo praėjusios savaitės apklausos')}>{tt('Who’s ahead nationally', 'Kas pirmauja šalyje')}</CardTitle>
-        <PollBars shares={nat} highlight={p} threshold deltas={deltas} />
-        {last.pol != null && <div className="text-xs font-bold t-muted mt-2">{tt('Last published poll:', 'Paskutinė paskelbta apklausa:')} {POLLSTERS[last.pol].name}, n={POLLSTERS[last.pol].n}, {tt('margin of error', 'paklaida')} ±{nf(moe(last.shares[p], POLLSTERS[last.pol].n))} {tt('pts for you', 'proc. p. jums')}. {tt('Pollsters are fictional and each leans a little.', 'Apklausų bendrovės išgalvotos, kiekviena šiek tiek „kreivoja“.')}</div>}
-      </Card>
-      <RivalsCard g={g} nat={nat} />
       <CoalitionCalc g={g} seats={proj.seats} />
-      <Card className="p-4">
-        <CardTitle sub={tt('How each voter group feels about you', 'Kaip jus vertina skirtingos rinkėjų grupės')} info={<InfoTip title={tt('Voter groups', 'Rinkėjų grupės')}>{tt('Groups react to your promises and to how you handle news and debates. A happy group lifts your vote where many of its members live, for example pensioners in villages and young people in cities.', 'Grupės reaguoja į jūsų pažadus ir į tai, kaip elgiatės su naujienomis bei debatuose. Patenkinta grupė kelia jūsų reitingą ten, kur jos daug: senjorai – kaimuose, jaunimas – miestuose.')}</InfoTip>}>{tt('Who likes you', 'Kas jus palaiko')}</CardTitle>
-        <div className="flex flex-col gap-2.5">
-          {GROUPS.map((G) => {
-            const a = groupApproval(g, G);
-            const Icon = G.icon;
-            return (
-              <div key={G.id} className="grid items-center gap-2" style={{ gridTemplateColumns: '36px 1fr 96px 24px' }}>
-                <Portrait who={G.id} size={36} mood={a >= 55 ? 'happy' : a >= 40 ? 'ok' : 'sad'} title={L(G.name)} />
-                <span className="font-extrabold text-sm truncate">{L(G.name)}</span>
-                <Bar value={a} color={a >= 55 ? '#4ADE80' : a >= 40 ? SUN : '#F87171'} h={14} />
-                <Mood w={a} size={20} />
-              </div>
-            );
-          })}
-        </div>
-      </Card>
       <Card className="p-4">
         <CardTitle sub={tt('The smallest teams that reach 71 seats today', 'Mažiausios koalicijos, šiandien surenkančios 71 mandatą')}>{tt('Possible teams', 'Galimos koalicijos')}</CardTitle>
         {mine >= MAJORITY ? <p className="font-bold" style={{ color: GREEN }}>{tt('You don’t need a team right now: you’re on course for a majority!', 'Šiuo metu partnerių nereikia – einate daugumos link!')}</p>
@@ -5445,7 +5527,40 @@ function PollsTab({ g, nat, proj }) {
               </ul>
             )}
       </Card>
+      </>)}
+      {sub === 'polls' && (<>
+      <Card className="p-4">
+        <CardTitle sub={tt('Arrows show the change since last week’s poll', 'Rodyklės – pokytis nuo praėjusios savaitės apklausos')}>{tt('Who’s ahead nationally', 'Kas pirmauja šalyje')}</CardTitle>
+        <PollBars shares={nat} highlight={p} threshold deltas={deltas} />
+        {last.pol != null && <div className="text-xs font-bold t-muted mt-2">{tt('Last published poll:', 'Paskutinė paskelbta apklausa:')} {POLLSTERS[last.pol].name}, n={POLLSTERS[last.pol].n}, {tt('margin of error', 'paklaida')} ±{nf(moe(last.shares[p], POLLSTERS[last.pol].n))} {tt('pts for you', 'proc. p. jums')}. {tt('Pollsters are fictional and each leans a little.', 'Apklausų bendrovės išgalvotos, kiekviena šiek tiek „kreivoja“.')}</div>}
+      </Card>
       <Card className="p-4"><CardTitle sub={tt('Weekly published polls. LRT = debate weeks.', 'Savaitinės apklausos. LRT – debatų savaitės.')}>{tt('Week by week', 'Savaitė po savaitės')}</CardTitle><TrendChart history={g.history} player={p} /></Card>
+      <Card className="p-4">
+        <CardTitle sub={tt('How each voter group feels about you', 'Kaip jus vertina skirtingos rinkėjų grupės')} info={<InfoTip title={tt('Voter groups', 'Rinkėjų grupės')}>{tt('Groups react to your promises and to how you handle news and debates. A happy group lifts your vote where many of its members live, for example pensioners in villages and young people in cities.', 'Grupės reaguoja į jūsų pažadus ir į tai, kaip elgiatės su naujienomis bei debatuose. Patenkinta grupė kelia jūsų reitingą ten, kur jos daug: senjorai – kaimuose, jaunimas – miestuose.')}</InfoTip>}>{tt('Who likes you', 'Kas jus palaiko')}</CardTitle>
+        <div className="flex flex-col gap-2.5">
+          {GROUPS.map((G) => {
+            const a = groupApproval(g, G);
+            const Icon = G.icon;
+            return (
+              <div key={G.id} className="grid items-center gap-2" style={{ gridTemplateColumns: '36px 1fr 96px 24px' }}>
+                <Portrait who={G.id} size={36} mood={a >= 55 ? 'happy' : a >= 40 ? 'ok' : 'sad'} title={L(G.name)} />
+                <span className="font-extrabold text-sm truncate">{L(G.name)}</span>
+                <Bar value={a} color={a >= 55 ? '#4ADE80' : a >= 40 ? SUN : '#F87171'} h={14} />
+                <Mood w={a} size={20} />
+              </div>
+            );
+          })}
+        </div>
+      </Card>
+      </>)}
+      {sub === 'rivals' && (<>
+      <RivalsCard g={g} nat={nat} />
+      <Card className="p-4">
+        <CardTitle sub={tt('Arrows show the change since last week’s poll', 'Rodyklės – pokytis nuo praėjusios savaitės apklausos')}>{tt('Who’s ahead nationally', 'Kas pirmauja šalyje')}</CardTitle>
+        <PollBars shares={nat} highlight={p} threshold deltas={deltas} />
+        {last.pol != null && <div className="text-xs font-bold t-muted mt-2">{tt('Last published poll:', 'Paskutinė paskelbta apklausa:')} {POLLSTERS[last.pol].name}, n={POLLSTERS[last.pol].n}, {tt('margin of error', 'paklaida')} ±{nf(moe(last.shares[p], POLLSTERS[last.pol].n))} {tt('pts for you', 'proc. p. jums')}. {tt('Pollsters are fictional and each leans a little.', 'Apklausų bendrovės išgalvotos, kiekviena šiek tiek „kreivoja“.')}</div>}
+      </Card>
+      </>)}
     </div>
   );
 }
@@ -5838,7 +5953,7 @@ function CoalitionCalc({ g, seats }) {
     </Card>
   );
 }
-function HQTab({ g, act, openSheet }) {
+function HQTab({ g, act, openSheet, sub = 'media', setSub = () => {} }) {
   const P = PARTIES[g.player];
   const orig = P.pos;
   const [draft, setDraft] = useState(g.stance);
@@ -5864,10 +5979,8 @@ function HQTab({ g, act, openSheet }) {
   return (
     <div className="flex flex-col gap-4 pt-4 lg:grid lg:grid-cols-2 lg:items-start">
       <h2 className="cx-title text-4xl lg:col-span-2">{tt('Campaign HQ', 'Rinkimų štabas')}</h2>
-      <PromisesCard g={g} />
-      <AdsCard g={g} openSheet={openSheet} />
-      <StaffRoom g={g} act={act} />
-      <div className="grid grid-cols-3 gap-2">
+      <SubTabs value={sub} onChange={setSub} items={HQ_SUBS()} label={tt('HQ sections', 'Štabo skiltys')} className="lg:col-span-2" />
+      <div className="grid grid-cols-3 gap-2 lg:col-span-2">
         <div className={statCard} style={{ boxShadow: SHADOW }}>
           <div className="flex items-center justify-between"><Handshake size={20} /><InfoTip title={tt('Favours', 'Ryšiai')}>{tt('Favours are political connections. Earn them in debates and over coffee with rivals. After the vote, spend them to win coalition partners.', 'Ryšiai – tai politinės pažintys. Juos užsitarnaujate debatuose ir per kavą su varžovais. Po rinkimų jie padeda prisivilioti koalicijos partnerius.')}</InfoTip></div>
           <div className="cx-num text-2xl leading-none mt-1">{g.pc}</div>
@@ -5884,12 +5997,18 @@ function HQTab({ g, act, openSheet }) {
           <div className="text-xs font-extrabold t-muted">{tt('Scandal risk', 'Skandalo rizika')}</div>
         </div>
       </div>
+      {sub === 'media' && (<>
+      <AdsCard g={g} openSheet={openSheet} />
       <Card className="p-4">
-        <CardTitle sub={tt('The Central Electoral Commission caps campaign spending.', 'Vyriausioji rinkimų komisija riboja kampanijos išlaidas.')} info={<InfoTip title={tt('VRK limit', 'VRK limitas')}>{tt('In Lithuania the VRK (Central Electoral Commission) limits how much a party may spend on its campaign. Go over and you get a fine plus a scandal.', 'Lietuvoje VRK (Vyriausioji rinkimų komisija) riboja, kiek partija gali išleisti kampanijai. Viršijus – bauda ir skandalas.')}</InfoTip>}>{tt('Spending limit', 'Išlaidų limitas')}</CardTitle>
-        <Bar value={g.stats.spent} max={VRK_LIMIT} color={vrkPct > 1 ? '#F87171' : vrkPct > 0.85 ? SUN : '#4ADE80'} h={18} />
-        <div className="flex justify-between text-sm font-extrabold mt-1.5"><span>{fmtEur(g.stats.spent)}</span><span className="t-muted">{tt('limit', 'limitas')} {fmtEur(VRK_LIMIT)}</span></div>
-        {g.vrkHit && <p className="text-sm font-bold mt-1" style={{ color: RED }}>{tt('You already broke the limit and were fined.', 'Limitą jau viršijote ir gavote baudą.')}</p>}
+        <CardTitle sub={tt('Moves that work across the whole country', 'Veiksmai visai šaliai')}>{tt('Big moves', 'Dideli žingsniai')}</CardTitle>
+        <div className="flex flex-col gap-3">
+          {NATIONAL_ACTIONS.filter((a) => a.group === 'nat').map((a) => (
+            <MoveRow key={a.id} a={a} g={g} est={a.id === 'backchannel' ? tt('+Favours', '+Ryšiai') : a.id === 'presser' ? tt('+Buzz', '+Pagreitis') : a.id === 'kompro' ? tt('45% hit', '45 % sėkmė') : tt('All regions', 'Visi regionai')} onClick={() => (a.id === 'kompro' ? openSheet('kompro') : a.id === 'presser' ? openSheet('presser') : act((gg) => doNational(gg, a.id)))} />
+          ))}
+        </div>
       </Card>
+      </>)}
+      {sub === 'money' && (<>
       <Card className="p-4">
         <CardTitle sub={tt(`Donations last week: ${fmtEur(g.lastIncome || 0)}`, `Praėjusios savaitės aukos: ${fmtEur(g.lastIncome || 0)}`)}>{tt('Raise money', 'Pinigų rinkimas')}</CardTitle>
         <div className="flex flex-col gap-3">
@@ -5919,13 +6038,17 @@ function HQTab({ g, act, openSheet }) {
         </div>
       </section>
       <Card className="p-4">
-        <CardTitle sub={tt('Moves that work across the whole country', 'Veiksmai visai šaliai')}>{tt('Big moves', 'Dideli žingsniai')}</CardTitle>
-        <div className="flex flex-col gap-3">
-          {NATIONAL_ACTIONS.filter((a) => a.group === 'nat').map((a) => (
-            <MoveRow key={a.id} a={a} g={g} est={a.id === 'backchannel' ? tt('+Favours', '+Ryšiai') : a.id === 'presser' ? tt('+Buzz', '+Pagreitis') : a.id === 'kompro' ? tt('45% hit', '45 % sėkmė') : tt('All regions', 'Visi regionai')} onClick={() => (a.id === 'kompro' ? openSheet('kompro') : a.id === 'presser' ? openSheet('presser') : act((gg) => doNational(gg, a.id)))} />
-          ))}
-        </div>
+        <CardTitle sub={tt('The Central Electoral Commission caps campaign spending.', 'Vyriausioji rinkimų komisija riboja kampanijos išlaidas.')} info={<InfoTip title={tt('VRK limit', 'VRK limitas')}>{tt('In Lithuania the VRK (Central Electoral Commission) limits how much a party may spend on its campaign. Go over and you get a fine plus a scandal.', 'Lietuvoje VRK (Vyriausioji rinkimų komisija) riboja, kiek partija gali išleisti kampanijai. Viršijus – bauda ir skandalas.')}</InfoTip>}>{tt('Spending limit', 'Išlaidų limitas')}</CardTitle>
+        <Bar value={g.stats.spent} max={VRK_LIMIT} color={vrkPct > 1 ? '#F87171' : vrkPct > 0.85 ? SUN : '#4ADE80'} h={18} />
+        <div className="flex justify-between text-sm font-extrabold mt-1.5"><span>{fmtEur(g.stats.spent)}</span><span className="t-muted">{tt('limit', 'limitas')} {fmtEur(VRK_LIMIT)}</span></div>
+        {g.vrkHit && <p className="text-sm font-bold mt-1" style={{ color: RED }}>{tt('You already broke the limit and were fined.', 'Limitą jau viršijote ir gavote baudą.')}</p>}
       </Card>
+      </>)}
+      {sub === 'team' && (<>
+      <StaffRoom g={g} act={act} />
+      </>)}
+      {sub === 'promises' && (<>
+      <PromisesCard g={g} />
       <Card className="p-4">
         <CardTitle sub={tt('Shift a promise to win over some regions (and lose others).', 'Pakeiskite pažadą – kai kuriuos regionus laimėsite, kitus prarasite.')} right={<span className="cx-chip px-2 py-0.5 text-xs shrink-0 whitespace-nowrap"><Home size={13} />{tt('= your roots', '= jūsų šaknys')}</span>}>{tt('Your promises', 'Jūsų pažadai')}</CardTitle>
         <div className="flex flex-col gap-3">
@@ -5982,6 +6105,7 @@ function HQTab({ g, act, openSheet }) {
           </div>
         ) : <p className="text-sm font-semibold t-muted mt-3">{tt('Tap a different box on any row to see what would happen. Nothing changes until you announce it.', 'Paspauskite kitą langelį bet kurioje eilutėje ir pamatysite, kas nutiktų. Niekas nepasikeis, kol nepaskelbsite.')}</p>}
       </Card>
+      </>)}
     </div>
   );
 }
@@ -7661,6 +7785,9 @@ export default function SeimasGame({ hotData } = {}) {
   const [confirmEnd, setConfirmEnd] = useState(false);
   const [help, setHelp] = useState(false);
   const [fx, setFx] = useState(null);
+  const [subs, setSubs] = useState({ map: 'week', hq: 'media', polls: 'seats' });
+  const setSubFor = (k) => (v) => setSubs((s) => ({ ...s, [k]: v }));
+  const [finder, setFinder] = useState(false);
   const fxTimer = useRef(null);
   const wide = useWide();
   const gameRef = useRef(game);
@@ -7713,6 +7840,13 @@ export default function SeimasGame({ hotData } = {}) {
   const closeRegion = () => { setSel(null); const g0 = gameRef.current; if (g0 && g0.tut === 2) act((g) => { g.tut = 1; return null; }); };
   const skipTips = () => act((g) => { g.tut = 99; return null; });
   const openSheet = (name) => setSheet(name);
+  const goFind = (d) => {
+    setFinder(false); setSel(null);
+    if (d.help) { setHelp(true); return; }
+    if (d.sheet) { setSheet(d.sheet); return; }
+    if (d.sub) setSubs((s) => ({ ...s, [d.tab]: d.sub }));
+    goTab(d.tab);
+  };
   const doEnd = () => {
     setConfirmEnd(false); setSel(null); setSheet(null);
     act((g) => { endWeek(g); return null; });
@@ -7731,16 +7865,16 @@ export default function SeimasGame({ hotData } = {}) {
     const onEnd = () => (game.ap > 0 ? setConfirmEnd(true) : doEnd());
     const tabBody = (
       <>
-        {tab === 'map' && <MapTab g={game} shares={shares} proj={proj} sel={sel} onSelect={openRegion} skipTips={skipTips} wide={wide} act={act} fx={fx} />}
-        {tab === 'polls' && <PollsTab g={game} nat={nat} proj={proj} />}
-        {tab === 'hq' && <HQTab g={game} act={act} openSheet={openSheet} />}
+        {tab === 'map' && <MapTab g={game} shares={shares} proj={proj} sel={sel} onSelect={openRegion} skipTips={skipTips} wide={wide} act={act} fx={fx} sub={subs.map} setSub={setSubFor('map')} />}
+        {tab === 'polls' && <PollsTab g={game} nat={nat} proj={proj} sub={subs.polls} setSub={setSubFor('polls')} />}
+        {tab === 'hq' && <HQTab g={game} act={act} openSheet={openSheet} sub={subs.hq} setSub={setSubFor('hq')} />}
         {tab === 'news' && <NewsTab g={game} wide={wide} />}
       </>
     );
     const drawer = sel && <RegionDrawer g={game} rid={sel} proj={proj} docked={wide} onClose={closeRegion} onAction={(rid, type) => { const g0 = gameRef.current; const first = g0.tut === 2; const b4 = regionShares(g0, REG[rid]); const res = act((g) => doRegionAction(g, rid, type)); if (res && res.ok) { const af = regionShares(gameRef.current, REG[rid]); const me = g0.player; let d = af[me] - b4[me], who = me; if (type === 'attack') { const drop = PARTY_IDS.filter((q) => q !== me).map((q) => [q, af[q] - b4[q]]).sort((x, y) => x[1] - y[1])[0]; if (drop && drop[1] < d) { d = drop[1]; who = drop[0]; } } setFx({ rid, d, who, n: Date.now() }); clearTimeout(fxTimer.current); fxTimer.current = setTimeout(() => setFx(null), 2400); } if (first && !wide) setSel(null); }} onTravel={(rid) => act((g) => travel(g, rid))} tutStep={game.tut} onSkipTips={skipTips} />;
     body = wide ? (
       <>
-        <DesktopHud g={game} proj={proj} onHelp={() => setHelp(true)} lang={lang} setLang={setLang} onEnd={onEnd} glowEnd={glowEnd} />
+        <DesktopHud g={game} proj={proj} onHelp={() => setHelp(true)} lang={lang} setLang={setLang} onEnd={onEnd} glowEnd={glowEnd} onFind={() => setFinder(true)} />
         <div className="grid gap-5 px-5 pt-1" style={{ gridTemplateColumns: '84px minmax(0, 1fr) 410px', paddingBottom: 56 }}>
           <div className="pt-4"><NavRail tab={tab} setTab={goTab} /></div>
           <main key={tab} className="min-w-0 pb-4 cx-tabin">{tabBody}</main>
@@ -7754,11 +7888,12 @@ export default function SeimasGame({ hotData } = {}) {
         {sheet === 'presser' && <PressSheet g={game} onDone={(picks) => { setSheet(null); act((g) => resolvePresser(g, picks)); }} onClose={() => setSheet(null)} />}
         {confirmEnd && <ConfirmEnd g={game} onCancel={() => setConfirmEnd(false)} onConfirm={doEnd} />}
         {help && <HelpSheet onClose={() => setHelp(false)} />}
+        {finder && <FinderSheet wide={wide} onClose={() => setFinder(false)} onGo={goFind} />}
         {game.queue.length > 0 && <QueueModal g={game} item={game.queue[0]} act={act} nat={nat} proj={proj} />}
       </>
     ) : (
       <>
-        <Header g={game} proj={proj} onHelp={() => setHelp(true)} lang={lang} setLang={setLang} />
+        <Header g={game} proj={proj} onHelp={() => setHelp(true)} lang={lang} setLang={setLang} onFind={() => setFinder(true)} />
         <main key={tab} className="max-w-lg mx-auto cx-tabin" style={{ ...GUTTER, paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 150px)' }}>{tabBody}</main>
         <BottomNav tab={tab} setTab={goTab} g={game} glowEnd={glowEnd} onEnd={onEnd} />
         {drawer}
@@ -7769,6 +7904,7 @@ export default function SeimasGame({ hotData } = {}) {
         {sheet === 'presser' && <PressSheet g={game} onDone={(picks) => { setSheet(null); act((g) => resolvePresser(g, picks)); }} onClose={() => setSheet(null)} />}
         {confirmEnd && <ConfirmEnd g={game} onCancel={() => setConfirmEnd(false)} onConfirm={doEnd} />}
         {help && <HelpSheet onClose={() => setHelp(false)} />}
+        {finder && <FinderSheet wide={wide} onClose={() => setFinder(false)} onGo={goFind} />}
         {game.queue.length > 0 && <QueueModal g={game} item={game.queue[0]} act={act} nat={nat} proj={proj} />}
       </>
     );

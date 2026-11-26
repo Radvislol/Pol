@@ -10,6 +10,15 @@ A political-drama strategy game about the **2028 Lithuanian Seimas election**, p
 - **Phones**: a compact top bar with the leader's card, stat pills and a campaign timeline (months, debates, endorsements, election day), and a bottom bar with the news ticker and sections.
 - **Desktop (1024 px and wider)**: a command-centre layout with a full-width top bar (leader card, timeline, Next week), a navigation rail on the left, the large campaign map in the centre and a docked side panel on the right that shows region details or the latest news. News, debates and voters open as centred cinematic cards. Candidate selection becomes a two-pane screen with a large preview.
 
+## Finding things
+
+- **Where is it?** The magnifier button in the top bar ("Where is it?" on desktop) lists everything you can do, grouped by section, with a search box. Matching ignores Lithuanian accents, so "kazino" and "pazadai" both work. Tapping an entry jumps straight to that action or opens it.
+- **Sections are split into tabs:**
+  - **HQ:** Media (ad studio, press conference, nationwide TV, favours, opposition research), Money (fundraising, casino and betting, spending limit), Team (staff) and Promises (reputation, endorsements, changing your platform). Favours, buzz and scandal risk stay visible on every tab.
+  - **Polls:** Seats (projection, coalition calculator, possible teams), Polls (national bars, weekly trend, voter groups) and Rivals (dossiers).
+  - **Map on phones:** *This week* (message of the week, party task, leader tour, warnings, closest races) and *Regions* (all regions), switched under the map.
+  - **Desktop side panel:** *This week* and *News* (headlines and social media).
+
 ## The map
 
 - **Zoom and pan.** Use the + and − buttons, double-click, pinch on a phone, or Ctrl/⌘ + scroll on a computer. Once zoomed in, drag to move around. Other buttons show the whole country again or jump to your leader.
