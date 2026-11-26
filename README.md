@@ -22,6 +22,23 @@ A political-drama strategy game about the **2028 Lithuanian Seimas election**, p
 
 - **Press conferences.** In HQ, take two questions live from reporters at fictional outlets. Answers change buzz, credibility, voter-group moods and sometimes the scandal meter. The effect gets smaller each time you hold one in the same week.
 - **Social media.** The News section has a feed of posts reacting to your rallies, ads, door-knocking, polls, reputation, scandals and the latest news, with trending hashtags and an overall mood score.
+- **Ad studio.** In HQ, design your own ad:
+  - Choose the medium: TV, internet, billboards or radio, each with its own cost and city/countryside reach.
+  - Choose the message: one of the five weekly themes. Matching this week's theme gives a bonus.
+  - Choose the tone: positive, contrast or attack. Attack ads can backfire.
+  - For contrast and attack ads, choose a rival.
+  - Choose the audience: one of six voter groups. The ad lands hardest where that group lives.
+
+  A live mock-up (TV screen, phone feed, roadside billboard or radio spot) shows the generated slogan. Each ad airs now and again next week, at most two at a time, and its measured effect is listed in HQ.
+- **Rival dossiers.** In Polls, tap a rival for a full profile with these details:
+  - poll trend through the campaign;
+  - regions they lead;
+  - strongest regions;
+  - where they stand on the four issues compared with you;
+  - last week's moves;
+  - how well they would fit in a coalition with you.
+- **Coalition calculator.** In Polls, toggle parties to build a team on today's projection. It shows the seat total against 71 and the weakest link between partners.
+- **Wide screens.** On desktop, election night and the final result use two columns.
 - **Phone menu.** The phone top bar shows the leader's full name, party and week. Language, sound and help are in the ☰ menu.
 
 ## Immersion

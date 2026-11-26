@@ -8,6 +8,7 @@
  * Map outlines simplified from @react-map/lithuania (MIT License, Copyright (c) Shubham Singh).
  */
 import React, { useState, useEffect, useMemo, useRef, useId } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Map as MapIcon, BarChart3, Building2, Newspaper, ChevronRight, ChevronDown, X, Zap, Wallet,
   Megaphone, Smartphone, Radio, DoorOpen, Swords, Users, Shield, Home, HeartPulse, Truck,
@@ -16,7 +17,7 @@ import {
   Languages, PiggyBank, Trophy, Music, Mail, SkipForward, Check, Tv, Target, Briefcase, Play, Sparkles,
   ShieldAlert, Siren, Flag, Star, Smile, Meh, Frown, Lightbulb, Medal, Landmark, Heart, Sprout,
   Wheat, LockOpen, Rocket, Hammer, Church, Bus, MessageCircle, ShieldCheck, TrendingUp, Route, Layers, Clock, Dices, Search, Cloud, CloudRain, Sun, Gavel, Ticket, Eye,
-  ThumbsUp, ThumbsDown, Volume2, VolumeX, Plus, Minus, Maximize2, LocateFixed, Menu, Repeat2, MessageSquare, Hash, Camera, BadgeCheck,
+  ThumbsUp, ThumbsDown, Volume2, VolumeX, Plus, Minus, Maximize2, LocateFixed, Menu, Repeat2, MessageSquare, Hash, Camera, BadgeCheck, Clapperboard, Share2,
 } from 'lucide-react';
 
 /* ============================================================
@@ -190,10 +191,12 @@ const GLOBAL_CSS = `
 .cx-float { animation: cx-float 2.1s ease-out forwards; transform-box: fill-box; }
 .cx-ripple { animation: cx-ripple 1.1s ease-out 2 forwards; transform-box: fill-box; transform-origin: center; }
 .cx-tabin { animation: cx-tabin .32s ease both; }
+@keyframes cx-eq { 0%, 100% { transform: scaleY(.35) } 50% { transform: scaleY(1) } }
+.cx-eq { animation: cx-eq .7s ease-in-out infinite; transform-origin: bottom; }
 .cx-weekintro { animation: cx-fade .25s ease both; }
 .cx-flashbulb { position: absolute; border-radius: 999px; background: radial-gradient(circle, #fff, rgba(255,255,255,0) 70%); animation: cx-flashbulb .5s ease-out both; pointer-events: none; }
 @media (prefers-reduced-motion: reduce) {
-  .sbl-sheet, .sbl-fade, .sbl-pop, .sbl-toast, .sbl-blink, .cx-bob, .cx-glow, .cx-shake, .cx-ping, .cx-pop-svg, .cx-dash, .cx-kb, .cx-beam, .cx-slam, .cx-wipe, .cx-chyron, .cx-caret, .cx-pop-in, .cx-tabin, .cx-weekintro { animation: none !important }
+  .sbl-sheet, .sbl-fade, .sbl-pop, .sbl-toast, .sbl-blink, .cx-bob, .cx-glow, .cx-shake, .cx-ping, .cx-pop-svg, .cx-dash, .cx-kb, .cx-beam, .cx-slam, .cx-wipe, .cx-chyron, .cx-caret, .cx-pop-in, .cx-tabin, .cx-weekintro, .cx-eq { animation: none !important }
   .cx-rise, .cx-float, .cx-ripple, .cx-flashbulb { display: none }
   .cx-travel { transition: none }
   .cx-ticker { animation: none; padding-left: 0; }
@@ -2443,6 +2446,7 @@ function startWeek(g) {
   const income = Math.round((40 + 5 * share) * FUND_MULT[g.player] * DIFFS[g.diff || 'normal'].income * (hasStaff(g, 'fundraiser') ? 1.35 : 1));
   g.money += income;
   g.lastIncome = income;
+  runAds(g);
   g.apMax = 6 + (hasStaff(g, 'strategist') ? 1 : 0);
   g.ap = g.apMax;
   const wages = sum((g.staff || []).map((id) => STAFF.find((x) => x.id === id).wage));
@@ -3742,7 +3746,8 @@ function Sheet({ onClose, children, label, z = 'z-40', dark }) {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
-  return (
+  const host = typeof document !== 'undefined' ? document.getElementById('sbl-portal') : null;
+  const el = (
     <div className={`fixed inset-0 ${z} flex flex-col justify-end lg:justify-center lg:items-center lg:p-8`} role="dialog" aria-modal="true" aria-label={label}>
       <div className="absolute inset-0 sbl-fade" style={{ background: 'rgba(5,7,11,0.72)', backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)' }} onClick={onClose || undefined} />
       <div
@@ -3753,6 +3758,7 @@ function Sheet({ onClose, children, label, z = 'z-40', dark }) {
       </div>
     </div>
   );
+  return host ? createPortal(el, host) : el;
 }
 function SheetHead({ kicker, title, onClose, dark }) {
   return (
@@ -4854,9 +4860,11 @@ function RivalsCard({ g, nat }) {
   const H = g.history;
   const prev = H.length > 1 ? H[H.length - 2].shares : H[0].shares;
   const rivals = PARTY_IDS.filter((q) => q !== me).sort((a, b) => nat[b] - nat[a]).slice(0, 6);
+  const [open, setOpen] = useState(null);
   return (
     <Card className="p-4">
-      <CardTitle sub={tt('The six biggest rivals: their trend, last week’s moves and how close they are to you.', 'Šeši didžiausi varžovai: tendencija, praėjusios savaitės ėjimai ir kiek jie artimi jums.')}>{tt('Rival dossier', 'Varžovų dosjė')}</CardTitle>
+      {open && <RivalSheet g={g} q={open} onClose={() => setOpen(null)} />}
+      <CardTitle sub={tt('The six biggest rivals. Tap one for the full dossier.', 'Šeši didžiausi varžovai. Paspauskite, kad atvertumėte dosjė.')}>{tt('Rival dossier', 'Varžovų dosjė')}</CardTitle>
       <div className="flex flex-col">
         {rivals.map((q) => {
           const mv = (g.rivalMoves || []).find((m) => m.p === q);
@@ -4864,7 +4872,7 @@ function RivalsCard({ g, nat }) {
           const c = compat(g, me, q);
           const mom = g.momentum[q];
           return (
-            <div key={q} className="flex items-center gap-3 py-2" style={{ borderTop: `1px solid ${LINE}` }}>
+            <button type="button" key={q} onClick={() => { setOpen(q); SFX.play('tap'); }} aria-label={tt(`${partyShort(q)} dossier`, `${partyShort(q)} dosjė`)} className="cx-tap w-full text-left flex items-center gap-3 py-2" style={{ borderTop: `1px solid ${LINE}` }}>
               <Portrait who={q} size={42} square mood={hits ? 'grr' : mom > 0.5 ? 'grin' : 'ok'} />
               <div className="min-w-0 flex-1">
                 <div className="flex items-baseline gap-2"><span className="cx-title text-lg leading-none">{partyShort(q)}</span><span className="cx-num">{fmtPct(nat[q])}</span><span className="text-xs"><Delta v={nat[q] - prev[q]} pct /></span></div>
@@ -4874,7 +4882,8 @@ function RivalsCard({ g, nat }) {
                 <div className="text-xs font-bold" style={{ color: c >= 55 ? GREEN : c >= 40 ? AMBER : RED }}>{c >= 55 ? tt('Possible ally', 'Galimas partneris') : c >= 40 ? tt('Maybe', 'Galbūt') : tt('Opponent', 'Priešininkas')}</div>
                 <div className="text-xs t-muted">{mom > 0.5 ? '▲' : mom < -0.5 ? '▼' : '•'} {tt('buzz', 'pagreitis')}{hits ? ` · ⚔ ${hits}` : ''}</div>
               </div>
-            </div>
+              <ChevronRight size={18} className="shrink-0 t-muted" />
+            </button>
           );
         })}
       </div>
@@ -5400,6 +5409,7 @@ function PollsTab({ g, nat, proj }) {
         {last.pol != null && <div className="text-xs font-bold t-muted mt-2">{tt('Last published poll:', 'Paskutinė paskelbta apklausa:')} {POLLSTERS[last.pol].name}, n={POLLSTERS[last.pol].n}, {tt('margin of error', 'paklaida')} ±{nf(moe(last.shares[p], POLLSTERS[last.pol].n))} {tt('pts for you', 'proc. p. jums')}. {tt('Pollsters are fictional and each leans a little.', 'Apklausų bendrovės išgalvotos, kiekviena šiek tiek „kreivoja“.')}</div>}
       </Card>
       <RivalsCard g={g} nat={nat} />
+      <CoalitionCalc g={g} seats={proj.seats} />
       <Card className="p-4">
         <CardTitle sub={tt('How each voter group feels about you', 'Kaip jus vertina skirtingos rinkėjų grupės')} info={<InfoTip title={tt('Voter groups', 'Rinkėjų grupės')}>{tt('Groups react to your promises and to how you handle news and debates. A happy group lifts your vote where many of its members live, for example pensioners in villages and young people in cities.', 'Grupės reaguoja į jūsų pažadus ir į tai, kaip elgiatės su naujienomis bei debatuose. Patenkinta grupė kelia jūsų reitingą ten, kur jos daug: senjorai – kaimuose, jaunimas – miestuose.')}</InfoTip>}>{tt('Who likes you', 'Kas jus palaiko')}</CardTitle>
         <div className="flex flex-col gap-2.5">
@@ -5496,6 +5506,338 @@ function PromisesCard({ g }) {
     </Card>
   );
 }
+/* ============================================================
+   Ad studio: build your own ad campaign
+   ============================================================ */
+const AD_MEDIA = [
+  { id: 'tv', icon: Tv, label: bi('TV', 'Televizija'), cost: 140, urban: -0.6, power: 1.0, desc: bi('Huge reach, best in towns and villages.', 'Didžiausia auditorija, geriausia miesteliuose ir kaimuose.') },
+  { id: 'web', icon: Smartphone, label: bi('Internet', 'Internetas'), cost: 80, urban: 0.7, power: 0.82, desc: bi('Cheap and targeted, best in cities.', 'Pigu ir taikliai, geriausia miestuose.') },
+  { id: 'bill', icon: Landmark, label: bi('Billboards', 'Stendai'), cost: 100, urban: 0.1, power: 0.85, desc: bi('Seen by everyone on the road.', 'Mato visi keliaujantys.') },
+  { id: 'radio', icon: Radio, label: bi('Radio', 'Radijas'), cost: 55, urban: -0.3, power: 0.6, desc: bi('Low cost, loyal older listeners.', 'Pigu, ištikimi vyresni klausytojai.') },
+];
+const AD_TONES = [
+  { id: 'hope', icon: Sun, label: bi('Positive', 'Pozityvi'), desc: bi('Lifts you. No risk.', 'Kelia jus. Jokios rizikos.') },
+  { id: 'contrast', icon: Scale, label: bi('Contrast', 'Palyginimas'), desc: bi('You vs a rival: a bit of both.', 'Jūs prieš varžovą: po truputį abiem.') },
+  { id: 'attack', icon: Swords, label: bi('Attack', 'Puolamoji'), desc: bi('Hurts a rival. Can backfire.', 'Kenkia varžovui. Gali atsisukti prieš jus.') },
+];
+const AD_SCENE = { econ: 'town', security: 'vilnius', regions: 'fields', city: 'klaipeda', trust: 'seimas' };
+const AD_SLOGANS = {
+  econ: { hope: bi('Wages that grow faster than prices.', 'Kad algos augtų greičiau nei kainos.'), contrast: bi('{T} raised prices. {P} will raise wages.', '{T} kėlė kainas. {P} kels algas.'), attack: bi('{T}: higher prices, emptier wallets.', '{T}: didesnės kainos, tuštesnės piniginės.') },
+  security: { hope: bi('A safe Lithuania. Every day.', 'Saugi Lietuva. Kiekvieną dieną.'), contrast: bi('{T} talks. {P} defends.', '{T} kalba. {P} gina.'), attack: bi('Can you trust {T} with our security?', 'Ar patikėtumėte {T} mūsų saugumą?') },
+  regions: { hope: bi('Every town deserves a future.', 'Kiekvienas miestelis vertas ateities.'), contrast: bi('{T} forgot the regions. {P} never did.', '{T} pamiršo regionus. {P} – niekada.'), attack: bi('{T} closed your school. Remember that.', '{T} uždarė jūsų mokyklą. Prisiminkite.') },
+  city: { hope: bi('A home you can afford. A city you love.', 'Įperkami namai. Mylimas miestas.'), contrast: bi('{T} built offices. {P} builds homes.', '{T} statė biurus. {P} stato namus.'), attack: bi('Stuck in traffic? Thank {T}.', 'Įstrigote kamštyje? Padėkokite {T}.') },
+  trust: { hope: bi('Clean hands. Clear promises.', 'Švarios rankos. Aiškūs pažadai.'), contrast: bi('{T} has scandals. {P} has a plan.', '{T} turi skandalų. {P} turi planą.'), attack: bi('{T}: who pays them?', '{T}: kas jiems moka?') },
+};
+const AD_MAX = 2;
+function adCost(spec) { return AD_MEDIA.find((m) => m.id === spec.medium).cost; }
+function adSlogan(g, spec) {
+  const t = AD_SLOGANS[spec.topic][spec.tone];
+  return L(t).replace(/\{P\}/g, partyShort(g.player)).replace(/\{T\}/g, spec.target ? partyShort(spec.target) : '');
+}
+// One burst of an ad campaign. Returns your national change (pts).
+function applyAd(g, ad) {
+  const p = g.player;
+  const M = AD_MEDIA.find((m) => m.id === ad.medium);
+  const before = nationalShares(g);
+  const avgW = sum(REGIONS.map((r) => groupWeight(ad.group, r))) / REGIONS.length || 1;
+  const topicBoost = g.theme === ad.topic ? 1.15 : 1;
+  for (const r of REGIONS) {
+    const w = clamp(groupWeight(ad.group, r) / avgW, 0.4, 2.2);
+    const u = clamp(1 + M.urban * (r.urban - 0.5) * 1.6, 0.35, 1.8);
+    const sh = regionShares(g, r);
+    const k = 0.22 * M.power * w * u * geoMult(p, r) * satOf(p, r, sh[p]) * topicBoost * credMult(g);
+    if (ad.tone === 'hope') gainSupport(g, r.id, p, k, 0.7);
+    else if (ad.tone === 'contrast') { gainSupport(g, r.id, p, k * 0.6, 0.7); if (ad.target) loseSupport(g, r.id, ad.target, k * 0.5 * (1 - g.gg[r.id][ad.target] / 180), 0.45, p, 0.3); }
+    else if (ad.target && !ad.backfired) loseSupport(g, r.id, ad.target, k * 1.15 * (1 - g.gg[r.id][ad.target] / 160), 0.45, p, 0.35);
+    normalizeRegion(g, r.id);
+  }
+  g.groupMood[ad.group] = clamp((g.groupMood[ad.group] || 0) + (ad.tone === 'hope' ? 1 : ad.tone === 'contrast' ? 0.5 : -0.5), -20, 20);
+  const after = nationalShares(g);
+  ad.lastEff = after[p] - before[p];
+  ad.lastHit = ad.target ? after[ad.target] - before[ad.target] : 0;
+  return ad.lastEff;
+}
+function launchAd(g, spec) {
+  const cost = adCost(spec);
+  if ((g.ads || []).filter((a) => a.left > 0).length >= AD_MAX) return { ok: false, msg: tt('Two ad campaigns are already running.', 'Jau vyksta dvi reklamos kampanijos.') };
+  if (g.ap < 1) return { ok: false, msg: tt('Needs 1 energy.', 'Reikia 1 energijos.') };
+  if (g.money < cost) return { ok: false, msg: tt(`Not enough money: ${fmtEur(cost)} needed.`, `Trūksta pinigų: reikia ${fmtEur(cost)}.`) };
+  if (spec.tone !== 'hope' && !spec.target) return { ok: false, msg: tt('Pick a rival first.', 'Pirmiausia pasirinkite varžovą.') };
+  g.ap -= 1; spend(g, cost); g.stats.actions += 1;
+  g.adId = (g.adId || 0) + 1;
+  const ad = { ...spec, id: g.adId, week: g.week, left: 2, slogan: adSlogan(g, spec) };
+  if (spec.tone === 'attack' && Math.random() < BACKFIRE[g.player] + 0.06) {
+    ad.backfired = true;
+    g.momentum[g.player] = clamp(g.momentum[g.player] - 1.2, -10, 10);
+    addCred(g, -3);
+    addCons(g, 'bad', bi(`Your attack ad on ${partyShort(spec.target)} backfired: viewers found it nasty.`, `Jūsų puolamoji reklama prieš ${partyShort(spec.target)} atsisuko prieš jus: žiūrovams ji pasirodė bjauri.`));
+  }
+  const d = applyAd(g, ad);
+  ad.left -= 1;
+  g.ads = [...(g.ads || []).filter((a) => a.left > 0 || g.week - a.week < 2), ad];
+  g.stats.ads = (g.stats.ads || 0) + 1;
+  const msg = ad.backfired
+    ? tt(`Backfire! The ad hurt you more than ${partyShort(spec.target)}.`, `Atsisuko prieš jus! Reklama pakenkė jums labiau nei ${partyShort(spec.target)}.`)
+    : spec.tone === 'attack' ? tt(`Ad is live: ${partyShort(spec.target)} ${fmtSignedPct(ad.lastHit)} nationally`, `Reklama paleista: ${partyShort(spec.target)} ${fmtSignedPct(ad.lastHit)} šalyje`)
+      : tt(`Ad is live: ${fmtSignedPct(d)} for you nationally. It runs again next week.`, `Reklama paleista: jums ${fmtSignedPct(d)} šalyje. Kitą savaitę ji bus rodoma dar kartą.`);
+  return { ok: true, tone: ad.backfired ? 'bad' : 'good', msg: msg + (vrkCheck(g) || '') };
+}
+// Called from startWeek: running ads air once more.
+function runAds(g) {
+  (g.ads || []).forEach((ad) => {
+    if (ad.left > 0) {
+      const d = applyAd(g, ad);
+      ad.left -= 1;
+      addCons(g, d >= 0 || ad.tone === 'attack' ? 'good' : 'warn', bi(`Your ${L(AD_MEDIA.find((m) => m.id === ad.medium).label).toLowerCase()} ad “${ad.slogan}” aired again: ${ad.tone === 'attack' ? `${partyShort(ad.target)} ${fmtSignedPct(ad.lastHit)}` : fmtSignedPct(d)}.`,
+        `Jūsų reklama („${ad.slogan}“) rodyta dar kartą: ${ad.tone === 'attack' ? `${partyShort(ad.target)} ${fmtSignedPct(ad.lastHit)}` : fmtSignedPct(d)}.`));
+    }
+  });
+  g.ads = (g.ads || []).filter((a) => a.left > 0 || g.week - a.week < 2);
+}
+function AdPreview({ g, spec }) {
+  const P = PARTIES[g.player];
+  const slogan = adSlogan(g, spec);
+  const M = spec.medium;
+  const inner = (
+    <Scene kind={AD_SCENE[spec.topic]} h={null} caption={false} flush kb className="h-full w-full">
+      <div className="absolute inset-0" style={{ background: spec.tone === 'attack' ? 'linear-gradient(0deg, rgba(60,0,0,.85), rgba(0,0,0,.15))' : `linear-gradient(0deg, ${tint(P.color, 0.15)}ee, rgba(0,0,0,0) 70%)`, filter: spec.tone === 'attack' ? 'grayscale(.6)' : undefined }} />
+      <div className="absolute inset-x-3 bottom-3 flex items-end gap-3">
+        {spec.tone !== 'attack' ? <Portrait who={g.player} size={58} square mood="grin" /> : spec.target ? <Portrait who={spec.target} size={58} square mood="sad" /> : null}
+        <div className="min-w-0 flex-1">
+          <div key={slogan} className="cx-title text-white leading-tight sbl-fade" style={{ fontSize: 'clamp(18px, 4.6vw, 26px)', textShadow: '0 3px 12px rgba(0,0,0,.8)' }}>{slogan}</div>
+          <div className="mt-1 inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-extrabold text-white" style={{ background: P.color }}>{P.short} · {tt('Vote', 'Balsuok')} {P.short}</div>
+        </div>
+      </div>
+    </Scene>
+  );
+  if (M === 'web') return (
+    <div className="mx-auto rounded-[26px] p-2" style={{ width: 230, background: '#05070B', border: '2px solid #2A3242' }}>
+      <div className="flex items-center gap-1.5 px-1 pb-1.5 text-[10px] font-bold t-muted"><span className="w-1.5 h-1.5 rounded-full" style={{ background: GREEN }} />{tt('Sponsored', 'Remiama')} · {P.short}</div>
+      <div className="rounded-xl overflow-hidden" style={{ height: 250 }}>{inner}</div>
+      <div className="flex justify-around pt-1.5 text-[10px] t-muted"><Heart size={12} /><MessageSquare size={12} /><Share2 size={12} /></div>
+    </div>
+  );
+  if (M === 'bill') return (
+    <div className="mx-auto flex flex-col items-center" style={{ maxWidth: 420 }}>
+      <div className="w-full rounded-md overflow-hidden" style={{ height: 170, border: '6px solid #1B2130', boxShadow: '0 12px 30px rgba(0,0,0,.6)' }}>{inner}</div>
+      <div className="flex justify-between w-2/3"><span style={{ width: 8, height: 46, background: '#2A3242' }} /><span style={{ width: 8, height: 46, background: '#2A3242' }} /></div>
+    </div>
+  );
+  if (M === 'radio') return (
+    <div className="mx-auto rounded-2xl p-4 flex items-center gap-4" style={{ maxWidth: 420, background: 'linear-gradient(135deg, #2A3242, #161B25)', border: `1px solid ${LINE2}` }}>
+      <div className="grid place-items-center rounded-full shrink-0" style={{ width: 64, height: 64, background: '#0B0E14', border: `3px solid ${SUN}` }}><Radio size={28} color={SUN} /></div>
+      <div className="min-w-0">
+        <div className="flex items-end gap-0.5 h-6 mb-1" aria-hidden="true">{Array.from({ length: 22 }).map((_, i) => <span key={i} className="cx-eq" style={{ width: 4, background: SUN, borderRadius: 2, height: `${30 + ((i * 37) % 70)}%`, animationDelay: `${(i % 7) * 0.09}s` }} />)}</div>
+        <div className="cx-title text-lg leading-tight">„{slogan}“</div>
+        <div className="text-xs t-muted mt-0.5">{tt('Read by a familiar voice, 30 seconds', 'Skaito žinomas balsas, 30 sekundžių')}</div>
+      </div>
+    </div>
+  );
+  return (
+    <div className="mx-auto" style={{ maxWidth: 440 }}>
+      <div className="rounded-xl p-2" style={{ background: '#0B0E14', border: '2px solid #2A3242', boxShadow: '0 14px 34px rgba(0,0,0,.6)' }}>
+        <div className="relative rounded-md overflow-hidden" style={{ aspectRatio: '16 / 9' }}>
+          {inner}
+          <span className="absolute left-2 top-2 px-1.5 py-0.5 rounded text-[10px] font-extrabold text-white" style={{ background: 'rgba(0,0,0,.6)' }}>{tt('POLITICAL AD', 'POLITINĖ REKLAMA')}</span>
+        </div>
+      </div>
+      <div className="mx-auto rounded-b-lg" style={{ width: 90, height: 10, background: '#1B2130' }} />
+    </div>
+  );
+}
+function AdStudioSheet({ g, onLaunch, onClose }) {
+  const me = g.player;
+  const nat = nationalShares(g);
+  const rivals = PARTY_IDS.filter((q) => q !== me).sort((a, b) => nat[b] - nat[a]).slice(0, 5);
+  const [spec, setSpec] = useState({ medium: 'tv', tone: 'hope', target: rivals[0], group: 'seniors', topic: g.theme || 'econ' });
+  const set = (k, v) => { setSpec((s) => ({ ...s, [k]: v })); SFX.play('tap'); };
+  const cost = adCost(spec);
+  const running = (g.ads || []).filter((a) => a.left > 0).length;
+  const dis = g.ap < 1 || g.money < cost || running >= AD_MAX;
+  const chip = (on, onClick, children, key, extra = {}) => (
+    <button key={key} type="button" aria-pressed={on} onClick={onClick} className="cx-chip shrink-0 px-3 py-1.5 text-sm" style={{ background: on ? '#F3F4F6' : 'rgba(255,255,255,.06)', color: on ? '#0B0E14' : TEXT, borderColor: on ? '#F3F4F6' : LINE2, minHeight: 38, ...extra }}>{children}</button>
+  );
+  const Row = ({ label, children }) => (
+    <div>
+      <div className="cx-kicker text-xs mb-1.5">{label}</div>
+      <div className="flex flex-wrap gap-1.5">{children}</div>
+    </div>
+  );
+  return (
+    <Sheet label={tt('Ad studio', 'Reklamos studija')} onClose={onClose}>
+      <SheetHead kicker={tt('Make your own campaign ad', 'Sukurkite savo reklamą')} title={tt('Ad studio', 'Reklamos studija')} onClose={onClose} />
+      <div style={GUTTER} className="flex flex-col gap-4 pb-2 lg:grid lg:grid-cols-2 lg:items-start lg:gap-6">
+        <div className="py-2 lg:sticky lg:top-2"><AdPreview g={g} spec={spec} /></div>
+        <div className="flex flex-col gap-4">
+        <Row label={tt('1 · Medium', '1 · Kanalas')}>{AD_MEDIA.map((m) => chip(spec.medium === m.id, () => set('medium', m.id), <><m.icon size={15} />{L(m.label)} <span className="opacity-70 text-xs">{fmtEur(m.cost)}</span></>, m.id))}</Row>
+        <div className="text-xs t-muted -mt-2">{L(AD_MEDIA.find((m) => m.id === spec.medium).desc)}</div>
+        <Row label={tt('2 · Message', '2 · Tema')}>{THEMES.map((t) => chip(spec.topic === t.id, () => set('topic', t.id), <><t.icon size={15} />{L(t.name)}{g.theme === t.id && <Star size={12} style={{ fill: SUN, color: SUN }} />}</>, t.id))}</Row>
+        <Row label={tt('3 · Tone', '3 · Tonas')}>{AD_TONES.map((t) => chip(spec.tone === t.id, () => set('tone', t.id), <><t.icon size={15} />{L(t.label)}</>, t.id, t.id === 'attack' ? { borderColor: spec.tone === t.id ? '#F3F4F6' : 'rgba(248,113,113,.5)' } : {}))}</Row>
+        <div className="text-xs t-muted -mt-2">{L(AD_TONES.find((t) => t.id === spec.tone).desc)}</div>
+        {spec.tone !== 'hope' && (
+          <Row label={tt('4 · Rival', '4 · Varžovas')}>{rivals.map((q) => chip(spec.target === q, () => set('target', q), <><PartyDot p={q} size={10} />{partyShort(q)}</>, q))}</Row>
+        )}
+        <Row label={spec.tone !== 'hope' ? tt('5 · Audience', '5 · Auditorija') : tt('4 · Audience', '4 · Auditorija')}>
+          {GROUPS.map((G) => chip(spec.group === G.id, () => set('group', G.id), <><Portrait who={G.id} size={22} />{L(G.name)}</>, G.id, { paddingLeft: 4 }))}
+        </Row>
+        <div className="cx-soft p-3 text-sm font-semibold flex items-start gap-2">
+          <Info size={16} className="shrink-0 mt-0.5" />
+          <span>{tt('Runs twice: now and again next week. It reaches the regions where your audience lives. The week’s message gives a bonus.', 'Rodoma du kartus: dabar ir kitą savaitę. Pasiekia regionus, kur gyvena pasirinkta auditorija. Savaitės žinutė suteikia premiją.')}{running >= AD_MAX ? ' ' + tt('Two ads are already running.', 'Jau vyksta dvi reklamos.') : ''}</span>
+        </div>
+        <Btn className="h-14 text-lg" disabled={dis} onClick={() => onLaunch(spec)}><Play size={18} style={{ fill: INK }} />{tt('Launch the ad', 'Paleisti reklamą')} · <Zap size={15} style={{ fill: INK }} />1 · {fmtEur(cost)}</Btn>
+        </div>
+      </div>
+    </Sheet>
+  );
+}
+function AdsCard({ g, openSheet }) {
+  const ads = (g.ads || []).slice().reverse();
+  return (
+    <Card className="p-4">
+      <CardTitle sub={tt('Design an ad: medium, message, tone and audience.', 'Sukurkite reklamą: kanalas, tema, tonas ir auditorija.')} right={<span className="cx-chip px-2 py-0.5 text-xs shrink-0">{(g.ads || []).filter((a) => a.left > 0).length}/{AD_MAX}</span>}>{tt('Ad campaigns', 'Reklamos kampanijos')}</CardTitle>
+      <div className="flex flex-col gap-2">
+        {ads.map((a) => {
+          const M = AD_MEDIA.find((m) => m.id === a.medium);
+          return (
+            <div key={a.id} className="cx-soft p-2.5 flex items-center gap-3">
+              <span className="grid place-items-center rounded-lg shrink-0" style={{ width: 40, height: 40, background: a.tone === 'attack' ? BAD_BG : ACC_BG }}><M.icon size={19} /></span>
+              <div className="min-w-0 flex-1">
+                <div className="font-bold text-sm leading-snug truncate">„{a.slogan}“</div>
+                <div className="text-xs t-muted">{L(M.label)} · {L(GROUPS.find((x) => x.id === a.group).name)} · {a.left > 0 ? tt('airs again next week', 'kitą savaitę – dar kartą') : tt('finished', 'baigta')}</div>
+              </div>
+              <span className="text-sm font-extrabold shrink-0" style={{ color: a.backfired ? RED : GREEN }}>{a.backfired ? tt('Backfire', 'Atsisuko') : a.tone === 'attack' ? `${partyShort(a.target)} ${fmtSignedPct(a.lastHit || 0)}` : fmtSignedPct(a.lastEff || 0)}</span>
+            </div>
+          );
+        })}
+        <Btn kind="white" className="h-12" onClick={() => openSheet('ads')}><Clapperboard size={18} />{tt('Open the ad studio', 'Atidaryti reklamos studiją')}</Btn>
+      </div>
+    </Card>
+  );
+}
+
+/* ============================================================
+   Rival dossier and coalition calculator
+   ============================================================ */
+function Spark({ data, color, w = 220, h = 48 }) {
+  const lo = Math.min(...data), hi = Math.max(...data);
+  const span = Math.max(1, hi - lo);
+  const pts = data.map((v, i) => `${((i / Math.max(1, data.length - 1)) * w).toFixed(1)},${(h - 4 - ((v - lo) / span) * (h - 8)).toFixed(1)}`).join(' ');
+  return (
+    <svg width="100%" viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" style={{ height: h, display: 'block' }} aria-hidden="true">
+      <polyline points={`0,${h} ${pts} ${w},${h}`} fill={color} opacity="0.16" />
+      <polyline points={pts} fill="none" stroke={color} strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />
+    </svg>
+  );
+}
+function RivalSheet({ g, q, onClose }) {
+  const me = g.player;
+  const P = PARTIES[q];
+  const nat = nationalShares(g);
+  const hist = [...g.history.map((h) => h.shares[q]), nat[q]];
+  const regs = REGIONS.map((r) => ({ r, s: regionShares(g, r) })).sort((a, b) => b.s[q] - a.s[q]);
+  const leads = regs.filter((x) => regionLook(x.s).lead === q);
+  const mv = (g.rivalMoves || []).find((m) => m.p === q);
+  const c = compat(g, me, q);
+  const pos = posOf(g, q);
+  const mine = posOf(g, me);
+  return (
+    <Sheet label={tt(`${P.short} dossier`, `${P.short} dosjė`)} onClose={onClose}>
+      <div className="relative">
+        <div style={{ height: 150, background: `linear-gradient(135deg, ${tint(P.color, 0.25)}, #0B0E14)` }} />
+        <div className="absolute left-4 bottom-[-40px] flex items-end gap-3">
+          <Portrait who={q} size={110} square mood={(mv && mv.list.some((x) => x.target === me)) ? 'grr' : 'grin'} />
+          <div className="pb-11">
+            <div className="cx-kicker text-xs" style={{ color: '#fff' }}>{tt('Rival dossier', 'Varžovo dosjė')}</div>
+            <div className="cx-title text-2xl leading-none">{P.leader}</div>
+          </div>
+        </div>
+        <button type="button" onClick={onClose} aria-label={tt('Close', 'Uždaryti')} className="cx-btn absolute right-3 top-3 grid place-items-center" style={{ width: 38, height: 38, borderRadius: 999, background: 'rgba(7,9,13,.7)' }}><X size={18} /></button>
+      </div>
+      <div style={GUTTER} className="pt-14 flex flex-col gap-4">
+        <div>
+          <div className="font-black">{P.full}</div>
+          <div className="text-sm t-muted font-semibold mt-0.5">{L(P.ideology)} · {L(P.blurb)}</div>
+        </div>
+        <div className="grid grid-cols-3 gap-2">
+          {[[tt('Poll', 'Reitingas'), fmtPct(nat[q])], [tt('Leads in', 'Pirmauja'), tt(`${leads.length} regions`, `${leads.length} reg.`)], [tt('Buzz', 'Pagreitis'), fmtSigned(g.momentum[q])]].map(([l, v]) => <div key={l} className="cx-soft p-2.5"><div className="text-[11px] font-bold t-muted">{l}</div><div className="cx-num text-xl">{v}</div></div>)}
+        </div>
+        <div className="cx-soft p-3">
+          <div className="text-xs font-bold t-muted mb-1">{tt('Poll trend this campaign', 'Reitingo kaita per kampaniją')}</div>
+          <Spark data={hist} color={P.color} />
+        </div>
+        <div>
+          <div className="cx-kicker text-xs mb-1.5">{tt('Strongest regions', 'Stipriausi regionai')}</div>
+          <div className="flex flex-col gap-1.5">
+            {regs.slice(0, 4).map(({ r, s }) => (
+              <div key={r.id} className="grid items-center gap-2 text-sm font-bold" style={{ gridTemplateColumns: '110px 1fr 50px' }}>
+                <span className="truncate">{rs(r)}</span>
+                <span className="cx-track" style={{ height: 8 }}><span className="block h-full" style={{ width: `${clamp(s[q] * 2, 2, 100)}%`, background: P.color }} /></span>
+                <span className="text-right cx-num">{fmtPct(s[q])}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div>
+          <div className="cx-kicker text-xs mb-1.5">{tt('Where they stand vs you', 'Pozicijos, palyginti su jumis')}</div>
+          <div className="flex flex-col gap-2">
+            {AXES.map((ax) => (
+              <div key={ax.id}>
+                <div className="flex justify-between text-[11px] font-bold t-muted"><span>{L(ax.left)}</span><span>{L(ax.label)}</span><span>{L(ax.right)}</span></div>
+                <div className="relative mt-1 rounded-full" style={{ height: 8, background: 'rgba(255,255,255,.08)' }}>
+                  <span className="absolute top-1/2 rounded-full" style={{ left: `calc(${(pos[ax.id] + 100) / 2}% - 8px)`, width: 16, height: 16, marginTop: -8, background: P.color, border: '2px solid #fff' }} title={partyShort(q)} />
+                  <span className="absolute top-1/2 rounded-full" style={{ left: `calc(${(mine[ax.id] + 100) / 2}% - 6px)`, width: 12, height: 12, marginTop: -6, background: '#0B0E14', border: `3px solid ${SUN}` }} title={tt('You', 'Jūs')} />
+                </div>
+              </div>
+            ))}
+            <div className="text-[11px] t-muted flex gap-3"><span className="inline-flex items-center gap-1"><span className="inline-block rounded-full" style={{ width: 10, height: 10, background: P.color, border: '2px solid #fff' }} />{P.short}</span><span className="inline-flex items-center gap-1"><span className="inline-block rounded-full" style={{ width: 10, height: 10, border: `3px solid ${SUN}` }} />{tt('You', 'Jūs')}</span></div>
+          </div>
+        </div>
+        <div className="cx-soft p-3 text-sm font-semibold">
+          <div className="font-black mb-1">{tt('Last week', 'Praėjusią savaitę')}</div>
+          {mv && mv.list.length ? mv.list.map((x, i) => <div key={i} className="flex items-center gap-1.5">{x.target === me ? <Swords size={14} color={RED} /> : <Check size={14} />}{moveWord(x, me)} – {rs(x.rid)}</div>) : tt('A quiet week.', 'Rami savaitė.')}
+        </div>
+        <div className="cx-card p-3 flex items-center gap-3" style={{ background: c >= 55 ? GOOD_BG : c >= 40 ? WARN_BG : BAD_BG }}>
+          <Handshake size={22} className="shrink-0" />
+          <div className="text-sm font-bold">{tt(`Coalition fit with you: ${c}/100.`, `Tinkamumas koalicijai su jumis: ${c}/100.`)} {c >= 55 ? tt('A natural partner after the vote.', 'Natūralus partneris po rinkimų.') : c >= 40 ? tt('Possible, at a price.', 'Įmanoma, bet brangiai kainuos.') : tt('They would rather sit in opposition than with you.', 'Jie mieliau liktų opozicijoje nei eitų su jumis.')}</div>
+        </div>
+      </div>
+    </Sheet>
+  );
+}
+function CoalitionCalc({ g, seats }) {
+  const me = g.player;
+  const options = SEAT_ORDER.filter((q) => q !== me && q !== 'KITI' && (seats[q] || 0) > 0).sort((a, b) => seats[b] - seats[a]);
+  const [picked, setPicked] = useState([]);
+  const members = [me, ...picked.filter((q) => options.includes(q))];
+  const total = sum(members.map((q) => seats[q] || 0));
+  let minC = 100, worst = null;
+  for (let i = 0; i < members.length; i++) for (let j = i + 1; j < members.length; j++) { const c = compat(g, members[i], members[j]); if (c < minC) { minC = c; worst = [members[i], members[j]]; } }
+  const toggle = (q) => { setPicked((p) => (p.includes(q) ? p.filter((x) => x !== q) : [...p, q])); SFX.play('tap'); };
+  const ok = total >= MAJORITY;
+  return (
+    <Card className="p-4">
+      <CardTitle sub={tt('Tap parties to build a team on today’s projection.', 'Spauskite partijas ir sudėliokite komandą pagal šiandienos prognozę.')}>{tt('Coalition calculator', 'Koalicijų skaičiuoklė')}</CardTitle>
+      <div className="flex flex-wrap gap-1.5">
+        <span className="cx-chip px-2.5 py-1 text-sm" style={{ background: tint(PARTIES[me].color, 0.35), borderColor: PARTIES[me].color }}><PartyDot p={me} size={10} />{partyShort(me)} {seats[me]}</span>
+        {options.map((q) => {
+          const on = picked.includes(q);
+          return <button key={q} type="button" aria-pressed={on} onClick={() => toggle(q)} className="cx-chip px-2.5 py-1 text-sm" style={{ background: on ? '#F3F4F6' : 'rgba(255,255,255,.06)', color: on ? INK : TEXT, borderColor: on ? '#F3F4F6' : LINE2, minHeight: 34 }}><PartyDot p={q} size={10} />{partyShort(q)} {seats[q]}</button>;
+        })}
+      </div>
+      <div className="relative mt-3 flex rounded-md overflow-hidden" style={{ height: 22, background: 'rgba(255,255,255,.06)' }}>
+        {members.map((q) => <div key={q} style={{ width: `${((seats[q] || 0) / 141) * 100}%`, background: PARTIES[q].color, boxShadow: 'inset -1px 0 0 rgba(0,0,0,.5)', transition: 'width .4s ease' }} />)}
+        <span className="absolute top-0 bottom-0" style={{ left: `${(MAJORITY / 141) * 100}%`, width: 2, background: '#fff' }} />
+      </div>
+      <div className="flex items-center justify-between mt-2">
+        <span className="cx-num text-3xl" style={{ color: ok ? GREEN : TEXT }}><CountUp to={total} /> <span className="text-base t-muted">/ 71</span></span>
+        <span className="text-sm font-extrabold text-right" style={{ color: !ok ? MUTED : minC >= 55 ? GREEN : minC >= 40 ? AMBER : RED }}>
+          {!ok ? tt(`${MAJORITY - total} seats short`, `trūksta ${MAJORITY - total}`) : minC >= 55 ? tt('Majority, and they get along', 'Dauguma, ir sutaria') : minC >= 40 ? tt('Majority, but shaky', 'Dauguma, bet trapi') : tt('Majority on paper only', 'Dauguma tik popieriuje')}
+        </span>
+      </div>
+      {worst && members.length > 1 && <div className="text-xs t-muted mt-1">{tt(`Weakest link: ${partyShort(worst[0])} and ${partyShort(worst[1])} (${minC}/100).`, `Silpniausia grandis: ${partyShort(worst[0])} ir ${partyShort(worst[1])} (${minC}/100).`)}</div>}
+    </Card>
+  );
+}
 function HQTab({ g, act, openSheet }) {
   const P = PARTIES[g.player];
   const orig = P.pos;
@@ -5523,6 +5865,7 @@ function HQTab({ g, act, openSheet }) {
     <div className="flex flex-col gap-4 pt-4 lg:grid lg:grid-cols-2 lg:items-start">
       <h2 className="cx-title text-4xl lg:col-span-2">{tt('Campaign HQ', 'Rinkimų štabas')}</h2>
       <PromisesCard g={g} />
+      <AdsCard g={g} openSheet={openSheet} />
       <StaffRoom g={g} act={act} />
       <div className="grid grid-cols-3 gap-2">
         <div className={statCard} style={{ boxShadow: SHADOW }}>
@@ -6911,8 +7254,8 @@ function ElectionNight({ g, onFinish, onDeals }) {
   const recent = runoffs.slice(Math.max(0, shown - 5), shown).reverse();
   const myRunoffs = runoffs.filter((e) => e.runoff.a === me || e.runoff.b === me);
   return (
-    <div className="max-w-lg lg:max-w-4xl mx-auto min-h-screen" style={{ ...GUTTER, paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 32px)' }}>
-      <div className="pt-6 flex items-center justify-between gap-3">
+    <div className="max-w-lg lg:max-w-6xl mx-auto min-h-screen lg:grid lg:grid-cols-2 lg:gap-x-6 lg:items-start" style={{ ...GUTTER, paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 32px)' }}>
+      <div className="pt-6 flex items-center justify-between gap-3 lg:col-span-2">
         <div>
           <div className="text-sm font-extrabold t-muted">{tt('Seimas election 2028', '2028 m. Seimo rinkimai')}</div>
           <h2 className="cx-title text-4xl leading-none">{stage === 'runoff' ? tt('Runoff day', 'Antrasis turas') : stage === 'final' ? tt('The results are in!', 'Rezultatai paaiškėjo!') : tt('Election night', 'Rinkimų naktis')}</h2>
@@ -6922,7 +7265,7 @@ function ElectionNight({ g, onFinish, onDeals }) {
           {stage !== 'final' && stage !== 'intro' && <button type="button" onClick={skip} className="text-sm font-extrabold underline inline-flex items-center gap-1 h-9">{tt('Skip to results', 'Iškart į rezultatus')} <SkipForward size={15} /></button>}
         </div>
       </div>
-      <Scene kind="night" h={104} className="mt-4" caption={false}>
+      <Scene kind="night" h={104} className="mt-4 lg:col-span-2" caption={false}>
         <div className="absolute right-2 bottom-2"><Portrait who={me} size={50} badge mood={stage === 'final' ? (E.seats[me] >= 40 ? 'grin' : E.seats[me] >= 15 ? 'happy' : 'sad') : 'wow'} /></div>
       </Scene>
       {stage !== 'intro' && (
@@ -7194,7 +7537,7 @@ function AchievementsWon({ g }) {
   });
   if (!res.got.length) return null;
   return (
-    <section className="cx-card p-4 mt-4">
+    <section className="cx-card p-4 mt-4 lg:col-span-2">
       <CardTitle sub={tt(`${res.got.length} earned this campaign · ${loadAch().length} of ${ACHIEVEMENTS.length} overall`, `Šioje kampanijoje: ${res.got.length} · iš viso ${loadAch().length} iš ${ACHIEVEMENTS.length}`)}>{tt('Achievements', 'Pasiekimai')}</CardTitle>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         {res.got.map((id) => {
@@ -7239,10 +7582,10 @@ function ResultScreen({ g, onRestart }) {
   const deb = g.stats.debates;
   const medal = { S: '#FDB913', A: '#FDB913', B: '#CBD5E1', C: '#E8A46B', D: '#BFDBFE', E: BAD_BG, F: BAD_BG }[grade];
   return (
-    <div className="max-w-lg lg:max-w-4xl mx-auto min-h-screen" style={{ ...GUTTER, paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 32px)' }}>
+    <div className="max-w-lg lg:max-w-6xl mx-auto min-h-screen lg:grid lg:grid-cols-2 lg:gap-x-6 lg:items-start" style={{ ...GUTTER, paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 32px)' }}>
       {['S', 'A', 'B'].includes(grade) && <Confetti />}
-      <div className="pt-6 flex flex-col items-center text-center">
-        <Scene kind={['S', 'A', 'B', 'C'].includes(grade) ? 'palace' : 'seimas'} h={150} className="w-full" caption={false}>
+      <div className="pt-6 flex flex-col items-center text-center lg:col-span-2">
+        <Scene kind={['S', 'A', 'B', 'C'].includes(grade) ? 'palace' : 'seimas'} h={null} className="w-full h-[150px] lg:h-[230px]" caption={false} kb>
           <div className="absolute inset-x-0 bottom-2 flex justify-center"><Portrait who={me} size={92} badge mood={['S', 'A', 'B'].includes(grade) ? 'grin' : grade === 'C' || grade === 'D' ? 'ok' : 'sad'} /></div>
           <div className="absolute right-2 top-2 sbl-pop">
             <div className="grid place-items-center rounded-full" style={{ width: 70, height: 70, background: medal, border: '3px solid rgba(255,255,255,.85)', boxShadow: SHADOW, color: '#14100A' }}><span className="cx-title" style={{ fontSize: 38, lineHeight: 1 }}>{grade}</span></div>
@@ -7255,7 +7598,7 @@ function ResultScreen({ g, onRestart }) {
       </div>
       <AchievementsWon g={g} />
       {g.vote && (
-        <div className="mt-4 cx-soft p-3 text-sm font-bold text-center">{tt('Seimas vote:', 'Seimo balsavimas:')} <span className="cx-num">{g.vote.ayes}</span> {tt('for', 'už')} · <span className="cx-num">{g.vote.noes}</span> {tt('against', 'prieš')} · <span className="cx-num">{g.vote.abst}</span> {tt('abstained', 'susilaikė')}</div>
+        <div className="mt-4 cx-soft p-3 text-sm font-bold text-center lg:col-span-2">{tt('Seimas vote:', 'Seimo balsavimas:')} <span className="cx-num">{g.vote.ayes}</span> {tt('for', 'už')} · <span className="cx-num">{g.vote.noes}</span> {tt('against', 'prieš')} · <span className="cx-num">{g.vote.abst}</span> {tt('abstained', 'susilaikė')}</div>
       )}
       <Card className="mt-4 p-3">
         <Hemicycle seats={E.seats} highlight={me} dim={gov.length ? gov : null} showCount={false} />
@@ -7275,7 +7618,7 @@ function ResultScreen({ g, onRestart }) {
         ].map(([l, v]) => <div key={l} className="cx-card p-3" style={{ boxShadow: SHADOW }}><div className="text-xs font-extrabold t-muted">{l}</div><div className="cx-num text-2xl">{v}</div></div>)}
       </div>
       <Card className="mt-4 p-4"><CardTitle>{tt('Final Seimas', 'Naujasis Seimas')}</CardTitle><SeatTable seats={E.seats} pr={E.pr} smd={E.smdSeats} highlight={me} /></Card>
-      <Btn className="h-16 text-xl w-full mt-5" onClick={onRestart}><RotateCcw size={22} />{tt('Play again', 'Žaisti dar kartą')}</Btn>
+      <Btn className="h-16 text-xl w-full mt-5 lg:col-span-2" onClick={onRestart}><RotateCcw size={22} />{tt('Play again', 'Žaisti dar kartą')}</Btn>
     </div>
   );
 }
@@ -7407,6 +7750,7 @@ export default function SeimasGame({ hotData } = {}) {
         {sheet === 'casino' && <CasinoSheet g={game} act={act} onClose={() => setSheet(null)} />}
         {sheet === 'bet' && <BetSheet g={game} act={act} onClose={() => setSheet(null)} />}
         {sheet === 'kompro' && <KomproSheet g={game} act={act} onClose={() => setSheet(null)} />}
+        {sheet === 'ads' && <AdStudioSheet g={game} onLaunch={(spec) => { setSheet(null); act((g) => launchAd(g, spec)); SFX.play('sting'); }} onClose={() => setSheet(null)} />}
         {sheet === 'presser' && <PressSheet g={game} onDone={(picks) => { setSheet(null); act((g) => resolvePresser(g, picks)); }} onClose={() => setSheet(null)} />}
         {confirmEnd && <ConfirmEnd g={game} onCancel={() => setConfirmEnd(false)} onConfirm={doEnd} />}
         {help && <HelpSheet onClose={() => setHelp(false)} />}
@@ -7421,6 +7765,7 @@ export default function SeimasGame({ hotData } = {}) {
         {sheet === 'casino' && <CasinoSheet g={game} act={act} onClose={() => setSheet(null)} />}
         {sheet === 'bet' && <BetSheet g={game} act={act} onClose={() => setSheet(null)} />}
         {sheet === 'kompro' && <KomproSheet g={game} act={act} onClose={() => setSheet(null)} />}
+        {sheet === 'ads' && <AdStudioSheet g={game} onLaunch={(spec) => { setSheet(null); act((g) => launchAd(g, spec)); SFX.play('sting'); }} onClose={() => setSheet(null)} />}
         {sheet === 'presser' && <PressSheet g={game} onDone={(picks) => { setSheet(null); act((g) => resolvePresser(g, picks)); }} onClose={() => setSheet(null)} />}
         {confirmEnd && <ConfirmEnd g={game} onCancel={() => setConfirmEnd(false)} onConfirm={doEnd} />}
         {help && <HelpSheet onClose={() => setHelp(false)} />}
@@ -7470,6 +7815,7 @@ export default function SeimasGame({ hotData } = {}) {
       <Backdrop kind={screen !== 'game' || !game ? 'night' : game.phase === 'campaign' ? 'seimas' : game.phase === 'result' || game.phase === 'vote' ? 'palace' : 'night'} />
       {body}
       {toast && <Toast t={toast} wideToast={wide} />}
+      <div id="sbl-portal" />
     </div>
   );
 }
