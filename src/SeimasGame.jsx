@@ -17,7 +17,7 @@ import {
   RotateCcw, HelpCircle, AlertTriangle, Flame, Mic, Scale, Leaf, Info, ArrowRight, TramFront, TrainFront,
   Languages, PiggyBank, Trophy, Music, Mail, SkipForward, Check, Tv, Target, Briefcase, Play, Sparkles,
   ShieldAlert, Siren, Flag, Star, Smile, Meh, Frown, Lightbulb, Medal, Landmark, Heart, Sprout,
-  Wheat, LockOpen, Rocket, Hammer, Church, Bus, MessageCircle, ShieldCheck, TrendingUp, Route, Layers, Clock, Dices, Search, Cloud, CloudRain, Sun, Gavel, Ticket, Eye,
+  Wheat, LockOpen, Rocket, Hammer, Church, Castle, Cross, PawPrint, Bus, MessageCircle, ShieldCheck, TrendingUp, Route, Layers, Clock, Dices, Search, Cloud, CloudRain, Sun, Gavel, Ticket, Eye,
   ThumbsUp, ThumbsDown, Volume2, VolumeX, Plus, Minus, Maximize2, LocateFixed, Menu, Repeat2, MessageSquare, Hash, Camera, BadgeCheck, Clapperboard, Share2, Calendar, History, ListOrdered, ArrowUp, ArrowDown, FileCheck, UserCheck,
 } from 'lucide-react';
 
@@ -341,6 +341,54 @@ const PARTIES = {
     perk: bi('Green pledges and online ads work extra well with young city voters.', 'Žali pažadai ir reklama internete ypač veikia jaunus miestiečius.'),
     strongholds: bi('Young voters in Vilnius, Kaunas and Klaipėda', 'Jauni Vilniaus, Kauno ir Klaipėdos rinkėjai'),
   },
+  NS: {
+    id: 'NS', short: 'NS', name: 'Nacionalinis susivienijimas', full: 'Nacionalinis susivienijimas', color: '#B91C1C', emblem: Flag,
+    leader: 'Vytautas Sinica', ideology: bi('National conservative', 'Tautiniai konservatoriai'), pos: { econ: 0, social: 90, defense: 90, green: -60 }, funds: 450,
+    difficulty: 'hard', stars: 3,
+    blurb: bi('Nationalist conservatives. Their leader won a Vilnius district in 2024 and is their only member of the Seimas.', 'Tautiniai konservatoriai. Jų lyderis 2024 m. laimėjo vieną Vilniaus apygardą ir yra vienintelis partijos Seimo narys.'),
+    perk: bi('A loyal online following: online ads work 25% better.', 'Ištikimi sekėjai internete: reklama internete veikia 25 % geriau.'),
+    strongholds: bi('Vilnius, Kaunas and Lithuanians abroad', 'Vilnius, Kaunas ir užsienio lietuviai'),
+  },
+  LLP: {
+    id: 'LLP', short: 'LLP', name: 'Liaudies partija', full: 'Lietuvos liaudies partija', color: '#C2410C', emblem: Sun,
+    leader: 'Tauras Jakelaitis', ideology: bi('Left-wing · Anti-militarist', 'Kairieji · Antimilitaristai'), pos: { econ: -60, social: 60, defense: -90, green: -30 }, funds: 400,
+    difficulty: 'hard', stars: 3,
+    blurb: bi('A small left-wing, anti-militarist party far from the mainstream. Almost every other party refuses to work with it.', 'Nedidelė kairioji, antimilitaristinė partija, toli nuo politinės srovės. Beveik visos kitos partijos su ja dirbti atsisako.'),
+    perk: bi('TV and radio ads work 30% better with older voters.', 'TV ir radijo reklama vyresniems rinkėjams veikia 30 % geriau.'),
+    strongholds: bi('Voters let down by the big parties, mostly outside the cities', 'Didžiosiomis partijomis nusivylę rinkėjai, daugiausia ne miestuose'),
+  },
+  LRP: {
+    id: 'LRP', short: 'LRP', name: 'Regionų partija', full: 'Lietuvos regionų partija', color: '#84CC16', emblem: Route,
+    leader: 'Giedrė Pavasarytė', ideology: bi('Centre-left · Regionalist', 'Centro kairė · Regionalistai'), pos: { econ: -30, social: 30, defense: 30, green: 0 }, funds: 450,
+    difficulty: 'hard', stars: 3,
+    blurb: bi('A centre-left party of the regions, with dozens of municipal councillors but no seats in the Seimas.', 'Regionų centro kairės partija: dešimtys savivaldybių tarybų narių, bet nė vieno Seimo nario.'),
+    perk: bi('Local councillors everywhere: rallies in towns and villages work 25% better.', 'Tarybų nariai visur: mitingai miesteliuose ir kaimuose veikia 25 % geriau.'),
+    strongholds: bi('Small towns and regional municipalities', 'Miesteliai ir regionų savivaldybės'),
+  },
+  TTS: {
+    id: 'TTS', short: 'TTS', name: 'Tautos ir teisingumo sąjunga', full: 'Tautos ir teisingumo sąjunga (centristai, tautininkai)', color: '#CA8A04', emblem: Castle,
+    leader: 'Rimas Jonas Jankūnas', ideology: bi('Nationalist · Centrist', 'Tautininkai · Centristai'), pos: { econ: -30, social: 90, defense: 30, green: -60 }, funds: 400,
+    difficulty: 'hard', stars: 3,
+    blurb: bi('Centrists and nationalists. In March 2026 they elected Seimas member Rimas Jonas Jankūnas as chairman.', 'Centristai ir tautininkai. 2026 m. kovą pirmininku išrinko Seimo narį Rimą Joną Jankūną.'),
+    perk: bi('Fiery speakers: rallies work 20% better everywhere.', 'Karštos kalbos: mitingai visur veikia 20 % geriau.'),
+    strongholds: bi('Traditional voters in towns and villages', 'Tradiciniai miestelių ir kaimų rinkėjai'),
+  },
+  LKDP: {
+    id: 'LKDP', short: 'LKDP', name: 'Krikščioniškoji demokratija', full: 'Lietuvos krikščioniškosios demokratijos partija', color: '#6366F1', emblem: Cross,
+    leader: 'Mindaugas Puidokas', ideology: bi('Christian democrat · Social conservative', 'Krikščionys demokratai · Socialiniai konservatoriai'), pos: { econ: 0, social: 90, defense: 0, green: -30 }, funds: 400,
+    difficulty: 'hard', stars: 3,
+    blurb: bi('Christian democrats led by former Seimas member Mindaugas Puidokas. In 2024 they ran on a joint list with the Labour Party.', 'Krikščionys demokratai, kuriems vadovauja buvęs Seimo narys Mindaugas Puidokas. 2024 m. jie ėjo bendru sąrašu su Darbo partija.'),
+    perk: bi('Family and welfare pledges land harder with traditional voters.', 'Šeimos ir socialiniai pažadai stipriau veikia tradicinius rinkėjus.'),
+    strongholds: bi('Churchgoing families in Kaunas and Suvalkija', 'Tikinčios šeimos Kaune ir Suvalkijoje'),
+  },
+  ZP: {
+    id: 'ZP', short: 'ŽP', name: 'Žemaičių partija', full: 'Žemaičių partija', color: '#A78BFA', emblem: PawPrint,
+    leader: 'Stasys Gvažiauskas', ideology: bi('Samogitian regionalist', 'Žemaičių regionalistai'), pos: { econ: 0, social: 30, defense: 30, green: 0 }, funds: 400,
+    difficulty: 'hard', stars: 3,
+    blurb: bi('Regionalists standing up for Žemaitija (Samogitia). The hardest challenge in the game.', 'Regionalistai, ginantys Žemaitijos interesus. Sunkiausias iššūkis žaidime.'),
+    perk: bi('Samogitia is home: campaigning in Telšiai and Tauragė works 30% better, elsewhere much worse.', 'Žemaitija – namai: agitacija Telšiuose ir Tauragėje veikia 30 % geriau, kitur – daug silpniau.'),
+    strongholds: bi('Telšiai, Tauragė and the Samogitian coast', 'Telšiai, Tauragė ir žemaičių pajūris'),
+  },
   KITI: {
     id: 'KITI', short: 'Kiti', name: 'Kiti ir nepriklausomi', full: 'Mažosios partijos ir nepriklausomi kandidatai', color: '#64748B', emblem: Users,
     leader: '', ideology: bi('Fragmented', 'Įvairūs'), pos: { econ: -10, social: 30, defense: 30, green: 0 },
@@ -350,7 +398,8 @@ const partyShort = (p) => (p === 'KITI' ? tt('Others', 'Kiti') : PARTIES[p].shor
 const PARTY_EN = {
   LSDP: 'Social Democratic Party of Lithuania', TS: 'Homeland Union – Lithuanian Christian Democrats', NA: 'Dawn of Nemunas', DSVL: 'Union of Democrats “For Lithuania”',
   LS: 'Liberal Movement', LVZS: 'Lithuanian Farmers and Greens Union', LP: 'Freedom Party', LLRA: 'Electoral Action of Poles in Lithuania – Christian Families Alliance',
-  DP: 'Labour Party', LIT: 'Freedom and Justice', KS: 'Christian Union', LZP: 'Lithuanian Green Party', KITI: 'Small parties and independents',
+  DP: 'Labour Party', LIT: 'Freedom and Justice', KS: 'Christian Union', LZP: 'Lithuanian Green Party',
+  NS: 'National Alliance', LLP: 'Lithuanian People’s Party', LRP: 'Lithuanian Regions Party', TTS: 'People and Justice Union (Centrists, Nationalists)', LKDP: 'Lithuanian Christian Democracy Party', ZP: 'Samogitian Party', KITI: 'Small parties and independents',
 };
 // Leaders who have a photo, looked up by name (for district candidates and member lists).
 const PHOTO_BY_NAME = { ...Object.fromEntries(Object.keys(PHOTOS).filter((p) => PARTIES[p]).map((p) => [PARTIES[p].leader, p])), ...Object.fromEntries(Object.keys(PHOTOS).filter((k) => k.startsWith('person:')).map((k) => [k.slice(7), k])) };
@@ -362,10 +411,11 @@ const leaderSurname = (p) => {
   return n ? n.split(' ').slice(-1)[0] : '';
 };
 const DIFF_LABEL = { easy: bi('Easy', 'Lengva'), medium: bi('Medium', 'Vidutinė'), hard: bi('Hard', 'Sunki') };
-const PARTY_IDS = ['LSDP', 'TS', 'NA', 'DSVL', 'LS', 'LVZS', 'LP', 'LLRA', 'DP', 'LIT', 'KS', 'LZP'];
+const PARTY_IDS = ['LSDP', 'TS', 'NA', 'DSVL', 'LS', 'LVZS', 'LP', 'LLRA', 'DP', 'LIT', 'KS', 'LZP', 'NS', 'LLP', 'LRP', 'TTS', 'LKDP', 'ZP'];
+const OUTSIDERS = ['DP', 'LIT', 'KS', 'LZP', 'NS', 'LLP', 'LRP', 'TTS', 'LKDP', 'ZP'];
 const ALL_IDS = [...PARTY_IDS, 'KITI'];
-const SEAT_LEFT = ['LSDP', 'DP', 'DSVL', 'LVZS', 'NA', 'LLRA', 'KS', 'KITI'];
-const SEAT_RIGHT = ['LZP', 'LP', 'LS', 'LIT', 'TS'];
+const SEAT_LEFT = ['LLP', 'LSDP', 'LRP', 'DP', 'DSVL', 'LVZS', 'ZP', 'NA', 'TTS', 'LLRA', 'LKDP', 'KS', 'KITI'];
+const SEAT_RIGHT = ['LZP', 'LP', 'LS', 'LIT', 'TS', 'NS'];
 const SEAT_ORDER = [...SEAT_LEFT, ...SEAT_RIGHT];
 const WEEKS = 12;
 const MAJORITY = 71;
@@ -435,7 +485,7 @@ function earnedAchievements(g) {
   const me = g.player;
   const pm = R.kind === 'pm' || R.kind === 'majority';
   const gov = pm || R.kind === 'junior';
-  const outsider = ['DP', 'LIT', 'KS', 'LZP'].includes(me);
+  const outsider = OUTSIDERS.includes(me);
   const out = [];
   if (pm) out.push('pm');
   if (E && E.seats[me] >= MAJORITY) out.push('majority');
@@ -615,7 +665,7 @@ function applyRunoffDeals(g, pacts, boosts) {
 }
 
 // Where each leader starts the campaign (party HQ or home turf).
-const HOME = { NA: 'TAU', LLRA: 'VLC', DP: 'KNC', KS: 'KNS' };
+const HOME = { NA: 'TAU', LLRA: 'VLC', DP: 'KNC', KS: 'KNS', LRP: 'PAN', ZP: 'TEL', LKDP: 'KNS' };
 // Land borders between the 13 campaign regions (cities sit inside their counties).
 const ADJ = (() => {
   const pairs = [['VNO', 'VLC'], ['VLC', 'KNC'], ['VLC', 'UTE'], ['VLC', 'ALY'], ['KNS', 'KNC'], ['KNC', 'ALY'], ['KNC', 'MAR'], ['KNC', 'TAU'], ['KNC', 'SIA'], ['KNC', 'PAN'],
@@ -641,18 +691,18 @@ const ORGS = [
   { id: 'minorityorgs', group: 'minority', week: 10, name: bi('Minority community councils', 'Tautinių bendrijų tarybos') },
 ];
 const VRK_LIMIT = 2300;
-const FUND_MULT = { LSDP: 1, TS: 1.6, NA: 0.75, DSVL: 0.9, LS: 1.35, LVZS: 0.95, LP: 0.85, LLRA: 0.8, DP: 0.75, LIT: 0.85, KS: 0.7, LZP: 0.65 };
-const BACKFIRE = { LSDP: 0.22, TS: 0.2, NA: 0.07, DSVL: 0.38, LS: 0.22, LVZS: 0.18, LP: 0.2, LLRA: 0.25, DP: 0.15, LIT: 0.18, KS: 0.2, LZP: 0.3 };
+const FUND_MULT = { LSDP: 1, TS: 1.6, NA: 0.75, DSVL: 0.9, LS: 1.35, LVZS: 0.95, LP: 0.85, LLRA: 0.8, DP: 0.75, LIT: 0.85, KS: 0.7, LZP: 0.65, NS: 0.65, LLP: 0.6, LRP: 0.7, TTS: 0.6, LKDP: 0.6, ZP: 0.6 };
+const BACKFIRE = { LSDP: 0.22, TS: 0.2, NA: 0.07, DSVL: 0.38, LS: 0.22, LVZS: 0.18, LP: 0.2, LLRA: 0.25, DP: 0.15, LIT: 0.18, KS: 0.2, LZP: 0.3, NS: 0.12, LLP: 0.15, LRP: 0.25, TTS: 0.12, LKDP: 0.2, ZP: 0.25 };
 const FATIGUE = [1, 0.8, 0.62, 0.48, 0.38, 0.3];
 // Late-2026 polling shift relative to the 2024 regional baselines below.
-const BASE_SHIFT = { TS: 1.13, LSDP: 0.84, NA: 0.98, LVZS: 1.75, DSVL: 0.97, LS: 0.95, LP: 0.92, LLRA: 1, KITI: 0.86, DP: 1, LIT: 1, KS: 1, LZP: 1 };
+const BASE_SHIFT = { TS: 1.13, LSDP: 0.84, NA: 0.98, LVZS: 1.75, DSVL: 0.97, LS: 0.95, LP: 0.92, LLRA: 1, KITI: 0.86, DP: 1, LIT: 1, KS: 1, LZP: 1, NS: 1, LLP: 1, LRP: 1, TTS: 1, LKDP: 1, ZP: 1 };
 // Smaller parties carved out of the 'others' bloc (percent of each region's vote, before the 2026 shift).
 const MINOR_BASE = {
-  VNO: { DP: 1.5, LIT: 4, KS: 1.5, LZP: 2.5 }, VLC: { DP: 2, LIT: 2, KS: 1.5, LZP: 0.8 }, KNS: { DP: 2.5, LIT: 2, KS: 2.5, LZP: 2 },
-  KNC: { DP: 3.5, LIT: 1.5, KS: 2, LZP: 1 }, KLP: { DP: 2.5, LIT: 2, KS: 1.5, LZP: 1.8 }, TEL: { DP: 2.5, LIT: 1.5, KS: 2, LZP: 0.8 },
-  TAU: { DP: 3, LIT: 1.5, KS: 2, LZP: 0.8 }, SIA: { DP: 3, LIT: 1.5, KS: 1.8, LZP: 1 }, PAN: { DP: 3.5, LIT: 1.5, KS: 1.8, LZP: 1 },
-  UTE: { DP: 3, LIT: 1.5, KS: 1.5, LZP: 1.2 }, ALY: { DP: 3, LIT: 1.5, KS: 1.8, LZP: 1 }, MAR: { DP: 3, LIT: 1.5, KS: 2.2, LZP: 0.8 },
-  ABR: { DP: 0.5, LIT: 2.5, KS: 1, LZP: 2.5 },
+  VNO: { DP: 1.5, LIT: 4, KS: 1.5, LZP: 2.5, NS: 3.5, LLP: 1.5, LRP: 0.3, TTS: 0.6, LKDP: 0.5, ZP: 0.05 }, VLC: { DP: 2, LIT: 2, KS: 1.5, LZP: 0.8, NS: 1.5, LLP: 3, LRP: 1.5, TTS: 0.8, LKDP: 0.5, ZP: 0.05 }, KNS: { DP: 2.5, LIT: 2, KS: 2.5, LZP: 2, NS: 3, LLP: 2, LRP: 0.6, TTS: 0.8, LKDP: 0.9, ZP: 0.1 },
+  KNC: { DP: 3.5, LIT: 1.5, KS: 2, LZP: 1, NS: 2, LLP: 2.5, LRP: 2.5, TTS: 1, LKDP: 0.7, ZP: 0.1 }, KLP: { DP: 2.5, LIT: 2, KS: 1.5, LZP: 1.8, NS: 2.5, LLP: 3, LRP: 1.2, TTS: 0.8, LKDP: 0.5, ZP: 0.8 }, TEL: { DP: 2.5, LIT: 1.5, KS: 2, LZP: 0.8, NS: 2, LLP: 1.8, LRP: 2, TTS: 0.8, LKDP: 0.6, ZP: 2.5 },
+  TAU: { DP: 3, LIT: 1.5, KS: 2, LZP: 0.8, NS: 1.8, LLP: 2, LRP: 2.5, TTS: 0.8, LKDP: 0.6, ZP: 1.5 }, SIA: { DP: 3, LIT: 1.5, KS: 1.8, LZP: 1, NS: 2, LLP: 2.5, LRP: 2.5, TTS: 0.8, LKDP: 0.6, ZP: 0.5 }, PAN: { DP: 3.5, LIT: 1.5, KS: 1.8, LZP: 1, NS: 2, LLP: 2.5, LRP: 3, TTS: 0.8, LKDP: 0.6, ZP: 0.1 },
+  UTE: { DP: 3, LIT: 1.5, KS: 1.5, LZP: 1.2, NS: 1.8, LLP: 3, LRP: 2.5, TTS: 0.8, LKDP: 0.5, ZP: 0.05 }, ALY: { DP: 3, LIT: 1.5, KS: 1.8, LZP: 1, NS: 2, LLP: 2.5, LRP: 2.5, TTS: 1, LKDP: 0.6, ZP: 0.05 }, MAR: { DP: 3, LIT: 1.5, KS: 2.2, LZP: 0.8, NS: 2, LLP: 2, LRP: 2.5, TTS: 1, LKDP: 0.9, ZP: 0.05 },
+  ABR: { DP: 0.5, LIT: 2.5, KS: 1, LZP: 2.5, NS: 3, LLP: 0.5, LRP: 0.2, TTS: 0.4, LKDP: 0.4, ZP: 0.1 },
 };
 
 /* ============================================================
@@ -726,7 +776,7 @@ const REGIONS = [
       ['Fabijoniškių', 1, { LSDP: 1.15, LLRA: 1.1, NA: 1.1 }, 5, 'Fabijoniškės', '', ['Remigijus Motuzas', 'LSDP']],
       ['Šeškinės–Šnipiškių', 1, { TS: 1.05, LLRA: 1.2, LSDP: 1.05 }, 6, 'Šeškinė–Šnipiškės', '', ['Mindaugas Lingė', 'TS']],
       ['Justiniškių–Viršuliškių', 1, { DSVL: 1.25, LSDP: 1.1, NA: 1.1 }, 7, 'Justiniškės–Viršuliškės', '', ['Linas Kukuraitis', 'DSVL']],
-      ['Pilaitės–Karoliniškių', 1, { TS: 1.1, LS: 1.1, LP: 1.1, KITI: 1.3, LLRA: 0.7 }, 8, 'Pilaitė–Karoliniškės', '', ['Vytautas Sinica', 'KITI']],
+      ['Pilaitės–Karoliniškių', 1, { TS: 1.1, LS: 1.1, LP: 1.1, KITI: 1.1, LLRA: 0.7, NS: 4.5 }, 8, 'Pilaitė–Karoliniškės', '', ['Vytautas Sinica', 'NS']],
       ['Lazdynų', 1, { TS: 1.15, LSDP: 1.05 }, 9, 'Lazdynai', '', ['Laurynas Kasčiūnas', 'TS']],
       ['Naujosios Vilnios', 1, { LLRA: 2.6, LSDP: 1.15, NA: 1.2, LP: 0.6, TS: 0.8 }, 10, 'Naujoji Vilnia', '', ['Liutauras Kazlavickas', 'TS']],
       ['Pietinė', 1, { LLRA: 2.3, LSDP: 1.1, LP: 0.7, TS: 0.85 }, 11, 'South Vilnius', '', ['Česlav Olševski', 'LLRA']],
@@ -881,7 +931,7 @@ REGIONS.forEach((r) => {
   if (!r.voters) r.voters = Math.round(r.pop * 0.82);
   const mb = MINOR_BASE[r.id];
   Object.assign(r.base, mb);
-  r.base.KITI = Math.max(3, r.base.KITI - sum(Object.values(mb)));
+  r.base.KITI = Math.max(2, r.base.KITI - sum(Object.values(mb)));
   ALL_IDS.forEach((p) => { r.base[p] *= BASE_SHIFT[p]; });
 });
 const REG = Object.fromEntries(REGIONS.map((r) => [r.id, r]));
@@ -890,7 +940,7 @@ const rl = (r) => L((typeof r === 'string' ? REG[r] : r).long);
 const consName = (name) => tt(`${name} district`, `${name} apygarda`);
 const TOTAL_VOTERS = sum(REGIONS.map((r) => r.voters));
 const AXIS_MEAN = Object.fromEntries(AXIS_IDS.map((a) => [a, sum(REGIONS.map((r) => r.ideal[a] * r.voters)) / TOTAL_VOTERS]));
-const URB_SENS = { LSDP: -0.15, TS: 0.5, NA: -0.5, DSVL: -0.1, LS: 0.6, LVZS: -0.7, LP: 1.0, LLRA: 0, KITI: -0.1, DP: -0.3, LIT: 0.3, KS: -0.2, LZP: 0.6 };
+const URB_SENS = { LSDP: -0.15, TS: 0.5, NA: -0.5, DSVL: -0.1, LS: 0.6, LVZS: -0.7, LP: 1.0, LLRA: 0, KITI: -0.1, DP: -0.3, LIT: 0.3, KS: -0.2, LZP: 0.6, NS: 0.3, LLP: -0.3, LRP: -0.7, TTS: -0.3, LKDP: -0.2, ZP: -0.4 };
 const LEAN_SIGMA = { KITI: 0.32, LLRA: 0.15 };
 const consById = (cid) => {
   const [rid, i] = cid.split('-');
@@ -942,6 +992,7 @@ const MIN_PREF = {
   LSDP: ['fin', 'soc', 'hea', 'int'], TS: ['mfa', 'def', 'fin', 'ene'], NA: ['int', 'env', 'jus', 'agr'], DSVL: ['env', 'hea', 'ene', 'edu'],
   LS: ['eco', 'jus', 'tra', 'edu'], LVZS: ['agr', 'hea', 'cul', 'edu'], LP: ['jus', 'cul', 'edu', 'eco'], LLRA: ['ene', 'tra', 'cul'],
   DP: ['soc', 'eco', 'agr'], LIT: ['eco', 'tra', 'jus'], KS: ['soc', 'edu', 'cul'], LZP: ['env', 'ene', 'tra'],
+  NS: ['def', 'cul', 'jus'], LLP: ['soc', 'hea', 'ene'], LRP: ['agr', 'tra', 'int'], TTS: ['jus', 'int', 'cul'], LKDP: ['soc', 'edu', 'cul'], ZP: ['cul', 'tra', 'agr'],
 };
 const DEMANDS = {
   LSDP: { text: bi('Progressive income tax and pension indexation', 'Progresiniai pajamų mokesčiai ir pensijų indeksavimas'), axis: ['econ', -1] },
@@ -956,6 +1007,12 @@ const DEMANDS = {
   LIT: { text: bi('More powers for mayors and lower business taxes', 'Daugiau galių merams ir mažesni verslo mokesčiai'), axis: ['econ', 1] },
   KS: { text: bi('Constitutional protection of the traditional family', 'Tradicinės šeimos apsauga Konstitucijoje'), axis: ['social', 1] },
   LZP: { text: bi('A climate law for net zero by 2040', 'Klimato įstatymas: neutralumas iki 2040 m.'), axis: ['green', 1] },
+  NS: { text: bi('Stricter migration rules and protection of national identity', 'Griežtesnė migracijos politika ir tautinės tapatybės apsauga'), axis: ['social', 1] },
+  LLP: { text: bi('Cheaper utilities and less money for the military', 'Pigesnės komunalinės paslaugos ir mažiau lėšų kariuomenei'), axis: ['defense', -1] },
+  LRP: { text: bi('More money and powers for regional municipalities', 'Daugiau lėšų ir galių regionų savivaldybėms'), axis: ['econ', -1] },
+  TTS: { text: bi('Easier referendums and direct democracy', 'Lengviau inicijuojami referendumai ir tiesioginė demokratija'), axis: ['social', 1] },
+  LKDP: { text: bi('Bigger child benefits and tax relief for families', 'Didesnės išmokos vaikams ir mokesčių lengvatos šeimoms'), axis: ['econ', -1] },
+  ZP: { text: bi('A Samogitia development fund and protection of the Samogitian language', 'Žemaitijos plėtros fondas ir žemaičių kalbos apsauga'), axis: null },
   KITI: { text: bi('Local projects in their districts', 'Vietiniai projektai jų apygardose'), axis: null },
 };
 const AFFINITY = {
@@ -963,6 +1020,10 @@ const AFFINITY = {
   'LS|LVZS': -15, 'LVZS|TS': -10, 'LLRA|LS': -15, 'LSDP|LVZS': 10, 'LS|TS': 10, 'LP|TS': 5, 'DSVL|LSDP': 5, 'LLRA|TS': 5, 'LLRA|LSDP': 5,
   'DP|LSDP': 8, 'DP|NA': 5, 'KS|TS': 10, 'KS|LP': -40, 'KS|LS': -20, 'KS|LZP': -25, 'LP|LZP': 12, 'LZP|NA': -30, 'LIT|TS': 5, 'LIT|LS': 5,
   'DSVL|LZP': 10, 'KS|LVZS': 10, 'KS|LLRA': 5,
+  'LP|NS': -50, 'LS|NS': -35, 'LZP|NS': -35, 'NA|NS': 10, 'KS|NS': 10,
+  'LLP|TS': -60, 'LLP|LS': -50, 'LLP|LP': -50, 'LLP|LSDP': -25, 'DSVL|LLP': -20, 'LLP|LZP': -25, 'LLP|NS': -40,
+  'TS|TTS': -30, 'LP|TTS': -50, 'LS|TTS': -35, 'NA|TTS': 10, 'LVZS|TTS': 10,
+  'LRP|LSDP': 10, 'DSVL|LRP': 10, 'DP|LKDP': 15, 'LKDP|ZP': 10, 'DP|ZP': 10, 'LKDP|LP': -40, 'LKDP|LS': -20,
 };
 
 /* ============================================================
@@ -1954,6 +2015,12 @@ function initGG(p, r) {
     case 'LIT': return r.id === 'VNO' ? 18 : 6;
     case 'KS': return 10;
     case 'LZP': return rural ? 3 : 8;
+    case 'NS': return ['VNO', 'KNS', 'ABR'].includes(r.id) ? 10 : 5;
+    case 'LLP': return rural ? 8 : 5;
+    case 'LRP': return rural ? 18 : 6;
+    case 'TTS': return 5;
+    case 'LKDP': return ['KNS', 'MAR'].includes(r.id) ? 8 : 4;
+    case 'ZP': return ['TEL', 'TAU'].includes(r.id) ? 15 : r.id === 'KLP' ? 5 : 1;
     default: return 8;
   }
 }
@@ -2021,7 +2088,10 @@ function ceilingOf(p, r) {
   if (p === 'LP') return { VNO: 34, KNS: 26, ABR: 34, KLP: 16 }[r.id] || 9;
   if (p === 'LIT') return r.id === 'VNO' ? 26 : 16;
   if (p === 'LZP') return r.urban > 0.6 ? 24 : 10;
-  if (p === 'DP' || p === 'KS') return 24;
+  if (p === 'DP' || p === 'KS' || p === 'LRP') return 24;
+  if (p === 'NS' || p === 'LLP') return 20;
+  if (p === 'TTS' || p === 'LKDP') return 14;
+  if (p === 'ZP') return ['TEL', 'TAU'].includes(r.id) ? 30 : r.id === 'KLP' ? 12 : 5;
   return 58;
 }
 const satOf = (p, r, share) => clamp(1 - share / ceilingOf(p, r), 0.08, 1);
@@ -2032,6 +2102,8 @@ function geoMult(p, r) {
   if (p === 'TS' && r.id === 'ABR') return 1.2;
   if (p === 'LIT') return r.id === 'VNO' ? 1.3 : 0.8;
   if (p === 'LZP') return r.urban > 0.6 ? 1 : 0.6;
+  if (p === 'LRP') return r.urban < 0.6 ? 1.05 : 0.75;
+  if (p === 'ZP') return ['TEL', 'TAU'].includes(r.id) ? 1.3 : r.id === 'KLP' ? 0.8 : r.id === 'SIA' ? 0.6 : 0.25;
   return 1;
 }
 function traitMult(p, type, r) {
@@ -2043,7 +2115,10 @@ function traitMult(p, type, r) {
     if (p === 'NA') m *= 1.3;
     if (p === 'LVZS' && rural) m *= 1.2;
     if (p === 'LS' && !rural) m *= 1.1;
+    if (p === 'LRP' && rural) m *= 1.25;
+    if (p === 'TTS') m *= 1.2;
   } else if (type === 'digital') {
+    if (p === 'NS') m *= 1.25;
     if (p === 'LP') m *= 1.6;
     if (p === 'LS') m *= 1.25;
     if (p === 'LVZS' || p === 'LLRA') m *= 0.8;
@@ -2051,6 +2126,7 @@ function traitMult(p, type, r) {
   } else if (type === 'tv') {
     if (p === 'LVZS') m *= 1.2;
     if (p === 'LSDP') m *= 1.1;
+    if (p === 'LLP') m *= 1.3;
     if (p === 'LP') m *= 0.7;
   }
   return m;
@@ -2161,7 +2237,7 @@ function newGame(pid, advisor = true, diff = 'normal', scen = 'standard') {
   const leans = buildLeans(rand);
   const stars = {};
   PARTY_IDS.filter((p) => p !== pid).forEach((p) => {
-    const n = ['TS', 'LSDP', 'NA', 'LVZS'].includes(p) ? 3 : ['DP', 'LIT', 'KS', 'LZP'].includes(p) ? 1 : 2;
+    const n = ['TS', 'LSDP', 'NA', 'LVZS'].includes(p) ? 3 : OUTSIDERS.includes(p) ? 1 : 2;
     const cids = Object.keys(leans);
     for (let k = 0; k < n; k++) {
       const w = cids.map((cid) => {
@@ -2372,7 +2448,7 @@ function doNational(g, id, target) {
   } else if (id === 'small') {
     const amt = Math.round(smallAmount(g) * (0.9 + Math.random() * 0.2));
     g.money += amt; g.weekRaised = (g.weekRaised || 0) + amt;
-    if (['NA', 'LVZS', 'LP', 'LLRA', 'DP', 'KS', 'LZP'].includes(p)) g.momentum[p] = clamp(g.momentum[p] + 0.4, -10, 10);
+    if (['NA', 'LVZS', 'LP', 'LLRA', 'DP', 'KS', 'LZP', 'NS', 'LLP', 'LRP', 'TTS', 'LKDP', 'ZP'].includes(p)) g.momentum[p] = clamp(g.momentum[p] + 0.4, -10, 10);
     msg = tt(`Small donors chipped in ${fmtEur(amt)}`, `Smulkūs aukotojai suaukojo ${fmtEur(amt)}`);
   } else if (id === 'lobby') {
     g.pc -= A.pc;
@@ -2783,9 +2859,9 @@ function endWeek(g) {
    Event & debate effects
    ============================================================ */
 const TAG_BONUS = {
-  welfare: { LSDP: 1.4, DSVL: 1.15, LVZS: 1.1, DP: 1.2 }, security: { TS: 1.3, LS: 1.1 }, populist: { NA: 1.4, LVZS: 1.15, DP: 1.15 },
-  agri: { LVZS: 1.4, LSDP: 1.1 }, business: { LS: 1.3, TS: 1.15, LIT: 1.15 }, youth: { LP: 1.5, LS: 1.2, LZP: 1.2 }, minority: { LLRA: 2 },
-  moderate: { DSVL: 1.3 }, green: { LP: 1.2, DSVL: 1.25, LZP: 1.5 }, traditional: { LVZS: 1.4, LLRA: 1.3, NA: 1.1, KS: 1.4 }, progressive: { LP: 1.5, LS: 1.2, LZP: 1.2 },
+  welfare: { LSDP: 1.4, DSVL: 1.15, LVZS: 1.1, DP: 1.2, LLP: 1.2, LRP: 1.2, LKDP: 1.15 }, security: { TS: 1.3, LS: 1.1, NS: 1.2 }, populist: { NA: 1.4, LVZS: 1.15, DP: 1.15, LLP: 1.2, TTS: 1.2 },
+  agri: { LVZS: 1.4, LSDP: 1.1, LRP: 1.1 }, business: { LS: 1.3, TS: 1.15, LIT: 1.15 }, youth: { LP: 1.5, LS: 1.2, LZP: 1.2 }, minority: { LLRA: 2 },
+  moderate: { DSVL: 1.3 }, green: { LP: 1.2, DSVL: 1.25, LZP: 1.5 }, traditional: { LVZS: 1.4, LLRA: 1.3, NA: 1.1, KS: 1.4, NS: 1.3, TTS: 1.2, LKDP: 1.3, ZP: 1.1 }, progressive: { LP: 1.5, LS: 1.2, LZP: 1.2 },
 };
 const TARGET_LABEL = { all: bi('Everywhere', 'Visur'), urban: bi('Cities', 'Miestai'), rural: bi('Villages', 'Kaimai'), border: bi('Border regions', 'Pasienis'), agri: bi('Farm country', 'Žemės ūkio kraštai') };
 function targetRegions(t) {
@@ -2883,6 +2959,12 @@ const STYLE_BONUS = {
   LIT: { business: 1, populist: 1, moderate: 0.5 },
   KS: { traditional: 2.5, security: 0.5, progressive: -2 },
   LZP: { green: 2.5, progressive: 1.5, youth: 1, populist: -1 },
+  NS: { traditional: 2, security: 1.5, attack: 1, progressive: -2 },
+  LLP: { populist: 2, welfare: 1.5, security: -1.5 },
+  LRP: { moderate: 1.5, welfare: 1 },
+  TTS: { populist: 2, traditional: 1.5, attack: 1 },
+  LKDP: { traditional: 2, welfare: 1, progressive: -2 },
+  ZP: { moderate: 1, traditional: 1 },
 };
 function scoreAnswer(g, ans) {
   let s = ans.base + ((STYLE_BONUS[g.player] || {})[ans.style] || 0);
@@ -2955,7 +3037,8 @@ function transferAff(g, q, X) {
   const d = sum(AXIS_IDS.map((a) => Math.abs(pq[a] - px[a])));
   let aff = Math.exp(-d / 150);
   if (q === 'NA' && ['TS', 'LS', 'LP'].includes(X)) aff *= 0.5;
-  if (['LP', 'LS', 'LZP'].includes(q) && ['NA', 'LLRA', 'KS'].includes(X)) aff *= 0.45;
+  if (['LP', 'LS', 'LZP'].includes(q) && ['NA', 'LLRA', 'KS', 'NS', 'TTS', 'LLP', 'LKDP'].includes(X)) aff *= 0.45;
+  if (X === 'LLP' && ['TS', 'LS', 'LP', 'LSDP', 'DSVL'].includes(q)) aff *= 0.5;
   if ((q === 'MINOR' || q === 'KITI') && ['NA', 'LVZS'].includes(X)) aff *= 1.3;
   return aff;
 }
@@ -3356,6 +3439,12 @@ const LOOKS = {
   LIT: { s: 0, hair: 'swept', hc: '#C9CDD2', suit: '#1E2B4F' },
   KS: { s: 1, hair: 'receding', hc: '#BABEC4', suit: '#4A3322', glasses: 'rect' },
   LZP: { s: 0, hair: 'bun', hc: '#8A4B2A', top: '#0E7C74', fem: true, earring: true },
+  NS: { s: 0, hair: 'short', hc: '#3A2A22', suit: '#3B1F1F', beard: 'short' },
+  LLP: { s: 1, hair: 'receding', hc: '#7A7F86', suit: '#4A2A1A' },
+  LRP: { s: 0, hair: 'bob', hc: '#6B4A2A', top: '#3F6212', fem: true },
+  TTS: { s: 1, hair: 'side', hc: '#BABEC4', suit: '#3F3A1E', glasses: 'rect' },
+  LKDP: { s: 0, hair: 'crop', hc: '#2E2620', suit: '#25275A' },
+  ZP: { s: 2, hair: 'shaved', hc: '#8A8F96', suit: '#2F2A45', mous: true },
   KITI: { s: 2, hair: 'short', hc: '#4A4A4A', suit: '#475569' },
   ruta: { s: 0, hair: 'long', hc: '#7A4A2E', top: '#2F6FDE', fem: true, scarf: true, bg: '#FFE08A' },
   host: { s: 1, hair: 'side', hc: '#2A2A2A', suit: '#111827', glasses: 'rect', headset: true, acc: '#DC2626', bg: '#C7D2FE' },
@@ -6475,7 +6564,7 @@ const FOCUS = {
   health: bi('local healthcare', 'sveikatos priežiūra vietoje'), roads: bi('roads and buses', 'keliai ir autobusai'), schools: bi('schools', 'mokyklos'), green: bi('climate and nature', 'klimatas ir gamta'),
   farmers: bi('farmers', 'ūkininkai'), housing: bi('affordable housing', 'įperkamas būstas'), trust: bi('honest politics', 'sąžininga politika'), minority: bi('minority rights', 'tautinių mažumų teisės'), youth: bi('young families', 'jaunos šeimos'),
 };
-const PARTY_FOCUS = { LSDP: ['welfare', 'health', 'schools'], TS: ['security', 'business', 'youth'], NA: ['trust', 'welfare', 'farmers'], DSVL: ['health', 'roads', 'trust'], LS: ['business', 'housing', 'youth'], LVZS: ['farmers', 'health', 'schools'], LP: ['housing', 'green', 'youth'], LLRA: ['minority', 'schools', 'welfare'], DP: ['welfare', 'roads', 'business'], LIT: ['business', 'roads', 'trust'], KS: ['schools', 'youth', 'trust'], LZP: ['green', 'farmers', 'health'], KITI: ['roads', 'trust', 'health'] };
+const PARTY_FOCUS = { LSDP: ['welfare', 'health', 'schools'], TS: ['security', 'business', 'youth'], NA: ['trust', 'welfare', 'farmers'], DSVL: ['health', 'roads', 'trust'], LS: ['business', 'housing', 'youth'], LVZS: ['farmers', 'health', 'schools'], LP: ['housing', 'green', 'youth'], LLRA: ['minority', 'schools', 'welfare'], DP: ['welfare', 'roads', 'business'], LIT: ['business', 'roads', 'trust'], KS: ['schools', 'youth', 'trust'], LZP: ['green', 'farmers', 'health'], NS: ['security', 'trust', 'schools'], LLP: ['welfare', 'health', 'trust'], LRP: ['roads', 'health', 'farmers'], TTS: ['trust', 'welfare', 'roads'], LKDP: ['youth', 'schools', 'welfare'], ZP: ['roads', 'schools', 'trust'], KITI: ['roads', 'trust', 'health'] };
 const HAIR_M = ['short', 'crop', 'quiff', 'side', 'swept', 'messy', 'receding', 'shaved', 'curly'];
 const HAIR_F = ['long', 'bob', 'bun'];
 const HAIR_C = ['#2A1C14', '#4A3426', '#6B4A2A', '#8A6A3A', '#C9A46A', '#D9B26A', '#7A7F86', '#BABEC4', '#1F1F1F', '#8A4B2A'];
@@ -6487,7 +6576,9 @@ function contests(p, r, cons, rand, inc, player) {
   if (p === 'LLRA') return ['VNO', 'VLC', 'KLP'].includes(r.id) || (cons[6] && /Nalšios|Rytų Sėlos/.test(cons[0]));
   if (p === 'LP') return cons[1] >= 0.5 || rand() < 0.35;
   if (p === 'KITI') return rand() < 0.55;
-  return rand() < ({ DP: 0.6, LIT: 0.55, KS: 0.45, LZP: 0.45 }[p] || 0.5);
+  if (p === 'ZP') return ['TEL', 'TAU'].includes(r.id) ? rand() < 0.85 : r.id === 'KLP' ? rand() < 0.3 : false;
+  if (p === 'LRP') return rand() < (cons[1] < 0.5 ? 0.55 : 0.2);
+  return rand() < ({ DP: 0.6, LIT: 0.55, KS: 0.45, LZP: 0.45, NS: 0.45, LLP: 0.4, TTS: 0.25, LKDP: 0.25 }[p] || 0.5);
 }
 // Base (unmodified) candidates for one district, cached per game seed.
 function baseCandidates(seed, cid, player) {
@@ -8041,22 +8132,25 @@ function consultations(g) {
   const me = g.player;
   const ranked = PARTY_IDS.filter((p) => S[p] > 0).sort((a, b) => S[b] - S[a]);
   const largest = ranked[0];
-  const rival = largest === me ? ranked[1] : largest;
+  // A party with no seats is not invited: the two largest groups are then the contenders.
+  const out = !(S[me] > 0);
+  const A = out ? ranked[0] : me;
+  const rival = out ? ranked[1] : largest === me ? ranked[1] : largest;
   const rows = ranked.map((q) => {
     let pick;
-    if (q === me) pick = me;
+    if (q === A) pick = A;
     else if (q === rival) pick = rival;
     else {
-      const a = compat(g, q, me), b = compat(g, q, rival);
-      pick = Math.abs(a - b) < 6 ? null : a > b ? me : rival;
+      const a = compat(g, q, A), b = compat(g, q, rival);
+      pick = Math.abs(a - b) < 6 ? null : a > b ? A : rival;
     }
     return { q, seats: S[q], pick };
   });
-  const forMe = sum(rows.filter((r) => r.pick === me).map((r) => r.seats));
+  const forMe = sum(rows.filter((r) => r.pick === A).map((r) => r.seats));
   const forRival = sum(rows.filter((r) => r.pick === rival).map((r) => r.seats));
   // The President backs whoever can show the broader support; a tie goes to the largest group.
-  const mandate = forMe > forRival ? me : forRival > forMe ? rival : largest;
-  return { rows, forMe, forRival, rival, largest, mandate };
+  const mandate = forMe > forRival ? A : forRival > forMe ? rival : largest;
+  return { rows, forMe, forRival, rival, largest, mandate, A, out };
 }
 function ConsultScreen({ g, act }) {
   const me = g.player;
@@ -8065,7 +8159,14 @@ function ConsultScreen({ g, act }) {
   useEffect(() => { if (shown >= C.rows.length) return undefined; const t = setTimeout(() => { setShown((n) => n + 1); SFX.play('tap'); }, 650); return () => clearTimeout(t); }, [shown]);
   const done = shown >= C.rows.length;
   const S = g.election.seats;
-  const mine = C.mandate === me;
+  const mine = !C.out && C.mandate === me;
+  const M = PARTIES[C.mandate];
+  const watch = () => act((gg) => {
+    const ai = aiCoalition(gg, C.mandate, null);
+    gg.result = { kind: 'opposition', leader: C.mandate, members: ai.members, seats: ai.total, ok: ai.ok };
+    gg.phase = 'result';
+    return null;
+  });
   const altOk = C.forMe >= 55;
   const R = PARTIES[C.rival];
   const startTalks = (noMandate) => act((gg) => {
@@ -8089,7 +8190,7 @@ function ConsultScreen({ g, act }) {
     gg.term = initTerm(gg); gg.phase = 'term';
     return null;
   });
-  const juniorOk = compat(g, C.rival, me) >= 45 && (() => { const j = aiCoalition(g, C.rival, me); return j && j.ok; })();
+  const juniorOk = !C.out && compat(g, C.rival, me) >= 45 && (() => { const j = aiCoalition(g, C.rival, me); return j && j.ok; })();
   return (
     <div className="max-w-lg lg:max-w-4xl mx-auto min-h-screen" style={{ ...GUTTER, paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 32px)' }}>
       <div className="pt-6">
@@ -8109,14 +8210,20 @@ function ConsultScreen({ g, act }) {
           <div key={r.q} className={`flex items-center gap-3 rounded-xl px-3 py-2 ${i < shown ? 'sbl-pop' : ''}`} style={{ background: 'rgba(255,255,255,.04)', border: `1px solid ${LINE}`, opacity: i < shown ? 1 : 0.25 }}>
             <Portrait who={r.q} size={38} square mood="ok" />
             <span className="min-w-0 flex-1"><span className="block font-bold truncate">{partyShort(r.q)} <span className="cx-num t-muted">· {r.seats}</span></span><span className="block text-[11px] t-muted truncate">{partyName(r.q)}</span></span>
-            {i < shown && (r.pick ? <span className="cx-chip px-2 py-0.5 text-xs shrink-0" style={{ background: r.pick === me ? GOOD_BG : BAD_BG }}>{tt('backs', 'remia')} {PARTIES[r.pick].short}</span> : <span className="cx-chip px-2 py-0.5 text-xs shrink-0">{tt('undecided', 'neapsisprendė')}</span>)}
+            {i < shown && (r.pick ? <span className="cx-chip px-2 py-0.5 text-xs shrink-0" style={{ background: C.out ? 'rgba(255,255,255,.08)' : r.pick === me ? GOOD_BG : BAD_BG }}>{tt('backs', 'remia')} {PARTIES[r.pick].short}</span> : <span className="cx-chip px-2 py-0.5 text-xs shrink-0">{tt('undecided', 'neapsisprendė')}</span>)}
           </div>
         ))}
       </div>
       {done && (
         <Card className="p-4 mt-4 sbl-pop">
-          <div className="flex items-center justify-between text-sm font-bold mb-2"><span>{tt('Seats backing you', 'Jus remia')}: <span className="cx-num" style={{ color: GREEN }}>{C.forMe}</span></span><span>{PARTIES[C.rival].short}: <span className="cx-num" style={{ color: RED }}>{C.forRival}</span></span></div>
-          {mine ? (
+          <div className="flex items-center justify-between text-sm font-bold mb-2"><span>{C.out ? PARTIES[C.A].short : tt('Seats backing you', 'Jus remia')}: <span className="cx-num" style={{ color: C.out ? TEXT : GREEN }}>{C.forMe}</span></span><span>{PARTIES[C.rival].short}: <span className="cx-num" style={{ color: RED }}>{C.forRival}</span></span></div>
+          {C.out ? (
+            <>
+              <div className="cx-title text-2xl leading-tight">{tt(`The President asks ${M.leader} (${M.short}) to form a government`, `Prezidentas formuoti Vyriausybę paveda ${M.leader} (${M.short})`)}</div>
+              <p className="text-sm font-semibold t-muted mt-1">{tt('Your party won no seats, so it was not invited. You follow the talks from outside the Seimas.', 'Jūsų partija negavo nė vieno mandato, todėl į konsultacijas nepakviesta. Derybas stebite iš už Seimo ribų.')}</p>
+              <Btn className="h-14 w-full mt-3 text-lg" onClick={watch}><ChevronRight size={20} />{tt('See the final result', 'Galutinis rezultatas')}</Btn>
+            </>
+          ) : mine ? (
             <>
               <div className="cx-title text-2xl leading-tight">{tt('The President asks you to form a government!', 'Prezidentas paveda jums formuoti Vyriausybę!')}</div>
               <Btn className="h-14 w-full mt-3 text-lg" onClick={() => startTalks(false)}><Handshake size={20} />{tt('Start coalition talks', 'Pradėti koalicijos derybas')}</Btn>
@@ -9748,7 +9855,7 @@ function ElectionNight({ g, onFinish, onDeals }) {
             </ul>
           )}
           <Btn className="h-16 text-lg w-full" onClick={() => onFinish(E.seats[me] >= MAJORITY ? 'majority' : 'coalition')}>
-            {E.seats[me] >= MAJORITY ? <>{tt('Form your government', 'Formuoti Vyriausybę')} <Crown size={22} /></> : <>{tt('Start building a team', 'Pradėti derybas')} <Handshake size={22} /></>}
+            {E.seats[me] >= MAJORITY ? <>{tt('Form your government', 'Formuoti Vyriausybę')} <Crown size={22} /></> : <>{E.seats[me] > 0 ? tt('Start building a team', 'Pradėti derybas') : tt('Who will govern?', 'Kas valdys?')} <Handshake size={22} /></>}
           </Btn>
         </div>
       )}

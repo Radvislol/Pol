@@ -4,6 +4,14 @@ A political-drama strategy game about the **2028 Lithuanian Seimas election**, p
 
 > Fictional simulation. Real parties and leaders appear for context; every event, quote and result is invented. Party emblems are original designs, not official logos, and ten party leaders (Mindaugas Sinkevičius, Laurynas Kasčiūnas, Remigijus Žemaitaitis, Virginijus Sinkevičius, Viktorija Čmilytė-Nielsen, Aurelijus Veryga, Vytautas Mitalas, Valdemar Tomaševski, Gintaras Steponėnas and Artūras Zuokas) are shown with photos supplied by the game's owner; every other portrait is an original cartoon drawing. Starting polls roughly follow late-2026 averages, and party leaders were checked in November 2026.
 
+## More parties
+
+- **18 playable parties.** Six real parties have been added: Nacionalinis susivienijimas, Lietuvos liaudies partija, Lietuvos regionų partija, Tautos ir teisingumo sąjunga, Lietuvos krikščioniškosios demokratijos partija and Žemaičių partija. Leaders were checked on Wikipedia in November 2026.
+- **Starting support** follows their 2024 results (about 0.3–2.8% nationally), split by region. Žemaičių partija is strong only in Telšiai and Tauragė. The Regions Party does best in small towns, and the National Alliance does best in Vilnius, Kaunas and abroad.
+- **Each party has its own perk, policy positions, coalition demand, preferred ministries and relations with other parties.** Lietuvos liaudies partija, for example, is shunned by almost every mainstream party.
+- **Vytautas Sinica now runs as National Alliance** in the Pilaitė–Karoliniškės district he won in 2024.
+- **A party that wins no seats is not invited to the President's consultations.** You watch the two largest groups compete for the mandate instead.
+
 ## Realistic rules, polls and forming a government
 
 - **Round-one rule from the 2024 Electoral Code.** A district candidate wins outright with the votes of more than one fifth of all registered voters in the district. Otherwise the top two go to a runoff. With realistic turnout, about 10 of the 71 districts are usually settled in round one.
@@ -243,8 +251,14 @@ A political-drama strategy game about the **2028 Lithuanian Seimas election**, p
 | Laisvė ir teisingumas | Artūras Zuokas | Outsider |
 | Krikščionių sąjunga | Rimantas Jonas Dagys | Outsider |
 | Lietuvos žaliųjų partija | Ieva Budraitė | Outsider |
+| Nacionalinis susivienijimas | Vytautas Sinica | Outsider (1 member of the Seimas) |
+| Lietuvos liaudies partija | Tauras Jakelaitis | Outsider |
+| Lietuvos regionų partija | Giedrė Pavasarytė | Outsider |
+| Tautos ir teisingumo sąjunga | Rimas Jonas Jankūnas | Outsider |
+| Lietuvos krikščioniškosios demokratijos partija | Mindaugas Puidokas | Outsider |
+| Žemaičių partija | Stasys Gvažiauskas | Outsider |
 
-The Labour Party (DP) leader comes from an undated party directory listing, so it may be out of date. The Lithuanian Regions Party is left out because its leadership was disputed at the time of checking.
+The Labour Party (DP) leader comes from an undated party directory listing, so it may be out of date. The Lithuanian Regions Party was left out earlier because its leadership was disputed. Both the Lithuanian and English Wikipedia now name Giedrė Pavasarytė as chair, after Jonas Pinskus was expelled from the party.
 
 ## Art
 
@@ -289,7 +303,7 @@ Every leader and character has an original cartoon portrait whose expression rea
 - **141 seats, mixed system.** There are 70 proportional list seats, split by Hare–Niemeyer largest remainder among parties with at least 5% of the national vote. The other 71 are single-mandate constituencies, decided by two rounds.
 - **Runoffs.** A candidate who wins more than 50% in round one takes the seat. Otherwise the top two go to a runoff. Voters of eliminated parties transfer by ideological distance across four policy axes, and some stay home. There is also anti-landslide tactical voting against a runaway national leader.
 - **13 regions.** Map outlines are simplified from the MIT-licensed `@react-map/lithuania` package (see `THIRD_PARTY_NOTICES.md`). Vilnius and Kaunas cities are split from their counties, and there is a seat for Lithuanians abroad. Each region has a population, an urban/rural split, local issues, ideal policy positions, and named constituencies with their own leans. For example, the Polish-minority vote is concentrated in Šalčininkai and Naujoji Vilnia.
-- **12 playable parties.** Eight are in the Seimas today: LSDP, TS-LKD, Nemuno aušra, DSVL, Liberalų sąjūdis, LVŽS, Laisvės partija and LLRA-KŠS. Four are outsiders below 5%: Darbo partija, Laisvė ir teisingumas, Krikščionių sąjunga and the Greens. Each has its own funds, strongholds and passive trait. AI rivals run their own weekly campaigns.
+- **18 playable parties.** Eight are in the Seimas today: LSDP, TS-LKD, Nemuno aušra, DSVL, Liberalų sąjūdis, LVŽS, Laisvės partija and LLRA-KŠS. Ten are outsiders below 5%: Darbo partija, Laisvė ir teisingumas, Krikščionių sąjunga, the Greens, Nacionalinis susivienijimas, Lietuvos liaudies partija, Lietuvos regionų partija, Tautos ir teisingumo sąjunga, Lietuvos krikščioniškosios demokratijos partija and Žemaičių partija. Each has its own funds, strongholds and passive trait. AI rivals run their own weekly campaigns.
 - **Each week.** You get 6 energy plus donations. Region actions are rallies, online ads, TV/radio, door-to-door canvassing, star candidates and attack ads. You can also shift your promises, raise money, gamble, dig for dirt, and run national actions.
 - **Events.** LRT debates happen in weeks 4, 8 and 11. Breaking-news events arrive every one or two weeks, each with three choices, and scandals are triggered by risky fundraising.
 - **Election night and coalition talks.** Election night animates the live count, round one and the runoffs. Coalition talks cover willingness, policy demands, political-capital sweeteners, ministry allocation and a stability score. A partner much bigger than you wants the Prime Minister's job, so small parties usually have to grow first or join as junior partners.
