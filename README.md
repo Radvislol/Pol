@@ -4,6 +4,15 @@ A political-drama strategy game about the **2028 Lithuanian Seimas election**, p
 
 > Fictional simulation. Real parties and leaders appear for context; every event, quote and result is invented. Party emblems are original designs, not official logos, and ten party leaders (Mindaugas Sinkevičius, Laurynas Kasčiūnas, Remigijus Žemaitaitis, Virginijus Sinkevičius, Viktorija Čmilytė-Nielsen, Aurelijus Veryga, Vytautas Mitalas, Valdemar Tomaševski, Gintaras Steponėnas and Artūras Zuokas) are shown with photos supplied by the game's owner; every other portrait is an original cartoon drawing. Starting polls roughly follow late-2026 averages, and party leaders were checked in November 2026.
 
+## Realistic rules, polls and forming a government
+
+- **Round-one rule from the 2024 Electoral Code.** A district candidate wins outright with the votes of more than one fifth of all registered voters in the district. Otherwise the top two go to a runoff. With realistic turnout, about 10 of the 71 districts are usually settled in round one.
+- **Forecast uncertainty shrinks over time.** The 120-run forecast adds extra national and regional error the further away election day is. A typical seat range is about ±8 seats twelve weeks out and about ±3 seats on election day.
+- **Several pollsters.** Two or three companies publish each week, each with its own sample size and house effect. The national trend shows their average. Polls › Polls has a "Pollsters" table with each company's latest numbers and the average.
+- **Consultations at the Presidency.** After election night every parliamentary group says whom it backs for Prime Minister. The President gives the mandate to whoever has the broader support, with ties going to the largest group. Without the mandate you can join the rival's coalition, go into opposition, or try your own coalition if at least 55 seats backed you. A coalition built without the mandate starts 10 points less stable.
+- **The government programme.** After the cabinet is sworn in, you pick two priority bills and put the programme to a Seimas vote. Approval adds stability and approval. If it is rejected, you can revise and resubmit it once. Priority bills see fewer coalition rebels and have a bigger effect when passed.
+- **Real 2024 district results are not included yet.** The VRK results site blocks automated downloads, so constituency leans are still calibrated from the 2024 winners. Exported VRK results can be added later.
+
 ## Look and layout
 
 - **Dark "political drama" design**: night-blue glass panels over a blurred landmark, condensed italic headlines on black title bars, amber call-to-action buttons, white answer pills, party-coloured rows, shield emblems, white stat pills and a rolling national-news ticker.
